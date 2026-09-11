@@ -10,10 +10,10 @@ export default function ThemeToggle() {
     // Default to dark mode for Gaming/Tech vibe
     const saved = localStorage.getItem('techgear_theme');
     if (saved === 'light') {
-      setIsDark(false);
+      setTimeout(() => setIsDark(false), 0);
       document.documentElement.classList.remove('dark');
     } else {
-      setIsDark(true);
+      setTimeout(() => setIsDark(true), 0);
       document.documentElement.classList.add('dark');
     }
   }, []);
@@ -22,11 +22,11 @@ export default function ThemeToggle() {
     if (isDark) {
       document.documentElement.classList.remove('dark');
       localStorage.setItem('techgear_theme', 'light');
-      setIsDark(false);
+      setTimeout(() => setIsDark(false), 0);
     } else {
       document.documentElement.classList.add('dark');
       localStorage.setItem('techgear_theme', 'dark');
-      setIsDark(true);
+      setTimeout(() => setIsDark(true), 0);
     }
   };
 

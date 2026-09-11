@@ -7,17 +7,20 @@ import {
   getOrderById,
   updateOrderStatus,
   handleVnpayReturn,
+  handleVnpayIpn,
   handleMockPayment,
+  handlePaymentWebhook,
 } from '../controllers/orderController';
 import { authenticateToken, optionalAuthenticateToken, requireRole } from '../middlewares/auth';
+import { orderRateLimiter } from '../middlewares/rateLimiter';
 
 const router = Router();
 
 // Public / Customer order lookup
 router.get('/lookup', lookupOrder);
 
-// Create order (optional auth for guest checkout or logged in user)
-router.post('/', optionalAuthenticateToken, createOrder);
+// Create order with rate limiting (optional auth for guest checkout or logged in user)
+router.post('/', orderRateLimiter, optionalAuthenticateToken, createOrder);
 
 // Customer order history
 router.get('/my-orders', authenticateToken, getMyOrders);
@@ -31,8 +34,11 @@ router.get('/:id', optionalAuthenticateToken, getOrderById);
 // Update status (admin/staff)
 router.patch('/:id/status', authenticateToken, requireRole(['admin', 'staff']), updateOrderStatus);
 
-// VNPAY Callbacks
+// VNPAY & Online Payment Callbacks / Webhooks
 router.get('/payment/vnpay-return', handleVnpayReturn);
+router.get('/payment/vnpay-ipn', handleVnpayIpn);
+router.post('/payment/vnpay-ipn', handleVnpayIpn);
+router.post('/payment/webhook', handlePaymentWebhook);
 router.post('/payment/mock-pay', handleMockPayment);
 
 export default router;

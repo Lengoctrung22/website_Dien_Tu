@@ -50,7 +50,8 @@ export default function AdminUsersPage() {
   };
 
   useEffect(() => {
-    loadUsers();
+    setTimeout(() => loadUsers(), 0);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roleFilter]);
 
   const handleToggleStatus = async (user: any) => {
@@ -121,7 +122,7 @@ export default function AdminUsersPage() {
       if (res.success) {
         setFeedback(`Đã tạo tài khoản nhân viên "${newStaff.fullName}" thành công!`);
         setModalOpen(false);
-        loadUsers();
+        setTimeout(() => loadUsers(), 0);
       } else {
         alert(res.message || 'Lỗi khi tạo tài khoản');
       }

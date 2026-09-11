@@ -36,13 +36,13 @@ export default function CheckoutPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    setMounted(true);
+    setTimeout(() => setMounted(true), 0);
     if (user) {
-      setFormData((prev) => ({
+      setTimeout(() => setFormData((prev) => ({
         ...prev,
         name: user.fullName || '',
         phone: user.phone || '',
-      }));
+      })), 0);
     }
   }, [user]);
 

@@ -26,8 +26,8 @@ export default function ProfilePage() {
     }
 
     if (user) {
-      setFullName(user.fullName || '');
-      setPhone(user.phone || '');
+      setTimeout(() => setFullName(user.fullName || ''), 0);
+      setTimeout(() => setPhone(user.phone || ''), 0);
     }
 
     async function loadMyOrders() {

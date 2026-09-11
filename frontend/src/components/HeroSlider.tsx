@@ -66,7 +66,7 @@ export default function HeroSlider() {
   useEffect(() => {
     if (!emblaApi) return;
     emblaApi.on('select', onSelect);
-    onSelect();
+    setTimeout(() => onSelect(), 0);
   }, [emblaApi, onSelect]);
 
   return (

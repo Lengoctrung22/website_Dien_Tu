@@ -49,12 +49,13 @@ function InventoryContent() {
   };
 
   useEffect(() => {
-    loadInventory();
+    setTimeout(() => loadInventory(), 0);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterLowStock]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    loadInventory();
+    setTimeout(() => loadInventory(), 0);
   };
 
   const handleAdjustStock = async (e: React.FormEvent) => {
@@ -76,7 +77,7 @@ function InventoryContent() {
         setFeedback(`Đã cập nhật tồn kho cho "${selectedProduct.name}"!`);
         setSelectedProduct(null);
         setNote('');
-        loadInventory();
+        setTimeout(() => loadInventory(), 0);
         setTimeout(() => setFeedback(null), 3000);
       }
     } catch {

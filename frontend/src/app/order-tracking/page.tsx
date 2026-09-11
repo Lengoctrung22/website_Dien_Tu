@@ -64,8 +64,9 @@ function OrderTrackingContent() {
 
   useEffect(() => {
     if (initialOrderCode && initialPhone) {
-      handleLookup();
+      setTimeout(() => handleLookup(), 0);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialOrderCode, initialPhone]);
 
   // Order milestones definition
@@ -269,7 +270,7 @@ function OrderTrackingContent() {
                 </div>
                 {order.customerInfo?.note && (
                   <p className="italic text-slate-400 text-[11px] pt-1">
-                    Ghi chú: "{order.customerInfo.note}"
+                    Ghi chú: &quot;{order.customerInfo.note}&quot;
                   </p>
                 )}
               </div>

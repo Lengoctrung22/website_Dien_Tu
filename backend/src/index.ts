@@ -7,6 +7,7 @@ import apiRoutes from './routes';
 import { errorHandler } from './middlewares/errorHandler';
 import { User } from './models/User';
 import { seedDatabase } from './scripts/seed';
+import { UPLOAD_DIR } from './config/upload';
 
 const app = express();
 
@@ -18,6 +19,10 @@ app.use(cors({
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve uploaded static files
+app.use('/uploads', express.static(UPLOAD_DIR));
+app.use('/api/uploads', express.static(UPLOAD_DIR));
 
 // Health Check
 app.get('/api/health', (req, res) => {

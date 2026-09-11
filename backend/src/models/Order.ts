@@ -26,6 +26,7 @@ export interface IOrder extends Document {
   customerInfo: ICustomerInfo;
   items: IOrderItem[];
   totalAmount: number;
+  shippingFee: number;
   paymentMethod: PaymentMethod;
   paymentStatus: PaymentStatus;
   orderStatus: OrderStatus;
@@ -71,6 +72,7 @@ const orderSchema = new Schema<IOrder>(
     customerInfo: { type: customerInfoSchema, required: true },
     items: { type: [orderItemSchema], required: true },
     totalAmount: { type: Number, required: true, min: 0 },
+    shippingFee: { type: Number, default: 0, min: 0 },
     paymentMethod: {
       type: String,
       enum: ['COD', 'ONLINE'],

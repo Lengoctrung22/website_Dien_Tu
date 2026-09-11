@@ -6,6 +6,7 @@ import {
   updateProduct,
   deleteProduct,
   toggleHotStatus,
+  reorderHotProducts,
   updateStock,
   getFilterMetadata,
 } from '../controllers/productController';
@@ -19,6 +20,7 @@ router.get('/:slugOrId', getProductBySlugOrId);
 
 // Protected routes (Admin & Staff)
 router.post('/', authenticateToken, requireRole(['admin', 'staff']), createProduct);
+router.patch('/hot/reorder', authenticateToken, requireRole(['admin', 'staff']), reorderHotProducts);
 router.put('/:id', authenticateToken, requireRole(['admin', 'staff']), updateProduct);
 router.delete('/:id', authenticateToken, requireRole(['admin']), deleteProduct);
 router.patch('/:id/hot', authenticateToken, requireRole(['admin', 'staff']), toggleHotStatus);

@@ -30,7 +30,7 @@ export default function Header() {
   const { user, logout, isStaff } = useAuthStore();
 
   useEffect(() => {
-    setIsMounted(true);
+    setTimeout(() => setIsMounted(true), 0);
   }, []);
 
   const handleSearchSubmit = (e: React.FormEvent) => {

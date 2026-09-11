@@ -67,6 +67,27 @@ export const verifyVnpaySignature = (queryParams: Record<string, any>): { isVali
   };
 };
 
+/**
+ * Verify incoming payment webhook with HMAC SHA256 signature
+ */
+export const verifyWebhookSignature = (payload: string | object, signature: string): boolean => {
+  if (!signature || typeof signature !== 'string') return false;
+  const rawData = typeof payload === 'string' ? payload : JSON.stringify(payload);
+  const expectedHash = crypto
+    .createHmac('sha256', ENV.VNPAY.hashSecret)
+    .update(rawData)
+    .digest('hex');
+
+  try {
+    const bufA = Buffer.from(signature.toLowerCase(), 'hex');
+    const bufB = Buffer.from(expectedHash.toLowerCase(), 'hex');
+    if (bufA.length === 0 || bufA.length !== bufB.length) return false;
+    return crypto.timingSafeEqual(bufA, bufB);
+  } catch {
+    return false;
+  }
+};
+
 function sortObject(obj: Record<string, any>): Record<string, any> {
   const sorted: Record<string, any> = {};
   const keys = Object.keys(obj).sort();

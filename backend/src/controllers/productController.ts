@@ -254,6 +254,31 @@ export const toggleHotStatus = async (req: Request, res: Response) => {
   }
 };
 
+export const reorderHotProducts = async (req: Request, res: Response) => {
+  try {
+    const { items } = req.body; // Array of { id: string, hotOrder: number }
+
+    if (!Array.isArray(items)) {
+      return res.status(400).json({ success: false, message: 'Dữ liệu danh sách thứ tự không hợp lệ' });
+    }
+
+    const updateOps = items.map((item) =>
+      Product.findByIdAndUpdate(item.id, { hotOrder: Number(item.hotOrder) })
+    );
+    await Promise.all(updateOps);
+
+    const updatedProducts = await Product.find({ isHot: true, isActive: true }).sort({ hotOrder: 1, createdAt: -1 });
+
+    res.json({
+      success: true,
+      message: 'Cập nhật thứ tự hiển thị sản phẩm HOT thành công',
+      data: updatedProducts,
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 export const updateStock = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;

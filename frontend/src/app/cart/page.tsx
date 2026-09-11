@@ -23,7 +23,7 @@ export default function CartPage() {
   const [feedback, setFeedback] = useState<string | null>(null);
 
   useEffect(() => {
-    setMounted(true);
+    setTimeout(() => setMounted(true), 0);
   }, []);
 
   if (!mounted) {

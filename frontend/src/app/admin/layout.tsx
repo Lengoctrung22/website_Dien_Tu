@@ -35,7 +35,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    setTimeout(() => setMounted(true), 0);
     if (!user || !isStaff()) {
       router.push('/auth/login');
     }

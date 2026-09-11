@@ -38,7 +38,8 @@ export default function AdminOrdersPage() {
   };
 
   useEffect(() => {
-    loadOrders();
+    setTimeout(() => loadOrders(), 0);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter]);
 
   const handleStatusChange = async (orderId: string, orderStatus: string) => {

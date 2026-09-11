@@ -61,7 +61,8 @@ export default function AdminProductsPage() {
   };
 
   useEffect(() => {
-    loadProducts();
+    setTimeout(() => loadProducts(), 0);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterHotOnly]);
 
   const openAddModal = () => {
@@ -178,7 +179,7 @@ export default function AdminProductsPage() {
         if (res.success) {
           setFeedback('Đã cập nhật sản phẩm thành công!');
           setModalOpen(false);
-          loadProducts();
+          setTimeout(() => loadProducts(), 0);
         }
       } else {
         const res = await fetchApi('/products', {
@@ -188,7 +189,7 @@ export default function AdminProductsPage() {
         if (res.success) {
           setFeedback('Đã thêm sản phẩm mới thành công!');
           setModalOpen(false);
-          loadProducts();
+          setTimeout(() => loadProducts(), 0);
         }
       }
     } catch {
@@ -533,7 +534,7 @@ export default function AdminProductsPage() {
                     onChange={(e) => setFormData({ ...formData, isHot: e.target.checked })}
                     className="rounded text-indigo-600"
                   />
-                  <span>Ghim hiển thị tại mục "Sản Phẩm HOT"</span>
+                  <span>Ghim hiển thị tại mục &quot;Sản Phẩm HOT&quot;</span>
                 </label>
 
                 {formData.isHot && (

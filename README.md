@@ -49,7 +49,7 @@ Hệ thống có sẵn nút **"Bấm Để Điền Nhanh"** tại trang Đăng n
   - Tích hợp **Mock Payment Mode** với 2 nút: *Thành công (Test Pass)* và *Thất bại (Test Fail)* cùng hiệu ứng pháo hoa Confetti.
 - **Tra cứu đơn hàng (`/order-tracking`):**
   - Tra cứu nhanh bằng **Mã đơn hàng** (`TG...`) + **Số điện thoại**.
-  - Hiển thị tiến trình trực quan 4 bước: `Chờ xác nhận` ➔ `Đang xử lý` ➔ `Đang giao hàng` ➔ `Đã giao` (hoặc thông báo `Đã hủy`).
+  - Hiển thị tiến trình trực quan đầy đủ **5 mốc chuẩn SRS**: `Chờ xác nhận` ➔ `Đang xử lý` ➔ `Đang giao hàng` ➔ `Đã giao` ➔ `Đã hủy`.
 - **Tài khoản cá nhân (`/profile`):** Cập nhật thông tin và xem lịch sử các đơn hàng đã đặt.
 
 ---
@@ -68,17 +68,20 @@ Hệ thống có sẵn nút **"Bấm Để Điền Nhanh"** tại trang Đăng n
   - Bảng lịch sử kiểm kê và xuất nhập kho (**Inventory Audit Log**).
 - **Quản lý sản phẩm & Ghim HOT (`/admin/products`):**
   - Thêm, sửa, xóa sản phẩm đầy đủ thông số.
+  - **Tải ảnh trực tiếp từ thư viện máy tính (File Upload)**: Tích hợp module upload hình ảnh (`POST /api/upload`) bằng `multer`, hỗ trợ kéo thả (drag-and-drop) hoặc mở tệp từ máy tính (PNG, JPG, JPEG, WEBP, GIF tối đa 10MB), tự động preview thumbnail, đổi/xóa ảnh và hỗ trợ cả thư viện ảnh phụ (gallery), song song với nhập URL trực tiếp.
   - **Module chọn và ghim (Pin/Toggle)** sản phẩm hiển thị tại mục "Sản phẩm HOT" ngoài trang chủ.
-  - Điều chỉnh thứ tự ưu tiên hiển thị (`hotOrder`).
+  - **Sắp xếp thứ tự hiển thị bằng Kéo Thả (Drag-and-Drop Order)** hỗ trợ HTML5 gesture và lưu tự động vào database.
 - **Quản lý đơn hàng (`/admin/orders`):**
   - Xem tất cả đơn hàng, tìm kiếm theo mã đơn hoặc số điện thoại.
   - Lọc theo trạng thái đơn hàng và trạng thái thanh toán.
   - Cập nhật trạng thái đơn (khi chọn `Đã hủy`, hệ thống sẽ tự động hoàn lại tồn kho cho sản phẩm).
+  - Tích hợp **Rate Limiting** bảo vệ endpoint đặt hàng chống spam, **Atomic Reservation** chống overselling/race conditions khi có nhiều đơn đồng thời.
+  - Tích hợp **VNPAY IPN & Payment Webhook** bảo mật bằng chữ ký HMAC SHA256 / SHA512.
   - Modal xem chi tiết sản phẩm và địa chỉ người nhận.
 - **Quản lý người dùng & Phân quyền RBAC (`/admin/users`):**
   - Danh sách khách hàng kèm tổng giá trị chi tiêu vòng đời (**Customer LTV**), số lượng đơn hàng đã đặt.
   - Chức năng khóa / mở khóa tài khoản khách hàng.
-  - Thêm tài khoản nhân viên mới và gán quyền theo mẫu: `Super Admin`, `Warehouse Manager`, `Order Processor`, `Sales Support`.
+  - Thêm tài khoản nhân viên mới và **Chỉnh sửa vai trò & phân quyền trực tiếp** theo mẫu: `Super Admin`, `Warehouse Manager`, `Order Processor`, `Sales Support`.
 
 ---
 
