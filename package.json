@@ -1,0 +1,24 @@
+{
+  "name": "website-dien-tu",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TechGear Pro - Hệ thống thương mại điện tử chuyên thiết bị & phụ kiện máy tính cao cấp",
+  "scripts": {
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build:backend": "npm --prefix backend run build",
+    "build:frontend": "npm --prefix frontend run build",
+    "seed": "npm --prefix backend run seed",
+    "test:verify": "npm --prefix backend exec tsx src/tests/verify.ts"
+  },
+  "keywords": [
+    "ecommerce",
+    "gaming-gear",
+    "nextjs",
+    "express",
+    "mongodb",
+    "vnpay"
+  ],
+  "author": "TechGear Pro Team",
+  "license": "MIT"
+}
