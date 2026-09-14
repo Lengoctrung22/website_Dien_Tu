@@ -60,6 +60,7 @@ const upload = multer({
   storage,
   limits: {
     fileSize: MAX_FILE_SIZE_BYTES,
+    files: 10,
   },
   fileFilter,
 });
@@ -88,6 +89,12 @@ export const handleUploadMiddleware = (
         return res.status(400).json({
           success: false,
           message: 'Dung lượng tệp vượt quá giới hạn cho phép (Tối đa 10MB)',
+        });
+      }
+      if (err.code === 'LIMIT_FILE_COUNT') {
+        return res.status(400).json({
+          success: false,
+          message: 'Số lượng tệp vượt quá giới hạn cho phép (Tối đa 10 tệp trong một lần tải lên)',
         });
       }
       return res.status(400).json({

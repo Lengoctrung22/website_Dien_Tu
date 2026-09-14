@@ -32,6 +32,79 @@ import {
 import { fetchApi } from '@/lib/api';
 import { formatVND } from '@/lib/utils';
 
+const COLORS = ['#06b6d4', '#8b5cf6', '#10b981', '#f59e0b'];
+
+const CustomPieTooltip = ({ active, payload }: any) => {
+  if (active && payload && payload.length) {
+    const data = payload[0];
+    const item = data.payload || {};
+    const name = item.name || data.name || 'Sản phẩm';
+    const quantity = item.quantity ?? data.value ?? 0;
+    const color = item.color || data.payload?.fill || data.color || '#8b5cf6';
+    const percent =
+      item.percent !== undefined && item.percent !== null
+        ? item.percent
+        : data.percent !== undefined && data.percent !== null
+        ? Math.round(data.percent * 100)
+        : null;
+
+    return (
+      <div className="bg-slate-950/95 backdrop-blur-md border border-slate-700/80 px-3.5 py-2.5 rounded-xl shadow-2xl flex items-center gap-2.5 pointer-events-none z-50">
+        <span
+          className="w-3 h-3 rounded-full flex-shrink-0 shadow-sm ring-2 ring-white/20"
+          style={{ backgroundColor: color }}
+        />
+        <div className="flex items-center gap-2 text-xs">
+          <span className="font-semibold text-slate-200">{name}:</span>
+          <span className="font-black text-white text-sm">{quantity} chiếc</span>
+          {percent !== null && (
+            <span className="font-bold text-cyan-400 bg-cyan-950/70 px-1.5 py-0.5 rounded border border-cyan-500/30 text-[11px]">
+              {percent}%
+            </span>
+          )}
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
+const CustomAreaTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-slate-950/95 backdrop-blur-md border border-slate-700/80 px-4 py-2.5 rounded-xl shadow-2xl space-y-1 pointer-events-none z-50">
+        <p className="text-[11px] font-semibold text-slate-400">{label}</p>
+        <div className="flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-sm ring-2 ring-indigo-400/30" />
+          <span className="text-xs font-medium text-slate-300">Doanh thu:</span>
+          <span className="text-sm font-black text-white">
+            {formatVND(Number(payload[0].value))}
+          </span>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
+const CustomBarTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-slate-950/95 backdrop-blur-md border border-slate-700/80 px-4 py-2.5 rounded-xl shadow-2xl space-y-1 pointer-events-none z-50">
+        <p className="text-[11px] font-semibold text-slate-400">{label}</p>
+        <div className="flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-sm ring-2 ring-cyan-300/30" />
+          <span className="text-xs font-medium text-slate-300">Doanh thu:</span>
+          <span className="text-sm font-black text-cyan-300">
+            {formatVND(Number(payload[0].value))}
+          </span>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
 export default function AdminDashboardPage() {
   const [summary, setSummary] = useState<any>(null);
   const [period, setPeriod] = useState<'weekly' | 'monthly' | 'yearly'>('monthly');
@@ -80,15 +153,19 @@ export default function AdminDashboardPage() {
       setLoading(true);
       const res = await fetchApi('/admin/daily-categories');
       if (res.success && res.data) {
-        setDailyCategoryData(res.data.categories || []);
-        setDailyTotalSold(res.data.totalProductsSoldToday || 0);
+        const total = res.data.totalProductsSoldToday || 0;
+        const categories = (res.data.categories || []).map((cat: any, idx: number) => ({
+          ...cat,
+          color: cat.color || COLORS[idx % COLORS.length],
+          percent: total > 0 ? Math.round((cat.quantity / total) * 100) : 0,
+        }));
+        setDailyCategoryData(categories);
+        setDailyTotalSold(total);
       }
       setLoading(false);
     }
     loadDailyCategories();
   }, []);
-
-  const COLORS = ['#06b6d4', '#8b5cf6', '#10b981', '#f59e0b'];
 
   return (
     <div className="space-y-8 pb-10">
@@ -228,14 +305,8 @@ export default function AdminDashboardPage() {
                   tickFormatter={(val) => `${(val / 1000000).toFixed(0)}Tr`}
                 />
                 <Tooltip
-                  formatter={(value: any) => [formatVND(Number(value)), 'Doanh thu']}
-                  contentStyle={{
-                    backgroundColor: '#0f172a',
-                    borderColor: '#334155',
-                    borderRadius: '12px',
-                    color: '#fff',
-                    fontSize: '12px',
-                  }}
+                  content={<CustomAreaTooltip />}
+                  wrapperStyle={{ outline: 'none', pointerEvents: 'none', zIndex: 50 }}
                 />
                 <Area
                   type="monotone"
@@ -277,18 +348,12 @@ export default function AdminDashboardPage() {
                     paddingAngle={4}
                   >
                     {dailyCategoryData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell key={`cell-${index}`} fill={entry.color || COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(val: any, name: any) => [`${val} chiếc`, name]}
-                    contentStyle={{
-                      backgroundColor: '#0f172a',
-                      borderColor: '#334155',
-                      borderRadius: '12px',
-                      color: '#fff',
-                      fontSize: '11px',
-                    }}
+                    content={<CustomPieTooltip />}
+                    wrapperStyle={{ outline: 'none', pointerEvents: 'none', zIndex: 50 }}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -301,13 +366,20 @@ export default function AdminDashboardPage() {
               <div key={cat.category} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span
-                    className="w-2.5 h-2.5 rounded-full"
-                    style={{ backgroundColor: COLORS[idx % COLORS.length] }}
+                    className="w-2.5 h-2.5 rounded-full flex-shrink-0 shadow-sm ring-1 ring-white/10"
+                    style={{ backgroundColor: cat.color || COLORS[idx % COLORS.length] }}
                   />
                   <span className="text-slate-600 dark:text-slate-300 font-medium">{cat.name}</span>
                 </div>
-                <div className="font-bold text-slate-900 dark:text-white">
-                  {cat.quantity} chiếc
+                <div className="flex items-center gap-2">
+                  {cat.percent !== undefined && (
+                    <span className="text-[11px] font-semibold text-slate-400">
+                      ({cat.percent}%)
+                    </span>
+                  )}
+                  <span className="font-bold text-slate-900 dark:text-white">
+                    {cat.quantity} chiếc
+                  </span>
                 </div>
               </div>
             ))}
@@ -378,14 +450,8 @@ export default function AdminDashboardPage() {
                 tickFormatter={(val) => `${(val / 1000000).toFixed(0)}Tr`}
               />
               <Tooltip
-                formatter={(val: any) => [formatVND(Number(val)), 'Doanh thu']}
-                contentStyle={{
-                  backgroundColor: '#0f172a',
-                  borderColor: '#334155',
-                  borderRadius: '12px',
-                  color: '#fff',
-                  fontSize: '12px',
-                }}
+                content={<CustomBarTooltip />}
+                wrapperStyle={{ outline: 'none', pointerEvents: 'none', zIndex: 50 }}
               />
               <Bar dataKey="revenue" fill="#06b6d4" radius={[8, 8, 0, 0]} />
             </BarChart>

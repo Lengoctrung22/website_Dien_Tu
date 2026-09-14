@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import {
   Package,
@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { fetchApi } from '@/lib/api';
 import { formatVND } from '@/lib/utils';
+import { SingleImageUpload, GalleryUpload } from '@/components/admin/ImageUpload';
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<any[]>([]);
@@ -27,7 +28,29 @@ export default function AdminProductsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
   const [modalLoading, setModalLoading] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
+
+  const uploadingStateRef = useRef({ single: false, gallery: false });
+
+  const handleUploadingChange = useCallback((type: 'single' | 'gallery', uploading: boolean) => {
+    uploadingStateRef.current[type] = uploading;
+    setIsUploadingImage(uploadingStateRef.current.single || uploadingStateRef.current.gallery);
+  }, []);
+
+  const handleSingleUploading = useCallback((uploading: boolean) => {
+    handleUploadingChange('single', uploading);
+  }, [handleUploadingChange]);
+
+  const handleGalleryUploading = useCallback((uploading: boolean) => {
+    handleUploadingChange('gallery', uploading);
+  }, [handleUploadingChange]);
+
+  const closeModal = useCallback(() => {
+    uploadingStateRef.current = { single: false, gallery: false };
+    setIsUploadingImage(false);
+    setModalOpen(false);
+  }, []);
 
   // Form fields
   const [formData, setFormData] = useState({
@@ -38,6 +61,7 @@ export default function AdminProductsPage() {
     discountPrice: 0,
     stock: 10,
     image: '',
+    gallery: [] as string[],
     description: '',
     isHot: false,
     hotOrder: 1,
@@ -66,6 +90,8 @@ export default function AdminProductsPage() {
   }, [filterHotOnly]);
 
   const openAddModal = () => {
+    uploadingStateRef.current = { single: false, gallery: false };
+    setIsUploadingImage(false);
     setEditingProduct(null);
     setFormData({
       name: '',
@@ -75,6 +101,7 @@ export default function AdminProductsPage() {
       discountPrice: 0,
       stock: 10,
       image: '',
+      gallery: [],
       description: '',
       isHot: false,
       hotOrder: 1,
@@ -86,7 +113,11 @@ export default function AdminProductsPage() {
   };
 
   const openEditModal = (p: any) => {
+    uploadingStateRef.current = { single: false, gallery: false };
+    setIsUploadingImage(false);
     setEditingProduct(p);
+    const primaryImg = p.images?.[0] || '';
+    const galleryImgs = Array.isArray(p.images) ? p.images.slice(1) : [];
     setFormData({
       name: p.name,
       category: p.category,
@@ -94,7 +125,8 @@ export default function AdminProductsPage() {
       price: p.price,
       discountPrice: p.discountPrice || 0,
       stock: p.stock,
-      image: p.images?.[0] || '',
+      image: primaryImg,
+      gallery: galleryImgs,
       description: p.description || '',
       isHot: Boolean(p.isHot),
       hotOrder: p.hotOrder || 1,
@@ -152,6 +184,8 @@ export default function AdminProductsPage() {
     e.preventDefault();
     setModalLoading(true);
 
+    const allImages = [formData.image, ...formData.gallery].filter(Boolean);
+
     const payload = {
       name: formData.name,
       category: formData.category,
@@ -159,7 +193,7 @@ export default function AdminProductsPage() {
       price: Number(formData.price),
       discountPrice: Number(formData.discountPrice) || 0,
       stock: Number(formData.stock),
-      images: formData.image ? [formData.image] : [],
+      images: allImages,
       description: formData.description,
       isHot: formData.isHot,
       hotOrder: Number(formData.hotOrder),
@@ -178,8 +212,10 @@ export default function AdminProductsPage() {
         });
         if (res.success) {
           setFeedback('Đã cập nhật sản phẩm thành công!');
-          setModalOpen(false);
+          closeModal();
           setTimeout(() => loadProducts(), 0);
+        } else {
+          alert(res.message || 'Lỗi khi lưu sản phẩm');
         }
       } else {
         const res = await fetchApi('/products', {
@@ -188,8 +224,10 @@ export default function AdminProductsPage() {
         });
         if (res.success) {
           setFeedback('Đã thêm sản phẩm mới thành công!');
-          setModalOpen(false);
+          closeModal();
           setTimeout(() => loadProducts(), 0);
+        } else {
+          alert(res.message || 'Lỗi khi lưu sản phẩm');
         }
       }
     } catch {
@@ -364,7 +402,7 @@ export default function AdminProductsPage() {
                 {editingProduct ? 'Chỉnh Sửa Sản Phẩm' : 'Thêm Sản Phẩm Mới'}
               </h3>
               <button
-                onClick={() => setModalOpen(false)}
+                onClick={closeModal}
                 className="p-1 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
               >
                 <X className="w-5 h-5" />
@@ -458,16 +496,21 @@ export default function AdminProductsPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  URL Hình ảnh chính
-                </label>
-                <input
-                  type="url"
-                  placeholder="https://images.unsplash.com/photo-..."
+              {/* Image Upload: Main image & Gallery */}
+              <div className="space-y-4 pt-1 pb-1">
+                <SingleImageUpload
+                  label="Hình ảnh chính của sản phẩm"
                   value={formData.image}
-                  onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+                  onChange={(url) => setFormData((prev) => ({ ...prev, image: url }))}
+                  onUploadingChange={handleSingleUploading}
+                />
+
+                <GalleryUpload
+                  label="Bộ sưu tập ảnh phụ (Gallery)"
+                  images={formData.gallery}
+                  onChange={(urls) => setFormData((prev) => ({ ...prev, gallery: urls }))}
+                  maxImages={8}
+                  onUploadingChange={handleGalleryUploading}
                 />
               </div>
 
@@ -553,17 +596,17 @@ export default function AdminProductsPage() {
               <div className="flex gap-2 pt-2">
                 <button
                   type="button"
-                  onClick={() => setModalOpen(false)}
+                  onClick={closeModal}
                   className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 font-bold text-slate-600"
                 >
                   Đóng
                 </button>
                 <button
                   type="submit"
-                  disabled={modalLoading}
-                  className="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition-all shadow-md"
+                  disabled={modalLoading || isUploadingImage}
+                  className="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {modalLoading ? 'Đang lưu...' : 'Lưu Sản Phẩm'}
+                  {modalLoading ? 'Đang lưu...' : isUploadingImage ? 'Đang tải ảnh lên...' : 'Lưu Sản Phẩm'}
                 </button>
               </div>
             </form>
