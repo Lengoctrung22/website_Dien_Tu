@@ -83,9 +83,9 @@ export default function AdminOrdersPage() {
       case 'pending':
         return 'bg-amber-500/10 text-amber-700 dark:text-signal-amber border border-amber-500/30 font-bold';
       case 'processing':
-        return 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-500/30 font-bold';
+        return 'bg-slate-100 text-slate-950 dark:bg-surface-elevated dark:text-white border border-slate-300 dark:border-white/10 font-bold';
       case 'shipping':
-        return 'bg-cyan-500/10 text-cyan-700 dark:text-signal-cyan border border-cyan-500/30 font-bold';
+        return 'bg-slate-100 text-slate-950 dark:bg-surface-elevated dark:text-white border border-slate-300 dark:border-white/10 font-bold';
       case 'delivered':
         return 'bg-emerald-500/10 text-emerald-700 dark:text-signal-emerald border border-emerald-500/30 font-bold';
       case 'cancelled':
@@ -113,7 +113,7 @@ export default function AdminOrdersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-            <ShoppingCart className="w-6 h-6 text-cyan-600 dark:text-signal-cyan" />
+            <ShoppingCart className="w-6 h-6 text-slate-900 dark:text-signal-cyan" />
             <span>Quản Lý Tiến Trình Đơn Hàng</span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium mt-1">
@@ -140,13 +140,13 @@ export default function AdminOrdersPage() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && loadOrders()}
-                className="w-full pl-8 pr-3 py-2 text-xs rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500"
+                className="w-full pl-8 pr-3 py-2 text-xs rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan"
               />
               <Search className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
             </div>
             <button
               onClick={loadOrders}
-              className="px-3.5 py-2 rounded-lg bg-surface-elevated text-cyan-700 dark:text-signal-cyan hairline-border border-cyan-500/30 hover:bg-cyan-500/10 text-xs font-mono font-bold transition-colors"
+              className="px-3.5 py-2 rounded-lg bg-slate-100 dark:bg-surface-elevated text-slate-950 dark:text-white hairline-border border-slate-300 dark:border-white/10 hover:bg-slate-200 dark:hover:bg-surface-subtle text-xs font-mono font-bold transition-colors shadow-sm"
             >
               Lọc
             </button>
@@ -157,7 +157,7 @@ export default function AdminOrdersPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 rounded-lg text-xs font-mono font-bold bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500"
+              className="px-3 py-2 rounded-lg text-xs font-mono font-bold bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan"
             >
               <option value="" className="bg-surface-card text-slate-900 dark:text-white">Tất cả trạng thái</option>
               <option value="pending" className="bg-surface-card text-slate-900 dark:text-white">Chờ xác nhận</option>
@@ -174,7 +174,7 @@ export default function AdminOrdersPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="border-b hairline-border text-slate-700 dark:text-slate-400 font-mono text-[11px] uppercase tracking-wider font-bold">
+              <thead className="border-b hairline-border text-slate-900 dark:text-slate-200 font-mono text-[11px] uppercase tracking-wider font-extrabold">
                 <tr>
                   <th className="pb-2.5 px-3">Mã Đơn & Ngày</th>
                   <th className="pb-2.5 px-3">Khách Hàng</th>
@@ -197,7 +197,7 @@ export default function AdminOrdersPage() {
                     return (
                       <tr key={o._id} className="hover:bg-surface-subtle/30 dark:hover:bg-surface-elevated/40 transition-colors">
                         <td className="py-2.5 px-3">
-                          <span className="font-mono font-bold text-cyan-700 dark:text-signal-cyan block tracking-tight">
+                          <span className="font-mono font-bold text-slate-950 dark:text-white block tracking-tight">
                             #{o.orderCode?.replace(/^#/, '')}
                           </span>
                           <span className="text-[10px] text-slate-700 dark:text-slate-300 font-mono tabular-nums font-semibold">{formatDate(o.createdAt)}</span>
@@ -253,7 +253,7 @@ export default function AdminOrdersPage() {
                         <td className="py-2.5 px-3 text-right">
                           <button
                             onClick={() => setSelectedOrder(o)}
-                            className="p-1.5 rounded-lg text-cyan-700 dark:text-signal-cyan hover:bg-surface-elevated transition-colors"
+                            className="p-1.5 rounded-lg text-slate-700 dark:text-slate-200 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-surface-elevated transition-colors"
                             title="Xem chi tiết"
                           >
                             <Eye className="w-3.5 h-3.5" />
@@ -276,7 +276,7 @@ export default function AdminOrdersPage() {
             <div className="flex items-center justify-between pb-3 border-b hairline-border">
               <h3 className="font-black text-sm text-slate-900 dark:text-white flex items-center gap-2">
                 <span>Chi Tiết Đơn Hàng</span>
-                <span className="font-mono text-cyan-700 dark:text-signal-cyan font-bold">{selectedOrder.orderCode}</span>
+                <span className="font-mono text-slate-950 dark:text-white font-bold">{selectedOrder.orderCode}</span>
               </h3>
               <button
                 onClick={() => setSelectedOrder(null)}
@@ -306,7 +306,7 @@ export default function AdminOrdersPage() {
                         {formatVND(item.price)} × {item.quantity}
                       </span>
                     </div>
-                    <span className="font-bold text-cyan-700 dark:text-signal-cyan font-mono tabular-nums">
+                    <span className="font-bold text-slate-950 dark:text-white font-mono tabular-nums">
                       {formatVND(item.price * item.quantity)}
                     </span>
                   </div>
@@ -316,7 +316,7 @@ export default function AdminOrdersPage() {
 
             <div className="pt-2 border-t hairline-border flex justify-between items-center text-xs">
               <span className="font-bold text-slate-700 dark:text-slate-300">Tổng thanh toán:</span>
-              <span className="text-base font-black text-cyan-700 dark:text-signal-cyan font-mono tabular-nums">
+              <span className="text-base font-black text-slate-950 dark:text-white font-mono tabular-nums">
                 {formatVND(selectedOrder.totalAmount)}
               </span>
             </div>

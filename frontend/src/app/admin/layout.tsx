@@ -52,14 +52,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Brand Admin */}
         <div className="flex items-center gap-2.5 pb-4 border-b hairline-border">
           <div className="w-8 h-8 rounded-lg bg-surface-elevated hairline-border surface-bevel flex items-center justify-center flex-shrink-0">
-            <span className="font-mono font-black text-cyan-700 dark:text-signal-cyan text-sm tracking-tight">TG</span>
+            <span className="font-mono font-black text-slate-900 dark:text-white text-sm tracking-tight">TG</span>
           </div>
           <div>
             <div className="flex items-center gap-1.5">
               <span className="font-black text-sm text-slate-900 dark:text-white tracking-tight">
                 TECHGEAR
               </span>
-              <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-cyan-500/10 text-cyan-700 dark:text-signal-cyan border border-cyan-500/20">
+              <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-surface-elevated text-slate-900 dark:text-white border border-slate-300 dark:border-white/10">
                 ADMIN
               </span>
             </div>
@@ -71,7 +71,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* User Card */}
         <div className="p-3 rounded-xl bg-surface-elevated/70 hairline-border surface-bevel flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-cyan-500/15 text-cyan-700 dark:text-signal-cyan border border-cyan-500/20 flex items-center justify-center text-xs font-mono font-bold uppercase flex-shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-surface-elevated text-slate-900 dark:text-white border border-slate-300 dark:border-white/10 flex items-center justify-center text-xs font-mono font-bold uppercase flex-shrink-0">
             {(user?.fullName || user?.email || 'Admin').charAt(0).toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
@@ -79,7 +79,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               {user?.fullName || 'Quản trị viên'}
             </p>
             <div className="flex items-center gap-1.5">
-              <span className="text-[10px] font-mono font-bold text-cyan-700 dark:text-signal-cyan uppercase tracking-wider">
+              <span className="text-[10px] font-mono font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                 {user?.role || 'Staff'}
               </span>
               {user?.phone ? (
@@ -106,11 +106,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 href={item.href}
                 className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all border-l-2 ${
                   isActive
-                    ? 'bg-cyan-50 dark:bg-surface-elevated text-cyan-700 dark:text-signal-cyan border-cyan-600 dark:border-signal-cyan font-bold surface-bevel'
+                    ? 'bg-slate-100 dark:bg-surface-elevated text-slate-950 dark:text-white border-slate-900 dark:border-signal-cyan font-bold surface-bevel shadow-sm'
                     : 'border-transparent text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-surface-elevated/50 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
-                <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-cyan-700 dark:text-signal-cyan' : 'text-slate-600 dark:text-slate-400'}`} />
+                <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-slate-950 dark:text-signal-cyan' : 'text-slate-600 dark:text-slate-400'}`} />
                 <span>{item.label}</span>
               </Link>
             );
@@ -136,7 +136,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div className="md:hidden flex items-center justify-between p-4 bg-surface-card border-b hairline-border sticky top-0 z-40">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg bg-surface-elevated hairline-border surface-bevel flex items-center justify-center flex-shrink-0">
-            <span className="font-mono font-black text-cyan-700 dark:text-signal-cyan text-xs">TG</span>
+            <span className="font-mono font-black text-slate-900 dark:text-white text-xs">TG</span>
           </div>
           <span className="font-black text-sm text-slate-900 dark:text-white tracking-tight">ADMIN PRO</span>
         </div>
@@ -155,7 +155,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="md:hidden bg-surface-card border-b hairline-border p-4 space-y-3">
           {/* User Card Mobile */}
           <div className="p-3 rounded-xl bg-surface-elevated/70 hairline-border surface-bevel flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-cyan-500/15 text-cyan-700 dark:text-signal-cyan border border-cyan-500/20 flex items-center justify-center text-xs font-mono font-bold uppercase flex-shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-surface-elevated text-slate-900 dark:text-white border border-slate-300 dark:border-white/10 flex items-center justify-center text-xs font-mono font-bold uppercase flex-shrink-0">
               {(user?.fullName || user?.email || 'Admin').charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
@@ -163,7 +163,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 {user?.fullName || 'Quản trị viên'}
               </p>
               <div className="flex items-center gap-1.5">
-                <span className="text-[10px] font-mono font-bold text-cyan-700 dark:text-signal-cyan uppercase tracking-wider">
+                <span className="text-[10px] font-mono font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                   {user?.role || 'Staff'}
                 </span>
                 {user?.phone ? (
@@ -189,11 +189,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   onClick={() => setMobileOpen(false)}
                   className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border-l-2 transition-all ${
                     isActive
-                      ? 'bg-cyan-50 dark:bg-surface-elevated text-cyan-700 dark:text-signal-cyan border-cyan-600 dark:border-signal-cyan font-bold surface-bevel'
+                      ? 'bg-slate-100 dark:bg-surface-elevated text-slate-950 dark:text-white border-slate-900 dark:border-signal-cyan font-bold surface-bevel shadow-sm'
                       : 'border-transparent text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-surface-elevated/50 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-cyan-700 dark:text-signal-cyan' : 'text-slate-600 dark:text-slate-400'}`} />
+                  <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-slate-950 dark:text-signal-cyan' : 'text-slate-600 dark:text-slate-400'}`} />
                   <span>{item.label}</span>
                 </Link>
               );

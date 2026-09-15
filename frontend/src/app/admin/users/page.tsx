@@ -139,7 +139,7 @@ export default function AdminUsersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-            <Users className="w-6 h-6 text-cyan-700 dark:text-signal-cyan" />
+            <Users className="w-6 h-6 text-slate-900 dark:text-signal-cyan" />
             <span>Quản Lý Người Dùng & Phân Quyền RBAC</span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
@@ -149,7 +149,7 @@ export default function AdminUsersPage() {
 
         <button
           onClick={() => setModalOpen(true)}
-          className="px-3.5 py-2 rounded-lg bg-surface-elevated text-cyan-700 dark:text-signal-cyan hairline-border border-cyan-500/30 dark:border-signal-cyan/30 hover:bg-cyan-500/10 font-mono font-bold text-xs flex items-center gap-1.5 transition-colors self-start sm:self-auto"
+          className="px-3.5 py-2 rounded-lg bg-slate-100 dark:bg-surface-elevated text-slate-950 dark:text-white hairline-border border-slate-300 dark:border-white/10 hover:bg-slate-200 dark:hover:bg-surface-subtle font-mono font-bold text-xs flex items-center gap-1.5 transition-colors self-start sm:self-auto shadow-sm"
         >
           <UserPlus className="w-4 h-4" />
           <span>Tạo Nhân Viên & Phân Quyền</span>
@@ -174,13 +174,13 @@ export default function AdminUsersPage() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && loadUsers()}
-                className="w-full pl-8 pr-3 py-2 text-xs rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan"
+                className="w-full pl-8 pr-3 py-2 text-xs rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan"
               />
               <Search className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
             </div>
             <button
               onClick={loadUsers}
-              className="px-3.5 py-2 rounded-lg bg-surface-elevated text-cyan-700 dark:text-signal-cyan hairline-border border-cyan-500/30 dark:border-signal-cyan/30 hover:bg-cyan-500/10 text-xs font-mono font-bold transition-colors"
+              className="px-3.5 py-2 rounded-lg bg-slate-100 dark:bg-surface-elevated text-slate-950 dark:text-white hairline-border border-slate-300 dark:border-white/10 hover:bg-slate-200 dark:hover:bg-surface-subtle text-xs font-mono font-bold transition-colors shadow-sm"
             >
               Lọc
             </button>
@@ -191,7 +191,7 @@ export default function AdminUsersPage() {
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
-              className="px-3 py-2 rounded-lg text-xs font-mono font-bold bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan"
+              className="px-3 py-2 rounded-lg text-xs font-mono font-bold bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan"
             >
               <option value="">Tất cả vai trò</option>
               <option value="customer">Khách hàng (Customer)</option>
@@ -206,7 +206,7 @@ export default function AdminUsersPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="border-b hairline-border text-slate-700 dark:text-slate-400 font-mono text-[11px] font-bold uppercase tracking-wider">
+              <thead className="border-b hairline-border text-slate-900 dark:text-slate-200 font-mono text-[11px] font-extrabold uppercase tracking-wider">
                 <tr>
                   <th className="pb-2.5 px-3">Họ và Tên</th>
                   <th className="pb-2.5 px-3">Email & SĐT</th>
@@ -236,7 +236,7 @@ export default function AdminUsersPage() {
                           u.role === 'admin'
                             ? 'bg-rose-500/10 text-rose-700 dark:text-signal-rose hairline-border border-rose-500/25'
                             : u.role === 'staff'
-                            ? 'bg-cyan-500/10 text-cyan-700 dark:text-signal-cyan hairline-border border-cyan-500/25'
+                            ? 'bg-slate-100 dark:bg-surface-elevated text-slate-950 dark:text-white hairline-border border-slate-300 dark:border-white/10'
                             : 'bg-slate-100 dark:bg-surface-subtle text-slate-700 dark:text-slate-300 hairline-border font-semibold'
                         }`}
                       >
@@ -253,7 +253,7 @@ export default function AdminUsersPage() {
                       {u.ordersCount !== undefined ? `${u.ordersCount} đơn` : '-'}
                     </td>
 
-                    <td className="py-2.5 px-3 font-bold text-cyan-700 dark:text-signal-cyan font-mono tabular-nums">
+                    <td className="py-2.5 px-3 font-bold text-slate-950 dark:text-white font-mono tabular-nums">
                       {u.totalSpent ? formatVND(u.totalSpent) : '-'}
                     </td>
 
@@ -298,7 +298,7 @@ export default function AdminUsersPage() {
           <div className="w-full max-w-md rounded-2xl bg-surface-card hairline-border surface-bevel p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between pb-3 border-b hairline-border">
               <h3 className="font-black text-sm text-slate-900 dark:text-white flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-cyan-700 dark:text-signal-cyan" />
+                <ShieldCheck className="w-4 h-4 text-slate-900 dark:text-signal-cyan" />
                 <span>Tạo Tài Khoản Nhân Viên (RBAC)</span>
               </h3>
               <button
@@ -317,7 +317,7 @@ export default function AdminUsersPage() {
                 <select
                   value={newStaff.preset}
                   onChange={(e) => handlePresetChange(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white font-mono focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan"
+                  className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white font-mono focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan"
                 >
                   <option value="Order Processor">Xử Lý Đơn Hàng (Order Processor)</option>
                   <option value="Warehouse Manager">Quản Lý Kho Hàng (Warehouse Manager)</option>
@@ -336,7 +336,7 @@ export default function AdminUsersPage() {
                   placeholder="Ví dụ: Hoàng Văn Kho"
                   value={newStaff.fullName}
                   onChange={(e) => setNewStaff({ ...newStaff, fullName: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan"
+                  className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan"
                 />
               </div>
 
@@ -350,7 +350,7 @@ export default function AdminUsersPage() {
                   placeholder="staff@techgear.vn"
                   value={newStaff.email}
                   onChange={(e) => setNewStaff({ ...newStaff, email: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan font-mono"
+                  className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan font-mono"
                 />
               </div>
 
@@ -364,7 +364,7 @@ export default function AdminUsersPage() {
                   placeholder="••••••••"
                   value={newStaff.password}
                   onChange={(e) => setNewStaff({ ...newStaff, password: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan"
+                  className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan"
                 />
               </div>
 
@@ -377,13 +377,13 @@ export default function AdminUsersPage() {
                   placeholder="0912..."
                   value={newStaff.phone}
                   onChange={(e) => setNewStaff({ ...newStaff, phone: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan font-mono tabular-nums"
+                  className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan font-mono tabular-nums"
                 />
               </div>
 
               <div className="p-3 rounded-xl bg-surface-subtle/30 dark:bg-surface-elevated/70 hairline-border text-[11px] space-y-1">
                 <span className="text-slate-700 dark:text-slate-300 block font-mono uppercase text-[10px] font-bold">Quyền hạn gán:</span>
-                <p className="font-mono text-cyan-700 dark:text-signal-cyan font-bold">
+                <p className="font-mono text-slate-950 dark:text-white font-bold">
                   {newStaff.permissions.join(', ')}
                 </p>
               </div>
@@ -399,7 +399,7 @@ export default function AdminUsersPage() {
                 <button
                   type="submit"
                   disabled={modalLoading}
-                  className="flex-1 py-2 rounded-lg bg-cyan-500/15 text-cyan-700 dark:text-signal-cyan hairline-border border-cyan-500/30 dark:border-signal-cyan/30 hover:bg-cyan-500/20 font-bold transition-all disabled:opacity-50"
+                  className="flex-1 py-2 rounded-lg bg-slate-900 text-white dark:bg-white dark:text-slate-950 hover:bg-slate-800 dark:hover:bg-slate-100 font-bold transition-all disabled:opacity-50 shadow-sm"
                 >
                   {modalLoading ? 'Đang tạo...' : 'Tạo Nhân Viên'}
                 </button>

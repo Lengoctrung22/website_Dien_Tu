@@ -23,7 +23,7 @@ export default function ThemeToggle() {
       title={isDark ? 'Chuyển sang giao diện Sáng' : 'Chuyển sang giao diện Tối'}
       aria-label="Toggle theme"
     >
-      {isDark ? <Sun className="w-5 h-5 text-amber-400" /> : <Moon className="w-5 h-5 text-indigo-600" />}
+      {isDark ? <Sun className="w-5 h-5 text-amber-400" /> : <Moon className="w-5 h-5 text-slate-900 dark:text-slate-100" />}
     </button>
   );
 }

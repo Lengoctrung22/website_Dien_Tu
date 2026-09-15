@@ -131,7 +131,7 @@ export default function CheckoutPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       <div className="flex items-center gap-2">
-        <Link href="/cart" className="text-xs font-mono text-slate-600 dark:text-slate-400 hover:text-cyan-700 dark:hover:text-signal-cyan flex items-center gap-1 font-semibold transition-colors">
+        <Link href="/cart" className="text-xs font-mono text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-signal-cyan flex items-center gap-1 font-semibold transition-colors">
           <ChevronLeft className="w-4 h-4" />
           <span>Quay lại giỏ hàng</span>
         </Link>
@@ -159,7 +159,7 @@ export default function CheckoutPage() {
           {/* 1. Customer Information - Minimalist Stripe style */}
           <div className="rounded-2xl border hairline-border surface-bevel bg-surface-card p-6 space-y-4 shadow-sm">
             <div className="flex items-center gap-2 pb-3 border-b hairline-border">
-              <span className="w-5 h-5 rounded-md bg-cyan-500/15 text-cyan-700 dark:text-signal-cyan border border-cyan-500/30 flex items-center justify-center text-xs font-mono font-bold">
+              <span className="w-5 h-5 rounded-md bg-slate-100 dark:bg-surface-elevated text-slate-950 dark:text-white border border-slate-300 dark:border-white/10 flex items-center justify-center text-xs font-mono font-bold">
                 1
               </span>
               <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-900 dark:text-white">
@@ -178,7 +178,7 @@ export default function CheckoutPage() {
                   placeholder="Ví dụ: Nguyễn Văn A"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3.5 py-2.5 text-xs rounded-lg bg-slate-50 dark:bg-surface-elevated border hairline-border text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan/60 transition-colors font-medium"
+                  className="w-full px-3.5 py-2.5 text-xs rounded-lg bg-slate-50 dark:bg-surface-elevated border hairline-border text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan/60 transition-colors font-medium"
                 />
               </div>
 
@@ -192,7 +192,7 @@ export default function CheckoutPage() {
                   placeholder="Ví dụ: 0987654321"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full px-3.5 py-2.5 text-xs rounded-lg bg-slate-50 dark:bg-surface-elevated border hairline-border text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan/60 font-mono transition-colors font-medium"
+                  className="w-full px-3.5 py-2.5 text-xs rounded-lg bg-slate-50 dark:bg-surface-elevated border hairline-border text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan/60 font-mono transition-colors font-medium"
                 />
               </div>
             </div>
@@ -207,7 +207,7 @@ export default function CheckoutPage() {
                 placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố"
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                className="w-full px-3.5 py-2.5 text-xs rounded-lg bg-slate-50 dark:bg-surface-elevated border hairline-border text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan/60 transition-colors font-medium"
+                className="w-full px-3.5 py-2.5 text-xs rounded-lg bg-slate-50 dark:bg-surface-elevated border hairline-border text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan/60 transition-colors font-medium"
               />
             </div>
 
@@ -220,7 +220,7 @@ export default function CheckoutPage() {
                 placeholder="Giao giờ hành chính, gọi trước khi đến..."
                 value={formData.note}
                 onChange={(e) => setFormData({ ...formData, note: e.target.value })}
-                className="w-full px-3.5 py-2 text-xs rounded-lg bg-slate-50 dark:bg-surface-elevated border hairline-border text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan/60 resize-none transition-colors font-medium"
+                className="w-full px-3.5 py-2 text-xs rounded-lg bg-slate-50 dark:bg-surface-elevated border hairline-border text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan/60 resize-none transition-colors font-medium"
               />
             </div>
           </div>
@@ -228,7 +228,7 @@ export default function CheckoutPage() {
           {/* 2. Payment Method Cards */}
           <div className="rounded-2xl border hairline-border surface-bevel bg-surface-card p-6 space-y-4 shadow-sm">
             <div className="flex items-center gap-2 pb-3 border-b hairline-border">
-              <span className="w-5 h-5 rounded-md bg-cyan-500/15 text-cyan-700 dark:text-signal-cyan border border-cyan-500/30 flex items-center justify-center text-xs font-mono font-bold">
+              <span className="w-5 h-5 rounded-md bg-slate-100 dark:bg-surface-elevated text-slate-950 dark:text-white border border-slate-300 dark:border-white/10 flex items-center justify-center text-xs font-mono font-bold">
                 2
               </span>
               <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-900 dark:text-white">
@@ -241,7 +241,7 @@ export default function CheckoutPage() {
               <label
                 className={`flex items-start gap-3.5 p-4 rounded-xl border transition-all cursor-pointer ${
                   paymentMethod === 'COD'
-                    ? 'border-cyan-600 dark:border-signal-cyan/80 bg-cyan-500/5 dark:bg-signal-cyan/10 surface-bevel shadow-sm ring-1 ring-cyan-500/50'
+                    ? 'border-slate-900 dark:border-signal-cyan/80 bg-slate-100/60 dark:bg-signal-cyan/10 surface-bevel shadow-sm ring-1 ring-slate-900/50 dark:ring-cyan-500/50'
                     : 'border hairline-border surface-bevel bg-surface-elevated/40 hover:bg-surface-elevated hover:border-slate-400 dark:hover:border-signal-cyan/30'
                 }`}
               >
@@ -251,7 +251,7 @@ export default function CheckoutPage() {
                   value="COD"
                   checked={paymentMethod === 'COD'}
                   onChange={() => setPaymentMethod('COD')}
-                  className="mt-1 accent-cyan-600"
+                  className="mt-1 accent-slate-900 dark:accent-signal-cyan"
                 />
                 <div className="flex-1">
                   <div className="flex items-center justify-between gap-2">
@@ -275,7 +275,7 @@ export default function CheckoutPage() {
               <label
                 className={`flex items-start gap-3.5 p-4 rounded-xl border transition-all cursor-pointer ${
                   paymentMethod === 'ONLINE'
-                    ? 'border-cyan-600 dark:border-signal-cyan/80 bg-cyan-500/5 dark:bg-signal-cyan/10 surface-bevel shadow-sm ring-1 ring-cyan-500/50'
+                    ? 'border-slate-900 dark:border-signal-cyan/80 bg-slate-100/60 dark:bg-signal-cyan/10 surface-bevel shadow-sm ring-1 ring-slate-900/50 dark:ring-cyan-500/50'
                     : 'border hairline-border surface-bevel bg-surface-elevated/40 hover:bg-surface-elevated hover:border-slate-400 dark:hover:border-signal-cyan/30'
                 }`}
               >
@@ -285,17 +285,17 @@ export default function CheckoutPage() {
                   value="ONLINE"
                   checked={paymentMethod === 'ONLINE'}
                   onChange={() => setPaymentMethod('ONLINE')}
-                  className="mt-1 accent-cyan-600"
+                  className="mt-1 accent-slate-900 dark:accent-signal-cyan"
                 />
                 <div className="flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <CreditCard className="w-4 h-4 text-cyan-700 dark:text-signal-cyan" />
+                      <CreditCard className="w-4 h-4 text-slate-900 dark:text-signal-cyan" />
                       <span className="font-bold text-xs text-slate-900 dark:text-white">
                         Thanh toán trực tuyến qua cổng VNPAY
                       </span>
                     </div>
-                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-700 dark:text-signal-cyan border border-cyan-500/30">
+                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-surface-card border hairline-border text-slate-950 dark:text-white">
                       QR / ATM / VISA
                     </span>
                   </div>
@@ -339,7 +339,7 @@ export default function CheckoutPage() {
                         {formatVND(price)} × {quantity}
                       </p>
                     </div>
-                    <div className="text-xs font-mono tabular-nums font-black text-cyan-700 dark:text-signal-cyan">
+                    <div className="text-xs font-mono tabular-nums font-black text-slate-950 dark:text-white">
                       {formatVND(price * quantity)}
                     </div>
                   </div>
@@ -361,7 +361,7 @@ export default function CheckoutPage() {
               </div>
               <div className="flex justify-between items-baseline pt-2 border-t hairline-border">
                 <span className="text-xs font-mono uppercase tracking-wider font-bold text-slate-700 dark:text-slate-400">Tổng thanh toán:</span>
-                <span className="text-2xl font-mono tabular-nums font-black text-cyan-700 dark:text-signal-cyan">
+                <span className="text-2xl font-mono tabular-nums font-black text-slate-950 dark:text-white">
                   {formatVND(finalTotal)}
                 </span>
               </div>

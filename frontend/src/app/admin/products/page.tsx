@@ -294,7 +294,7 @@ export default function AdminProductsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-            <Package className="w-6 h-6 text-cyan-600 dark:text-signal-cyan" />
+            <Package className="w-6 h-6 text-slate-900 dark:text-signal-cyan" />
             <span>Quản Lý Sản Phẩm & Ghim HOT</span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium mt-1">
@@ -304,7 +304,7 @@ export default function AdminProductsPage() {
 
         <button
           onClick={openAddModal}
-          className="px-3.5 py-2 rounded-lg bg-surface-elevated text-cyan-700 dark:text-signal-cyan hairline-border border-cyan-500/30 hover:bg-cyan-500/10 font-mono font-bold text-xs flex items-center gap-1.5 transition-colors self-start sm:self-auto"
+          className="px-3.5 py-2 rounded-lg bg-slate-100 dark:bg-surface-elevated text-slate-950 dark:text-white hairline-border border-slate-300 dark:border-white/10 hover:bg-slate-200 dark:hover:bg-surface-subtle font-mono font-bold text-xs flex items-center gap-1.5 transition-colors self-start sm:self-auto shadow-sm"
         >
           <Plus className="w-4 h-4" />
           <span>Thêm Sản Phẩm Mới</span>
@@ -329,13 +329,13 @@ export default function AdminProductsPage() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && loadProducts()}
-                className="w-full pl-8 pr-3 py-2 text-xs rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500"
+                className="w-full pl-8 pr-3 py-2 text-xs rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan"
               />
               <Search className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
             </div>
             <button
               onClick={loadProducts}
-              className="px-3.5 py-2 rounded-lg bg-surface-elevated text-cyan-700 dark:text-signal-cyan hairline-border border-cyan-500/30 hover:bg-cyan-500/10 text-xs font-mono font-bold transition-colors"
+              className="px-3.5 py-2 rounded-lg bg-slate-100 dark:bg-surface-elevated text-slate-950 dark:text-white hairline-border border-slate-300 dark:border-white/10 hover:bg-slate-200 dark:hover:bg-surface-subtle text-xs font-mono font-bold transition-colors shadow-sm"
             >
               Lọc
             </button>
@@ -359,7 +359,7 @@ export default function AdminProductsPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="border-b hairline-border text-slate-700 dark:text-slate-400 font-mono text-[11px] uppercase tracking-wider font-bold">
+              <thead className="border-b hairline-border text-slate-900 dark:text-slate-200 font-mono text-[11px] uppercase tracking-wider font-extrabold">
                 <tr>
                   <th className="pb-2.5 px-3">Ảnh</th>
                   <th className="pb-2.5 px-3">Tên & Hãng</th>
@@ -388,7 +388,7 @@ export default function AdminProductsPage() {
                     onDrop={() => handleDropHotRow(idx)}
                     className={`transition-colors ${
                       dragOverIndex === idx
-                        ? 'border-t-2 border-cyan-500 bg-cyan-500/5'
+                        ? 'border-t-2 border-slate-900 bg-slate-100/60 dark:border-signal-cyan dark:bg-signal-cyan/10'
                         : 'hover:bg-surface-subtle/30 dark:hover:bg-surface-elevated/40'
                     }`}
                   >
@@ -405,11 +405,11 @@ export default function AdminProductsPage() {
                     </td>
                     <td className="py-2.5 px-3 max-w-xs">
                       <p className="font-medium text-slate-900 dark:text-slate-100 truncate">{p.name}</p>
-                      <span className="text-[10px] text-slate-600 dark:text-slate-400 uppercase font-mono font-bold">{p.brand}</span>
+                      <span className="text-[10px] text-slate-900 dark:text-slate-300 uppercase font-mono font-bold">{p.brand}</span>
                     </td>
-                    <td className="py-2.5 px-3 uppercase text-slate-600 dark:text-slate-400 font-mono text-[11px] font-medium">{p.category}</td>
+                    <td className="py-2.5 px-3 uppercase text-slate-800 dark:text-slate-200 font-mono text-[11px] font-semibold">{p.category}</td>
                     <td className="py-2.5 px-3">
-                      <span className="font-bold text-cyan-700 dark:text-signal-cyan tabular-nums font-mono">
+                      <span className="font-bold text-slate-950 dark:text-white tabular-nums font-mono">
                         {formatVND(p.discountPrice && p.discountPrice > 0 ? p.discountPrice : p.price)}
                       </span>
                     </td>
@@ -431,7 +431,7 @@ export default function AdminProductsPage() {
                       {p.isHot ? (
                         <div className="flex items-center justify-center gap-1.5">
                           <span
-                            className="cursor-grab active:cursor-grabbing text-slate-600 dark:text-slate-400 hover:text-cyan-700 dark:hover:text-signal-cyan p-0.5"
+                            className="cursor-grab active:cursor-grabbing text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-signal-cyan p-0.5"
                             title="Kéo thả dòng để sắp xếp thứ tự hiển thị HOT"
                           >
                             <GripVertical className="w-3.5 h-3.5" />
@@ -451,7 +451,7 @@ export default function AdminProductsPage() {
                     <td className="py-2.5 px-3 text-right space-x-1">
                       <button
                         onClick={() => openEditModal(p)}
-                        className="p-1.5 rounded-lg text-cyan-700 dark:text-signal-cyan hover:bg-cyan-500/10 dark:hover:bg-surface-elevated transition-colors"
+                        className="p-1.5 rounded-lg text-slate-700 dark:text-slate-200 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-surface-elevated transition-colors"
                         title="Chỉnh sửa"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
@@ -499,7 +499,7 @@ export default function AdminProductsPage() {
                   placeholder="Ví dụ: Bàn phím cơ ASUS ROG Azoth 75%..."
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan"
+                  className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan"
                 />
               </div>
 
@@ -511,7 +511,7 @@ export default function AdminProductsPage() {
                   <select
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan"
+                    className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan"
                   >
                     <option value="monitor">Màn hình máy tính</option>
                     <option value="keyboard">Bàn phím cơ</option>
@@ -530,7 +530,7 @@ export default function AdminProductsPage() {
                     placeholder="ASUS, Logitech, Razer, Keychron..."
                     value={formData.brand}
                     onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan"
+                    className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan"
                   />
                 </div>
               </div>
@@ -545,7 +545,7 @@ export default function AdminProductsPage() {
                     required
                     value={formData.price}
                     onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
-                    className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border font-mono font-bold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan"
+                    className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border font-mono font-bold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan"
                   />
                 </div>
 
@@ -557,7 +557,7 @@ export default function AdminProductsPage() {
                     type="number"
                     value={formData.discountPrice}
                     onChange={(e) => setFormData({ ...formData, discountPrice: Number(e.target.value) })}
-                    className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border font-mono font-bold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan"
+                    className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border font-mono font-bold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan"
                   />
                 </div>
 
@@ -570,7 +570,7 @@ export default function AdminProductsPage() {
                     required
                     value={formData.stock}
                     onChange={(e) => setFormData({ ...formData, stock: Number(e.target.value) })}
-                    className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border font-mono font-bold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan"
+                    className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border font-mono font-bold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan"
                   />
                 </div>
               </div>
@@ -604,7 +604,7 @@ export default function AdminProductsPage() {
                     placeholder="Jupiter Brown, Linear..."
                     value={formData.switchSpec}
                     onChange={(e) => setFormData({ ...formData, switchSpec: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan"
+                    className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan"
                   />
                 </div>
 
@@ -617,7 +617,7 @@ export default function AdminProductsPage() {
                     placeholder="240Hz, 165Hz..."
                     value={formData.refreshRateSpec}
                     onChange={(e) => setFormData({ ...formData, refreshRateSpec: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan"
+                    className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan"
                   />
                 </div>
 
@@ -630,7 +630,7 @@ export default function AdminProductsPage() {
                     placeholder="Không dây 2.4G, Type-C..."
                     value={formData.connectionSpec}
                     onChange={(e) => setFormData({ ...formData, connectionSpec: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan"
+                    className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan"
                   />
                 </div>
               </div>
@@ -643,7 +643,7 @@ export default function AdminProductsPage() {
                   rows={3}
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan resize-none"
+                  className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan resize-none"
                 />
               </div>
 
@@ -654,7 +654,7 @@ export default function AdminProductsPage() {
                     type="checkbox"
                     checked={formData.isHot}
                     onChange={(e) => setFormData({ ...formData, isHot: e.target.checked })}
-                    className="rounded text-signal-cyan"
+                    className="rounded text-slate-950 focus:ring-slate-900 dark:text-signal-cyan dark:focus:ring-signal-cyan"
                   />
                   <span>Ghim hiển thị tại mục &quot;Sản Phẩm HOT&quot;</span>
                 </label>
@@ -683,7 +683,7 @@ export default function AdminProductsPage() {
                 <button
                   type="submit"
                   disabled={modalLoading || isUploadingImage}
-                  className="flex-1 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white dark:bg-signal-cyan/15 dark:text-signal-cyan hairline-border dark:border-signal-cyan/30 dark:hover:bg-signal-cyan/20 font-bold transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 font-bold transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {modalLoading ? 'Đang lưu...' : isUploadingImage ? 'Đang tải ảnh lên...' : 'Lưu Sản Phẩm'}
                 </button>

@@ -93,7 +93,7 @@ export default function HeroSlider() {
               <div className="relative h-full max-w-7xl mx-auto px-6 sm:px-12 flex flex-col justify-center z-10 text-white">
                 <div className="max-w-2xl space-y-4">
                   <div className="flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-md text-xs font-mono font-bold tracking-wider uppercase bg-signal-cyan/20 text-signal-cyan border border-signal-cyan/30 backdrop-blur-md">
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-md text-xs font-mono font-bold tracking-wider uppercase bg-white/10 text-white border border-white/20 backdrop-blur-md">
                       <Zap className="w-3.5 h-3.5 fill-current" />
                       {slide.badge}
                     </span>
@@ -107,7 +107,7 @@ export default function HeroSlider() {
                     {slide.title}
                   </h1>
 
-                  <p className="text-xs sm:text-sm md:text-base font-semibold text-cyan-300 font-mono">
+                  <p className="text-xs sm:text-sm md:text-base font-semibold text-slate-200 font-mono">
                     {slide.subtitle}
                   </p>
 

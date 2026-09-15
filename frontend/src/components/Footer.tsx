@@ -8,44 +8,44 @@ export default function Footer() {
       <div className="border-b hairline-border">
         <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="flex items-center gap-3.5 p-3.5 rounded-xl bg-white dark:bg-surface-card/40 border hairline-border surface-bevel shadow-sm">
-            <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-surface-subtle/80 border hairline-border surface-bevel flex items-center justify-center text-cyan-700 dark:text-signal-cyan flex-shrink-0">
+            <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-surface-subtle/80 border hairline-border surface-bevel flex items-center justify-center text-slate-900 dark:text-signal-cyan flex-shrink-0">
               <Shield className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-[9px] font-mono font-bold tabular-nums text-cyan-700 dark:text-signal-cyan uppercase tracking-widest block">AUTHENTIC // 100%</span>
+              <span className="text-[9px] font-mono font-bold tabular-nums text-slate-900 dark:text-signal-cyan uppercase tracking-widest block">AUTHENTIC // 100%</span>
               <h4 className="font-bold text-slate-900 dark:text-white text-xs uppercase tracking-tight">Chính Hãng 100%</h4>
               <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5">Bảo hành 24 tháng toàn diện</p>
             </div>
           </div>
 
           <div className="flex items-center gap-3.5 p-3.5 rounded-xl bg-white dark:bg-surface-card/40 border hairline-border surface-bevel shadow-sm">
-            <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-surface-subtle/80 border hairline-border surface-bevel flex items-center justify-center text-cyan-700 dark:text-signal-cyan flex-shrink-0">
+            <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-surface-subtle/80 border hairline-border surface-bevel flex items-center justify-center text-slate-900 dark:text-signal-cyan flex-shrink-0">
               <Truck className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-[9px] font-mono font-bold tabular-nums text-cyan-700 dark:text-signal-cyan uppercase tracking-widest block">LOGISTICS // EXPRESS</span>
+              <span className="text-[9px] font-mono font-bold tabular-nums text-slate-900 dark:text-signal-cyan uppercase tracking-widest block">LOGISTICS // EXPRESS</span>
               <h4 className="font-bold text-slate-900 dark:text-white text-xs uppercase tracking-tight">Giao Hàng Hỏa Tốc</h4>
               <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5">Freeship đơn từ 1.000.000₫</p>
             </div>
           </div>
 
           <div className="flex items-center gap-3.5 p-3.5 rounded-xl bg-white dark:bg-surface-card/40 border hairline-border surface-bevel shadow-sm">
-            <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-surface-subtle/80 border hairline-border surface-bevel flex items-center justify-center text-cyan-700 dark:text-signal-cyan flex-shrink-0">
+            <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-surface-subtle/80 border hairline-border surface-bevel flex items-center justify-center text-slate-900 dark:text-signal-cyan flex-shrink-0">
               <RotateCcw className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-[9px] font-mono font-bold tabular-nums text-cyan-700 dark:text-signal-cyan uppercase tracking-widest block">POLICY // 7-DAY RETURN</span>
+              <span className="text-[9px] font-mono font-bold tabular-nums text-slate-900 dark:text-signal-cyan uppercase tracking-widest block">POLICY // 7-DAY RETURN</span>
               <h4 className="font-bold text-slate-900 dark:text-white text-xs uppercase tracking-tight">Đổi Mới Trong 7 Ngày</h4>
               <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5">Lỗi 1-đổi-1 phần cứng tức thì</p>
             </div>
           </div>
 
           <div className="flex items-center gap-3.5 p-3.5 rounded-xl bg-white dark:bg-surface-card/40 border hairline-border surface-bevel shadow-sm">
-            <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-surface-subtle/80 border hairline-border surface-bevel flex items-center justify-center text-cyan-700 dark:text-signal-cyan flex-shrink-0">
+            <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-surface-subtle/80 border hairline-border surface-bevel flex items-center justify-center text-slate-900 dark:text-signal-cyan flex-shrink-0">
               <Headphones className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-[9px] font-mono font-bold tabular-nums text-cyan-700 dark:text-signal-cyan uppercase tracking-widest block">SUPPORT // 24/7 PRO</span>
+              <span className="text-[9px] font-mono font-bold tabular-nums text-slate-900 dark:text-signal-cyan uppercase tracking-widest block">SUPPORT // 24/7 PRO</span>
               <h4 className="font-bold text-slate-900 dark:text-white text-xs uppercase tracking-tight">Tư Vấn Chuyên Sâu</h4>
               <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5">Tối ưu cấu hình gear thi đấu</p>
             </div>
@@ -59,11 +59,11 @@ export default function Footer() {
         <div className="space-y-4">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-white dark:bg-surface-card border hairline-border surface-bevel flex items-center justify-center text-slate-900 dark:text-white shadow-sm">
-              <span className="font-mono font-black text-sm tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-cyan-600 to-indigo-600 dark:from-signal-cyan dark:to-indigo-400">TG</span>
+              <span className="font-mono font-black text-sm tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-slate-900 to-indigo-600 dark:from-signal-cyan dark:to-indigo-400">TG</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="font-black text-lg text-slate-900 dark:text-white tracking-tight">
-                TECH<span className="text-cyan-700 dark:text-signal-cyan">GEAR</span>
+                TECH<span className="text-slate-950 dark:text-signal-cyan">GEAR</span>
               </span>
               <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border hairline-border bg-slate-200 dark:bg-surface-subtle text-slate-700 dark:text-slate-400 tracking-wider">
                 PRO
@@ -77,15 +77,15 @@ export default function Footer() {
 
           <div className="space-y-2.5 pt-1 text-xs font-mono text-slate-700 dark:text-slate-400">
             <div className="flex items-start gap-2">
-              <MapPin className="w-3.5 h-3.5 text-cyan-700 dark:text-signal-cyan flex-shrink-0 mt-0.5" />
+              <MapPin className="w-3.5 h-3.5 text-slate-900 dark:text-signal-cyan flex-shrink-0 mt-0.5" />
               <span>Tòa nhà TechTower, 120 Cầu Giấy, Hà Nội</span>
             </div>
             <div className="flex items-center gap-2">
-              <Phone className="w-3.5 h-3.5 text-cyan-700 dark:text-signal-cyan flex-shrink-0" />
+              <Phone className="w-3.5 h-3.5 text-slate-900 dark:text-signal-cyan flex-shrink-0" />
               <span>Hotline: <strong className="text-slate-900 dark:text-slate-200 font-bold">1900 8888</strong> (08:00 - 21:30)</span>
             </div>
             <div className="flex items-center gap-2">
-              <Mail className="w-3.5 h-3.5 text-cyan-700 dark:text-signal-cyan flex-shrink-0" />
+              <Mail className="w-3.5 h-3.5 text-slate-900 dark:text-signal-cyan flex-shrink-0" />
               <span>support@techgear.vn</span>
             </div>
           </div>
@@ -99,32 +99,32 @@ export default function Footer() {
           </h4>
           <ul className="space-y-2.5 text-xs font-mono text-slate-600 dark:text-slate-400">
             <li>
-              <Link href="/products?category=monitor" className="hover:text-cyan-700 dark:hover:text-signal-cyan transition-colors flex items-center gap-1.5 group font-medium">
-                <ChevronRight className="w-3 h-3 text-slate-500 dark:text-slate-400 group-hover:text-cyan-700 dark:group-hover:text-signal-cyan transition-colors" />
+              <Link href="/products?category=monitor" className="hover:text-slate-950 dark:hover:text-signal-cyan transition-colors flex items-center gap-1.5 group font-medium">
+                <ChevronRight className="w-3 h-3 text-slate-500 dark:text-slate-400 group-hover:text-slate-950 dark:group-hover:text-signal-cyan transition-colors" />
                 Màn hình OLED / 240Hz
               </Link>
             </li>
             <li>
-              <Link href="/products?category=keyboard" className="hover:text-cyan-700 dark:hover:text-signal-cyan transition-colors flex items-center gap-1.5 group font-medium">
-                <ChevronRight className="w-3 h-3 text-slate-500 dark:text-slate-400 group-hover:text-cyan-700 dark:group-hover:text-signal-cyan transition-colors" />
+              <Link href="/products?category=keyboard" className="hover:text-slate-950 dark:hover:text-signal-cyan transition-colors flex items-center gap-1.5 group font-medium">
+                <ChevronRight className="w-3 h-3 text-slate-500 dark:text-slate-400 group-hover:text-slate-950 dark:group-hover:text-signal-cyan transition-colors" />
                 Bàn phím cơ & Rapid Trigger
               </Link>
             </li>
             <li>
-              <Link href="/products?category=mouse" className="hover:text-cyan-700 dark:hover:text-signal-cyan transition-colors flex items-center gap-1.5 group font-medium">
-                <ChevronRight className="w-3 h-3 text-slate-500 dark:text-slate-400 group-hover:text-cyan-700 dark:group-hover:text-signal-cyan transition-colors" />
+              <Link href="/products?category=mouse" className="hover:text-slate-950 dark:hover:text-signal-cyan transition-colors flex items-center gap-1.5 group font-medium">
+                <ChevronRight className="w-3 h-3 text-slate-500 dark:text-slate-400 group-hover:text-slate-950 dark:group-hover:text-signal-cyan transition-colors" />
                 Chuột thi đấu Ultralight
               </Link>
             </li>
             <li>
-              <Link href="/products?category=headphone" className="hover:text-cyan-700 dark:hover:text-signal-cyan transition-colors flex items-center gap-1.5 group font-medium">
-                <ChevronRight className="w-3 h-3 text-slate-500 dark:text-slate-400 group-hover:text-cyan-700 dark:group-hover:text-signal-cyan transition-colors" />
+              <Link href="/products?category=headphone" className="hover:text-slate-950 dark:hover:text-signal-cyan transition-colors flex items-center gap-1.5 group font-medium">
+                <ChevronRight className="w-3 h-3 text-slate-500 dark:text-slate-400 group-hover:text-slate-950 dark:group-hover:text-signal-cyan transition-colors" />
                 Tai nghe chống ồn chủ động
               </Link>
             </li>
             <li>
-              <Link href="/products?isHot=true" className="hover:text-cyan-700 dark:hover:text-signal-cyan transition-colors flex items-center gap-1.5 group font-medium">
-                <ChevronRight className="w-3 h-3 text-slate-500 dark:text-slate-400 group-hover:text-cyan-700 dark:group-hover:text-signal-cyan transition-colors" />
+              <Link href="/products?isHot=true" className="hover:text-slate-950 dark:hover:text-signal-cyan transition-colors flex items-center gap-1.5 group font-medium">
+                <ChevronRight className="w-3 h-3 text-slate-500 dark:text-slate-400 group-hover:text-slate-950 dark:group-hover:text-signal-cyan transition-colors" />
                 Sản phẩm HOT & Bán chạy
               </Link>
             </li>
@@ -139,32 +139,32 @@ export default function Footer() {
           </h4>
           <ul className="space-y-2.5 text-xs font-mono text-slate-600 dark:text-slate-400">
             <li>
-              <Link href="/order-tracking" className="hover:text-cyan-700 dark:hover:text-signal-cyan transition-colors flex items-center gap-1.5 group font-medium">
-                <ChevronRight className="w-3 h-3 text-slate-500 dark:text-slate-400 group-hover:text-cyan-700 dark:group-hover:text-signal-cyan transition-colors" />
+              <Link href="/order-tracking" className="hover:text-slate-950 dark:hover:text-signal-cyan transition-colors flex items-center gap-1.5 group font-medium">
+                <ChevronRight className="w-3 h-3 text-slate-500 dark:text-slate-400 group-hover:text-slate-950 dark:group-hover:text-signal-cyan transition-colors" />
                 Tra cứu tiến trình đơn hàng
               </Link>
             </li>
             <li>
-              <Link href="#" className="hover:text-cyan-700 dark:hover:text-signal-cyan transition-colors flex items-center gap-1.5 group font-medium">
-                <ChevronRight className="w-3 h-3 text-slate-500 dark:text-slate-400 group-hover:text-cyan-700 dark:group-hover:text-signal-cyan transition-colors" />
+              <Link href="#" className="hover:text-slate-950 dark:hover:text-signal-cyan transition-colors flex items-center gap-1.5 group font-medium">
+                <ChevronRight className="w-3 h-3 text-slate-500 dark:text-slate-400 group-hover:text-slate-950 dark:group-hover:text-signal-cyan transition-colors" />
                 Chính sách bảo hành 24 tháng
               </Link>
             </li>
             <li>
-              <Link href="#" className="hover:text-cyan-700 dark:hover:text-signal-cyan transition-colors flex items-center gap-1.5 group font-medium">
-                <ChevronRight className="w-3 h-3 text-slate-500 dark:text-slate-400 group-hover:text-cyan-700 dark:group-hover:text-signal-cyan transition-colors" />
+              <Link href="#" className="hover:text-slate-950 dark:hover:text-signal-cyan transition-colors flex items-center gap-1.5 group font-medium">
+                <ChevronRight className="w-3 h-3 text-slate-500 dark:text-slate-400 group-hover:text-slate-950 dark:group-hover:text-signal-cyan transition-colors" />
                 Chính sách vận chuyển & kiểm hàng
               </Link>
             </li>
             <li>
-              <Link href="#" className="hover:text-cyan-700 dark:hover:text-signal-cyan transition-colors flex items-center gap-1.5 group font-medium">
-                <ChevronRight className="w-3 h-3 text-slate-500 dark:text-slate-400 group-hover:text-cyan-700 dark:group-hover:text-signal-cyan transition-colors" />
+              <Link href="#" className="hover:text-slate-950 dark:hover:text-signal-cyan transition-colors flex items-center gap-1.5 group font-medium">
+                <ChevronRight className="w-3 h-3 text-slate-500 dark:text-slate-400 group-hover:text-slate-950 dark:group-hover:text-signal-cyan transition-colors" />
                 Bảo mật thông tin khách hàng
               </Link>
             </li>
             <li>
-              <Link href="#" className="hover:text-cyan-700 dark:hover:text-signal-cyan transition-colors flex items-center gap-1.5 group font-medium">
-                <ChevronRight className="w-3 h-3 text-slate-500 dark:text-slate-400 group-hover:text-cyan-700 dark:group-hover:text-signal-cyan transition-colors" />
+              <Link href="#" className="hover:text-slate-950 dark:hover:text-signal-cyan transition-colors flex items-center gap-1.5 group font-medium">
+                <ChevronRight className="w-3 h-3 text-slate-500 dark:text-slate-400 group-hover:text-slate-950 dark:group-hover:text-signal-cyan transition-colors" />
                 Hướng dẫn thanh toán VNPAY / COD
               </Link>
             </li>
@@ -184,7 +184,7 @@ export default function Footer() {
             <div className="p-2 rounded-lg bg-white dark:bg-surface-card border hairline-border surface-bevel text-center font-mono text-xs font-bold text-emerald-700 dark:text-signal-emerald shadow-sm">
               COD
             </div>
-            <div className="p-2 rounded-lg bg-white dark:bg-surface-card border hairline-border surface-bevel text-center font-mono text-xs font-bold text-cyan-700 dark:text-signal-cyan shadow-sm">
+            <div className="p-2 rounded-lg bg-white dark:bg-surface-card border hairline-border surface-bevel text-center font-mono text-xs font-bold text-slate-950 dark:text-signal-cyan shadow-sm">
               VNPAY
             </div>
             <div className="p-2 rounded-lg bg-white dark:bg-surface-card border hairline-border surface-bevel text-center font-mono text-xs font-bold text-rose-700 dark:text-signal-rose shadow-sm">
@@ -192,7 +192,7 @@ export default function Footer() {
             </div>
           </div>
           <div className="mt-4 p-3 rounded-lg bg-white dark:bg-surface-card border hairline-border surface-bevel text-[11px] font-mono text-slate-700 dark:text-slate-400 flex items-center gap-2.5 shadow-sm">
-            <Lock className="w-4 h-4 text-cyan-700 dark:text-signal-cyan flex-shrink-0" />
+            <Lock className="w-4 h-4 text-slate-900 dark:text-signal-cyan flex-shrink-0" />
             <span>Mã hóa SSL 256-bit chuẩn PCI DSS quốc tế</span>
           </div>
         </div>

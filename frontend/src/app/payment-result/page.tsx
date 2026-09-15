@@ -77,7 +77,7 @@ function PaymentResultContent() {
         {/* Status Icon */}
         <div className="flex justify-center">
           {loading ? (
-            <div className="w-20 h-20 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center ring-8 ring-indigo-500/10">
+            <div className="w-20 h-20 rounded-full bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white flex items-center justify-center ring-8 ring-slate-200 dark:ring-white/10">
               <Clock className="w-12 h-12 animate-spin" />
             </div>
           ) : status === 'success' ? (
@@ -89,7 +89,7 @@ function PaymentResultContent() {
               <XCircle className="w-12 h-12" />
             </div>
           ) : (
-            <div className="w-20 h-20 rounded-full bg-cyan-500/10 text-cyan-700 dark:text-signal-cyan flex items-center justify-center ring-8 ring-cyan-500/10">
+            <div className="w-20 h-20 rounded-full bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white flex items-center justify-center ring-8 ring-slate-200 dark:ring-white/10">
               <Clock className="w-12 h-12 animate-pulse" />
             </div>
           )}
@@ -117,7 +117,7 @@ function PaymentResultContent() {
           <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 max-w-md mx-auto text-left text-xs space-y-2">
             <div className="flex justify-between">
               <span className="text-slate-600 dark:text-slate-400 font-medium">Mã đơn hàng:</span>
-              <span className="font-mono font-bold text-cyan-700 dark:text-signal-cyan">{orderCode}</span>
+              <span className="font-mono font-bold text-slate-950 dark:text-white">{orderCode}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-600 dark:text-slate-400 font-medium">Phương thức:</span>

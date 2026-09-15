@@ -125,7 +125,7 @@ export default function HomePage() {
           </div>
           <Link
             href="/products"
-            className="text-xs font-mono font-semibold text-slate-600 dark:text-slate-400 hover:text-cyan-700 dark:hover:text-signal-cyan flex items-center gap-1 transition-colors"
+            className="text-xs font-mono font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-signal-cyan flex items-center gap-1 transition-colors"
           >
             <span>Xem tất cả</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -156,7 +156,7 @@ export default function HomePage() {
                 {/* Content */}
                 <div className="absolute inset-0 p-5 flex flex-col justify-between z-10">
                   <div className="flex items-center justify-between">
-                    <div className="w-10 h-10 rounded-xl bg-surface-elevated/90 border hairline-border surface-bevel flex items-center justify-center text-slate-800 dark:text-slate-200 group-hover:text-cyan-700 dark:group-hover:text-signal-cyan group-hover:border-cyan-500/40 transition-colors">
+                    <div className="w-10 h-10 rounded-xl bg-surface-elevated/90 border hairline-border surface-bevel flex items-center justify-center text-slate-800 dark:text-slate-200 group-hover:text-slate-950 dark:group-hover:text-signal-cyan group-hover:border-slate-400 dark:group-hover:border-cyan-500/40 transition-colors">
                       <Icon className="w-5 h-5" />
                     </div>
                     <span className="text-[10px] font-mono tabular-nums font-bold px-2 py-0.5 rounded-md bg-surface-elevated/90 text-slate-700 dark:text-slate-300 border hairline-border backdrop-blur-sm">
@@ -165,7 +165,7 @@ export default function HomePage() {
                   </div>
 
                   <div>
-                    <h3 className="font-bold text-base text-slate-900 dark:text-white group-hover:text-cyan-700 dark:group-hover:text-signal-cyan transition-colors">
+                    <h3 className="font-bold text-base text-slate-900 dark:text-white group-hover:text-slate-950 dark:group-hover:text-signal-cyan transition-colors">
                       {cat.name}
                     </h3>
                     <p className="text-xs text-slate-600 dark:text-slate-400 font-mono line-clamp-1 mt-0.5">
@@ -252,7 +252,7 @@ export default function HomePage() {
               onClick={() => setActiveTab('newest')}
               className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
                 activeTab === 'newest'
-                  ? 'bg-surface-elevated text-cyan-700 dark:text-signal-cyan border border-cyan-500/30 dark:border-signal-cyan/30 surface-bevel shadow-sm'
+                  ? 'bg-surface-elevated text-slate-950 dark:text-white border border-slate-300 dark:border-white/10 surface-bevel shadow-sm'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
@@ -264,7 +264,7 @@ export default function HomePage() {
               onClick={() => setActiveTab('best_seller')}
               className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-mono font-bold transition-all ${
                 activeTab === 'best_seller'
-                  ? 'bg-surface-elevated text-cyan-700 dark:text-signal-cyan border border-cyan-500/30 dark:border-signal-cyan/30 surface-bevel shadow-sm'
+                  ? 'bg-surface-elevated text-slate-950 dark:text-white border border-slate-300 dark:border-white/10 surface-bevel shadow-sm'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
@@ -289,9 +289,9 @@ export default function HomePage() {
         )}
       </section>
 
-      {/* 5. Brand Logos Showcase */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="p-6 rounded-2xl bg-surface-card border hairline-border surface-bevel shadow-sm">
+      {/* Brand Partners Showcase */}
+      <section className="border-t hairline-border py-12 bg-surface-subtle/20 dark:bg-surface-card/20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <p className="text-center text-[11px] font-mono font-bold uppercase tracking-widest text-slate-700 dark:text-slate-400 mb-4">
             ĐỐI TÁC THƯƠNG HIỆU PHẦN CỨNG CHÍNH HÃNG
           </p>
@@ -301,7 +301,7 @@ export default function HomePage() {
                 <Link
                   key={brand}
                   href={`/products?brand=${encodeURIComponent(brand.split(' ')[0])}`}
-                  className="font-mono font-bold text-xs sm:text-sm tracking-wider text-slate-700 dark:text-slate-400 hover:text-cyan-700 dark:hover:text-signal-cyan transition-colors"
+                  className="font-mono font-bold text-xs sm:text-sm tracking-wider text-slate-700 dark:text-slate-400 hover:text-slate-950 dark:hover:text-signal-cyan transition-colors"
                 >
                   {brand}
                 </Link>

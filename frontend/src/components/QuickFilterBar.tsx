@@ -45,7 +45,7 @@ export default function QuickFilterBar() {
     <div className="w-full rounded-xl bg-surface-card border hairline-border surface-bevel p-4 sm:p-5 shadow-lg transition-colors">
       <div className="flex items-center justify-between gap-2 mb-4 pb-3 border-b hairline-border">
         <div className="flex items-center gap-2">
-          <SlidersHorizontal className="w-4 h-4 text-cyan-700 dark:text-signal-cyan" />
+          <SlidersHorizontal className="w-4 h-4 text-slate-900 dark:text-signal-cyan" />
           <span className="text-xs font-mono font-bold uppercase tracking-wider text-slate-900 dark:text-white">
             Bộ Lọc Thông Số Phần Cứng // Hardware Inspection Bar
           </span>
@@ -72,7 +72,7 @@ export default function QuickFilterBar() {
               placeholder="Model, switch, DPI..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-8 pr-3 py-2 text-xs rounded-lg bg-slate-50 dark:bg-surface-elevated border hairline-border text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 font-medium focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan/60"
+              className="w-full pl-8 pr-3 py-2 text-xs rounded-lg bg-slate-50 dark:bg-surface-elevated border hairline-border text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 font-medium focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan/60"
             />
             <Search className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
@@ -86,7 +86,7 @@ export default function QuickFilterBar() {
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 dark:bg-surface-elevated border hairline-border text-slate-900 dark:text-slate-100 font-medium focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan/60"
+            className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 dark:bg-surface-elevated border hairline-border text-slate-900 dark:text-slate-100 font-medium focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan/60"
           >
             <option value="">Tất cả danh mục</option>
             <option value="monitor">Màn hình máy tính</option>
@@ -114,7 +114,7 @@ export default function QuickFilterBar() {
                 setMaxPrice(max || '');
               }
             }}
-            className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 dark:bg-surface-elevated border hairline-border text-slate-900 dark:text-slate-100 font-medium focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan/60"
+            className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 dark:bg-surface-elevated border hairline-border text-slate-900 dark:text-slate-100 font-medium focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan/60"
           >
             <option value="">Mọi mức giá</option>
             <option value="0-3000000">Dưới 3 triệu</option>
@@ -132,7 +132,7 @@ export default function QuickFilterBar() {
           <select
             value={switchType}
             onChange={(e) => setSwitchType(e.target.value)}
-            className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 dark:bg-surface-elevated border hairline-border text-slate-900 dark:text-slate-100 font-medium focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan/60"
+            className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 dark:bg-surface-elevated border hairline-border text-slate-900 dark:text-slate-100 font-medium focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan/60"
           >
             <option value="">Tất cả switch</option>
             <option value="Magnetic">Hall Effect / Magnetic</option>
@@ -150,7 +150,7 @@ export default function QuickFilterBar() {
           <select
             value={refreshRate}
             onChange={(e) => setRefreshRate(e.target.value)}
-            className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 dark:bg-surface-elevated border hairline-border text-slate-900 dark:text-slate-100 font-medium focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan/60"
+            className="w-full px-3 py-2 text-xs rounded-lg bg-slate-50 dark:bg-surface-elevated border hairline-border text-slate-900 dark:text-slate-100 font-medium focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan/60"
           >
             <option value="">Tất cả tần số</option>
             <option value="240Hz">240Hz Siêu tốc</option>
@@ -168,7 +168,7 @@ export default function QuickFilterBar() {
             <select
               value={connection}
               onChange={(e) => setConnection(e.target.value)}
-              className="flex-1 px-2.5 py-2 text-xs rounded-lg bg-slate-50 dark:bg-surface-elevated border hairline-border text-slate-900 dark:text-slate-100 font-medium focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan/60"
+              className="flex-1 px-2.5 py-2 text-xs rounded-lg bg-slate-50 dark:bg-surface-elevated border hairline-border text-slate-900 dark:text-slate-100 font-medium focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan/60"
             >
               <option value="">Mọi kiểu</option>
               <option value="Không dây">Không dây</option>

@@ -60,7 +60,7 @@ const CustomPieTooltip = ({ active, payload }: any) => {
           <span className="font-semibold text-slate-800 dark:text-slate-200">{name}:</span>
           <span className="font-bold text-slate-900 dark:text-white tabular-nums font-mono">{quantity} chiếc</span>
           {percent !== null && (
-            <span className="font-bold text-cyan-700 dark:text-signal-cyan bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/20 text-[11px] tabular-nums font-mono">
+            <span className="font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-surface-elevated px-1.5 py-0.5 rounded border border-slate-300 dark:border-white/10 text-[11px] tabular-nums font-mono">
               {percent}%
             </span>
           )}
@@ -77,9 +77,9 @@ const CustomAreaTooltip = ({ active, payload, label }: any) => {
       <div className="bg-white/95 dark:bg-surface-elevated/95 backdrop-blur-md hairline-border px-3.5 py-2 rounded-lg shadow-xl space-y-1 pointer-events-none z-50">
         <p className="text-[11px] font-mono text-slate-600 dark:text-slate-400 font-bold">{label}</p>
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-cyan-600 dark:bg-signal-cyan shadow-sm" />
+          <span className="w-2 h-2 rounded-full bg-slate-900 dark:bg-signal-cyan shadow-sm" />
           <span className="text-xs font-medium text-slate-700 dark:text-slate-300">Doanh thu:</span>
-          <span className="text-xs font-bold text-cyan-700 dark:text-signal-cyan tabular-nums font-mono">
+          <span className="text-xs font-bold text-slate-950 dark:text-white tabular-nums font-mono">
             {formatVND(Number(payload[0].value))}
           </span>
         </div>
@@ -95,9 +95,9 @@ const CustomBarTooltip = ({ active, payload, label }: any) => {
       <div className="bg-white/95 dark:bg-surface-elevated/95 backdrop-blur-md hairline-border px-3.5 py-2 rounded-lg shadow-xl space-y-1 pointer-events-none z-50">
         <p className="text-[11px] font-mono text-slate-600 dark:text-slate-400 font-bold">{label}</p>
         <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-cyan-600 dark:bg-signal-cyan shadow-sm" />
+          <span className="w-2 h-2 rounded-full bg-slate-900 dark:bg-signal-cyan shadow-sm" />
           <span className="text-xs font-medium text-slate-700 dark:text-slate-300">Doanh thu:</span>
-          <span className="text-xs font-bold text-cyan-700 dark:text-signal-cyan tabular-nums font-mono">
+          <span className="text-xs font-bold text-slate-950 dark:text-white tabular-nums font-mono">
             {formatVND(Number(payload[0].value))}
           </span>
         </div>
@@ -188,8 +188,8 @@ export default function AdminDashboardPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2 text-xs font-mono font-bold px-3 py-1.5 rounded-lg bg-cyan-50 dark:bg-surface-elevated text-cyan-700 dark:text-signal-cyan border border-cyan-200 dark:border-cyan-500/20 surface-bevel self-start sm:self-auto shadow-sm">
-          <Sparkles className="w-3.5 h-3.5 text-cyan-600 dark:text-signal-cyan" />
+        <div className="flex items-center gap-2 text-xs font-mono font-bold px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-surface-elevated text-slate-900 dark:text-white border border-slate-300 dark:border-white/10 surface-bevel self-start sm:self-auto shadow-sm">
+          <Sparkles className="w-3.5 h-3.5 text-slate-900 dark:text-signal-cyan" />
           <span>Dữ liệu thời gian thực</span>
         </div>
       </div>
@@ -200,7 +200,7 @@ export default function AdminDashboardPage() {
         <div className="p-5 rounded-xl bg-surface-card hairline-border surface-bevel shadow-sm space-y-2">
           <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
             <span className="text-[11px] font-mono uppercase tracking-wider font-bold text-slate-700 dark:text-slate-300">Tổng Doanh Thu</span>
-            <div className="w-8 h-8 rounded-lg bg-cyan-500/10 text-cyan-700 dark:text-signal-cyan border border-cyan-500/20 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-surface-elevated text-slate-900 dark:text-white border border-slate-300 dark:border-white/10 flex items-center justify-center">
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
@@ -217,7 +217,7 @@ export default function AdminDashboardPage() {
         <div className="p-5 rounded-xl bg-surface-card hairline-border surface-bevel shadow-sm space-y-2">
           <div className="flex items-center justify-between text-slate-500 dark:text-slate-400">
             <span className="text-[11px] font-mono uppercase tracking-wider font-bold text-slate-700 dark:text-slate-300">Tổng Đơn Hàng</span>
-            <div className="w-8 h-8 rounded-lg bg-cyan-500/10 text-cyan-700 dark:text-signal-cyan border border-cyan-500/20 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-surface-elevated text-slate-900 dark:text-white border border-slate-300 dark:border-white/10 flex items-center justify-center">
               <ShoppingCart className="w-4 h-4" />
             </div>
           </div>
@@ -225,7 +225,7 @@ export default function AdminDashboardPage() {
             {summary?.totalOrders || 0} <span className="text-sm font-semibold text-slate-600 dark:text-slate-400">đơn</span>
           </div>
           <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">
-            Hôm nay: <span className="text-cyan-700 dark:text-signal-cyan font-bold tabular-nums font-mono">{summary?.todayStats?.ordersCount || 0} đơn mới</span>
+            Hôm nay: <span className="text-slate-950 dark:text-white font-bold tabular-nums font-mono">{summary?.todayStats?.ordersCount || 0} đơn mới</span>
           </p>
         </div>
 
@@ -272,7 +272,7 @@ export default function AdminDashboardPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b hairline-border">
             <div>
               <h2 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-cyan-600 dark:text-signal-cyan" />
+                <Calendar className="w-4 h-4 text-slate-900 dark:text-signal-cyan" />
                 <span>Biểu Đồ Doanh Thu Định Kỳ</span>
               </h2>
               <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Doanh số bán hàng thực tế qua các mốc thời gian</p>
@@ -286,7 +286,7 @@ export default function AdminDashboardPage() {
                   onClick={() => setPeriod(p)}
                   className={`px-3 py-1 rounded-md transition-all font-mono ${
                     period === p
-                      ? 'bg-white dark:bg-surface-card text-cyan-700 dark:text-signal-cyan font-bold border border-cyan-200 dark:border-cyan-500/20 shadow-sm'
+                      ? 'bg-white dark:bg-surface-card text-slate-950 dark:text-white font-bold border border-slate-300 dark:border-white/20 shadow-sm'
                       : 'text-slate-700 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium'
                   }`}
                 >
@@ -339,7 +339,7 @@ export default function AdminDashboardPage() {
         <div className="lg:col-span-4 rounded-xl hairline-border surface-bevel bg-surface-card p-6 shadow-sm space-y-6">
           <div className="pb-4 border-b hairline-border">
             <h2 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
-              <Layers className="w-4 h-4 text-cyan-600 dark:text-signal-cyan" />
+              <Layers className="w-4 h-4 text-slate-900 dark:text-signal-cyan" />
               <span>Sản Phẩm Bán Hôm Nay Theo Danh Mục</span>
             </h2>
             <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Phân bổ 4 nhóm thiết bị chính trong ngày</p>
@@ -423,7 +423,7 @@ export default function AdminDashboardPage() {
               className="p-4 rounded-xl bg-surface-subtle/30 dark:bg-surface-elevated/70 hairline-border surface-bevel space-y-2"
             >
               <div className="flex items-center justify-between">
-                <span className="text-xs font-mono font-black uppercase text-cyan-700 dark:text-signal-cyan">
+                <span className="text-xs font-mono font-black uppercase text-slate-950 dark:text-white">
                   {q.quarter}
                 </span>
                 <span className="text-[10px] font-mono text-slate-700 dark:text-slate-300 font-semibold">{q.months}</span>

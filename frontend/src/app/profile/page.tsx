@@ -93,7 +93,7 @@ export default function ProfilePage() {
                   required
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-lg bg-slate-50 dark:bg-surface-elevated border hairline-border text-slate-900 dark:text-slate-100 font-medium focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan/60"
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-slate-50 dark:bg-surface-elevated border hairline-border text-slate-900 dark:text-slate-100 font-medium focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan/60"
                 />
               </div>
 
@@ -105,7 +105,7 @@ export default function ProfilePage() {
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-lg bg-slate-50 dark:bg-surface-elevated border hairline-border text-slate-900 dark:text-slate-100 font-medium focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan/60"
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-slate-50 dark:bg-surface-elevated border hairline-border text-slate-900 dark:text-slate-100 font-medium focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan/60"
                 />
               </div>
 
@@ -189,7 +189,7 @@ export default function ProfilePage() {
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono font-black text-cyan-700 dark:text-signal-cyan">
+                          <span className="font-mono font-black text-slate-950 dark:text-white">
                             {order.orderCode}
                           </span>
                           <span className={`px-2.5 py-0.5 rounded-full font-bold border hairline-border text-[10px] ${statusInfo.color}`}>

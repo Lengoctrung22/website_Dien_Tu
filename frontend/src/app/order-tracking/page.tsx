@@ -101,7 +101,7 @@ function OrderTrackingContent() {
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
       {/* Header */}
       <div className="text-center space-y-2">
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-mono font-bold uppercase tracking-wider bg-surface-card border hairline-border text-cyan-700 dark:text-signal-cyan mb-1">
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-mono font-bold uppercase tracking-wider bg-slate-100 dark:bg-surface-card border hairline-border text-slate-950 dark:text-white mb-1">
           <Truck className="w-3 h-3" />
           REALTIME LOGISTICS TELEMETRY
         </div>
@@ -138,7 +138,7 @@ function OrderTrackingContent() {
                 placeholder="Ví dụ: TG260911-1001"
                 value={orderCode}
                 onChange={(e) => setOrderCode(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-xs rounded-lg bg-slate-50 dark:bg-surface-elevated border hairline-border font-mono text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan/60 font-medium"
+                className="w-full px-3.5 py-2.5 text-xs rounded-lg bg-slate-50 dark:bg-surface-elevated border hairline-border font-mono text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan/60 font-medium"
               />
             </div>
 
@@ -151,7 +151,7 @@ function OrderTrackingContent() {
                 placeholder="Số điện thoại lúc đặt..."
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-xs rounded-lg bg-slate-50 dark:bg-surface-elevated border hairline-border font-mono text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan/60 font-medium"
+                className="w-full px-3.5 py-2.5 text-xs rounded-lg bg-slate-50 dark:bg-surface-elevated border hairline-border font-mono text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan/60 font-medium"
               />
             </div>
           </div>
@@ -181,7 +181,7 @@ function OrderTrackingContent() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b hairline-border">
             <div>
               <div className="flex items-center gap-3">
-                <span className="text-xl sm:text-2xl font-mono font-black text-cyan-700 dark:text-signal-cyan">
+                <span className="text-xl sm:text-2xl font-mono font-black text-slate-950 dark:text-white">
                   {order.orderCode}
                 </span>
                 {isCancelled ? (
@@ -255,14 +255,14 @@ function OrderTrackingContent() {
                           <div
                             className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${
                               isPassed
-                                ? 'bg-white dark:bg-surface-card border border-cyan-600 dark:border-signal-cyan text-cyan-700 dark:text-signal-cyan surface-bevel shadow-sm'
+                                ? 'bg-white dark:bg-surface-card border border-slate-900 dark:border-signal-cyan text-slate-950 dark:text-white surface-bevel shadow-sm'
                                 : 'bg-slate-100 dark:bg-surface-elevated text-slate-500 dark:text-slate-400 border hairline-border'
-                            } ${isCurrent ? 'ring-2 ring-cyan-600 dark:ring-signal-cyan ring-offset-2 ring-offset-surface-canvas scale-105' : ''}`}
+                            } ${isCurrent ? 'ring-2 ring-slate-900 dark:ring-signal-cyan ring-offset-2 ring-offset-surface-canvas scale-105' : ''}`}
                           >
                             <StepIcon className="w-5 h-5" />
                           </div>
                           {isCurrent && (
-                            <span className="w-2.5 h-2.5 rounded-full bg-cyan-600 dark:bg-signal-cyan animate-ping absolute -top-1 -right-1" />
+                            <span className="w-2.5 h-2.5 rounded-full bg-slate-900 dark:bg-signal-cyan animate-ping absolute -top-1 -right-1" />
                           )}
                         </div>
                         <div className="space-y-0.5 text-left sm:text-center">
@@ -289,7 +289,7 @@ function OrderTrackingContent() {
             {/* Customer & Shipping info */}
             <div className="p-4 rounded-xl bg-surface-elevated border hairline-border surface-bevel space-y-3 text-xs font-mono">
               <h4 className="font-bold text-slate-900 dark:text-white uppercase tracking-wider text-[11px] flex items-center gap-1.5">
-                <MapPin className="w-4 h-4 text-cyan-700 dark:text-signal-cyan" />
+                <MapPin className="w-4 h-4 text-slate-900 dark:text-signal-cyan" />
                 <span>Thông Tin Nhận Hàng</span>
               </h4>
               <div className="space-y-1.5 text-slate-700 dark:text-slate-300">
@@ -316,7 +316,7 @@ function OrderTrackingContent() {
             {/* Payment info */}
             <div className="p-4 rounded-xl bg-surface-elevated border hairline-border surface-bevel space-y-3 text-xs font-mono">
               <h4 className="font-bold text-slate-900 dark:text-white uppercase tracking-wider text-[11px] flex items-center gap-1.5">
-                <CreditCard className="w-4 h-4 text-cyan-700 dark:text-signal-cyan" />
+                <CreditCard className="w-4 h-4 text-slate-900 dark:text-signal-cyan" />
                 <span>Thanh Toán & Hóa Đơn</span>
               </h4>
               <div className="space-y-1.5 text-slate-700 dark:text-slate-300 font-medium">
@@ -339,7 +339,7 @@ function OrderTrackingContent() {
                 {order.vnpayTransactionNo && (
                   <div className="flex justify-between">
                     <span className="text-slate-600 dark:text-slate-400">Mã giao dịch VNPAY:</span>
-                    <span className="font-mono font-bold text-cyan-700 dark:text-signal-cyan">{order.vnpayTransactionNo}</span>
+                    <span className="font-mono font-bold text-slate-950 dark:text-white">{order.vnpayTransactionNo}</span>
                   </div>
                 )}
               </div>
@@ -371,7 +371,7 @@ function OrderTrackingContent() {
                       </p>
                     </div>
                   </div>
-                  <span className="font-black tabular-nums text-cyan-700 dark:text-signal-cyan">
+                  <span className="font-black tabular-nums text-slate-950 dark:text-white">
                     {formatVND(item.price * item.quantity)}
                   </span>
                 </div>

@@ -124,11 +124,11 @@ function ProductsContent() {
           <div className="flex items-center gap-1.5 text-xs font-mono text-slate-600 dark:text-slate-400 mb-1">
             <span>Trang chủ</span>
             <ChevronRight className="w-3 h-3" />
-            <span className="text-cyan-700 dark:text-signal-cyan font-bold">Cửa Hàng Gear</span>
+            <span className="text-slate-900 dark:text-signal-cyan font-bold">Cửa Hàng Gear</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-3">
             <span>Tất Cả Sản Phẩm</span>
-            <span className="text-sm font-mono font-bold tabular-nums px-2.5 py-0.5 rounded-md bg-surface-card border hairline-border text-cyan-700 dark:text-signal-cyan">
+            <span className="text-sm font-mono font-bold tabular-nums px-2.5 py-0.5 rounded-md bg-surface-card border hairline-border text-slate-900 dark:text-signal-cyan">
               {pagination.total} SP
             </span>
           </h1>
@@ -142,7 +142,7 @@ function ProductsContent() {
               placeholder="Tìm theo tên, hãng..."
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
-              className="w-48 sm:w-64 pl-9 pr-3 py-2 text-xs rounded-lg bg-surface-card border hairline-border text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 font-medium focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan/60"
+              className="w-48 sm:w-64 pl-9 pr-3 py-2 text-xs rounded-lg bg-surface-card border hairline-border text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 font-medium focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan/60"
             />
             <Search className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           </form>
@@ -150,7 +150,7 @@ function ProductsContent() {
           <select
             value={sortByParam}
             onChange={(e) => updateParam('sortBy', e.target.value)}
-            className="px-3 py-2 text-xs font-mono font-semibold rounded-lg bg-surface-card border hairline-border text-slate-900 dark:text-slate-100 focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan/60"
+            className="px-3 py-2 text-xs font-mono font-semibold rounded-lg bg-surface-card border hairline-border text-slate-900 dark:text-slate-100 focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan/60"
           >
             <option value="newest">Mới nhất trước</option>
             <option value="best_seller">Bán chạy nhất</option>
@@ -174,7 +174,7 @@ function ProductsContent() {
       {hasActiveFilters && (
         <div className="flex flex-wrap items-center gap-2 p-3 rounded-xl bg-surface-card border hairline-border surface-bevel shadow-sm">
           <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1 mr-1">
-            <Filter className="w-3.5 h-3.5 text-cyan-700 dark:text-signal-cyan" />
+            <Filter className="w-3.5 h-3.5 text-slate-900 dark:text-signal-cyan" />
             Đang lọc:
           </span>
 
@@ -304,7 +304,7 @@ function ProductsContent() {
             {/* Header of Sidebar */}
             <div className="flex items-center justify-between pb-3 border-b hairline-border">
               <div className="flex items-center gap-2 font-mono font-bold text-xs uppercase tracking-wider text-slate-900 dark:text-white">
-                <SlidersHorizontal className="w-4 h-4 text-cyan-700 dark:text-signal-cyan" />
+                <SlidersHorizontal className="w-4 h-4 text-slate-900 dark:text-signal-cyan" />
                 <span>Bộ Lọc Thông Số</span>
               </div>
               <div className="flex items-center gap-2">
@@ -342,7 +342,7 @@ function ProductsContent() {
                     }}
                     className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-mono transition-all ${
                       categoryParam === c.id
-                        ? 'bg-surface-elevated text-cyan-700 dark:text-signal-cyan border border-cyan-500/30 dark:border-signal-cyan/30 surface-bevel font-bold shadow-sm'
+                        ? 'bg-surface-elevated text-slate-950 dark:text-white border border-slate-300 dark:border-white/10 surface-bevel font-bold shadow-sm'
                         : 'text-slate-700 dark:text-slate-300 hover:bg-surface-elevated/80 font-semibold'
                     }`}
                   >
@@ -384,12 +384,12 @@ function ProductsContent() {
                       }}
                       className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-mono transition-all ${
                         isSelected
-                          ? 'bg-surface-elevated text-cyan-700 dark:text-signal-cyan font-bold border border-cyan-500/30 dark:border-signal-cyan/30 surface-bevel shadow-sm'
+                          ? 'bg-surface-elevated text-slate-950 dark:text-white font-bold border border-slate-300 dark:border-white/10 surface-bevel shadow-sm'
                           : 'text-slate-700 dark:text-slate-400 hover:bg-surface-elevated/80 font-medium'
                       }`}
                     >
                       <span className="tabular-nums">{range.label}</span>
-                      {isSelected && <Check className="w-3.5 h-3.5 text-cyan-700 dark:text-signal-cyan" />}
+                      {isSelected && <Check className="w-3.5 h-3.5 text-slate-950 dark:text-signal-cyan" />}
                     </button>
                   );
                 })}

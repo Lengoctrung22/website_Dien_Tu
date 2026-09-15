@@ -108,13 +108,13 @@ export default function Header() {
         <div className="flex items-center justify-between h-16 gap-4">
           {/* High-Tech "TG" Monogram Branding */}
           <Link href="/" className="flex items-center gap-2.5 flex-shrink-0 group">
-            <div className="w-9 h-9 rounded-lg bg-surface-card border hairline-border surface-bevel flex items-center justify-center text-slate-900 dark:text-white group-hover:border-cyan-500/50 dark:group-hover:border-signal-cyan/50 group-hover:text-cyan-700 dark:group-hover:text-signal-cyan transition-all duration-200 shadow-sm">
-              <span className="font-mono font-black text-sm tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-cyan-600 to-indigo-600 dark:from-signal-cyan dark:to-indigo-400">TG</span>
+            <div className="w-9 h-9 rounded-lg bg-surface-card border hairline-border surface-bevel flex items-center justify-center text-slate-900 dark:text-white group-hover:border-slate-400 dark:group-hover:border-signal-cyan/50 group-hover:text-slate-950 dark:group-hover:text-signal-cyan transition-all duration-200 shadow-sm">
+              <span className="font-mono font-black text-sm tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-slate-900 to-indigo-600 dark:from-signal-cyan dark:to-indigo-400">TG</span>
             </div>
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-lg tracking-tight text-slate-900 dark:text-white group-hover:text-cyan-700 dark:group-hover:text-signal-cyan transition-colors">
-                  TECH<span className="text-cyan-700 dark:text-signal-cyan">GEAR</span>
+                <span className="font-extrabold text-lg tracking-tight text-slate-900 dark:text-white group-hover:text-slate-950 dark:group-hover:text-signal-cyan transition-colors">
+                  TECH<span className="text-slate-950 dark:text-signal-cyan">GEAR</span>
                 </span>
                 <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border hairline-border bg-slate-100 dark:bg-surface-subtle text-slate-700 dark:text-slate-300 tracking-wider">
                   PRO
@@ -132,7 +132,7 @@ export default function Header() {
               placeholder="Tìm phím cơ, chuột gaming, màn hình 240Hz..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-20 py-2 text-xs sm:text-sm rounded-lg bg-slate-100/90 dark:bg-surface-card border hairline-border surface-bevel text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan/50 focus:ring-1 focus:ring-cyan-500/20 dark:focus:ring-signal-cyan/20 transition-all font-sans"
+              className="w-full pl-9 pr-20 py-2 text-xs sm:text-sm rounded-lg bg-slate-100/90 dark:bg-surface-card border hairline-border surface-bevel text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan/50 focus:ring-1 focus:ring-slate-400/20 dark:focus:ring-signal-cyan/20 transition-all font-sans"
             />
             <Search className="w-4 h-4 text-slate-500 dark:text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none hidden sm:inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold text-slate-600 dark:text-slate-400 bg-slate-200/80 dark:bg-surface-subtle border hairline-border select-none">
@@ -142,23 +142,23 @@ export default function Header() {
 
           {/* Desktop Nav Links */}
           <nav className="hidden lg:flex items-center gap-6 text-xs font-mono uppercase tracking-wider text-slate-800 dark:text-slate-200 font-semibold">
-            <Link href="/products" className="hover:text-cyan-700 dark:hover:text-signal-cyan transition-colors">
+            <Link href="/products" className="hover:text-slate-950 dark:hover:text-signal-cyan transition-colors">
               Sản phẩm
             </Link>
-            <Link href="/products?category=monitor" className="hover:text-cyan-700 dark:hover:text-signal-cyan transition-colors">
+            <Link href="/products?category=monitor" className="hover:text-slate-950 dark:hover:text-signal-cyan transition-colors">
               Màn hình
             </Link>
-            <Link href="/products?category=keyboard" className="hover:text-cyan-700 dark:hover:text-signal-cyan transition-colors">
+            <Link href="/products?category=keyboard" className="hover:text-slate-950 dark:hover:text-signal-cyan transition-colors">
               Bàn phím
             </Link>
-            <Link href="/products?category=mouse" className="hover:text-cyan-700 dark:hover:text-signal-cyan transition-colors">
+            <Link href="/products?category=mouse" className="hover:text-slate-950 dark:hover:text-signal-cyan transition-colors">
               Chuột
             </Link>
-            <Link href="/products?category=headphone" className="hover:text-cyan-700 dark:hover:text-signal-cyan transition-colors">
+            <Link href="/products?category=headphone" className="hover:text-slate-950 dark:hover:text-signal-cyan transition-colors">
               Tai nghe
             </Link>
-            <Link href="/order-tracking" className="hover:text-cyan-700 dark:hover:text-signal-cyan transition-colors flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
-              <PackageCheck className="w-3.5 h-3.5 text-cyan-700 dark:text-signal-cyan" />
+            <Link href="/order-tracking" className="hover:text-slate-950 dark:hover:text-signal-cyan transition-colors flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+              <PackageCheck className="w-3.5 h-3.5 text-slate-800 dark:text-signal-cyan" />
               <span>Tra cứu</span>
             </Link>
           </nav>
@@ -173,7 +173,7 @@ export default function Header() {
               className="relative p-2 rounded-lg border hairline-border bg-white dark:bg-surface-card hover:bg-slate-100 dark:hover:bg-surface-subtle surface-bevel text-slate-700 dark:text-slate-200 transition-all group"
               title="Giỏ hàng"
             >
-              <ShoppingBag className="w-4 h-4 group-hover:text-cyan-700 dark:group-hover:text-signal-cyan transition-colors" />
+              <ShoppingBag className="w-4 h-4 group-hover:text-slate-950 dark:group-hover:text-signal-cyan transition-colors" />
               {isMounted && totalItems > 0 && (
                 <span className="absolute -top-1.5 -right-1.5 bg-signal-rose text-white text-[10px] font-mono font-bold rounded-full px-1 min-w-[18px] h-[18px] flex items-center justify-center tabular-nums border hairline-border shadow-sm">
                   {totalItems > 99 ? '99+' : totalItems}
@@ -189,7 +189,7 @@ export default function Header() {
                   aria-expanded={isUserMenuOpen}
                   className="flex items-center gap-2 py-1.5 px-3 rounded-lg border hairline-border bg-white dark:bg-surface-card hover:bg-slate-100 dark:hover:bg-surface-subtle surface-bevel text-xs font-mono font-semibold transition-all text-slate-800 dark:text-slate-100"
                 >
-                  <div className="w-5 h-5 rounded bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-700 dark:text-signal-cyan text-[10px] font-mono font-bold uppercase">
+                  <div className="w-5 h-5 rounded bg-slate-100 dark:bg-surface-elevated border border-slate-300 dark:border-white/10 flex items-center justify-center text-slate-950 dark:text-white text-[10px] font-mono font-bold uppercase">
                     {user.fullName.charAt(0)}
                   </div>
                   <span className="hidden sm:inline max-w-[100px] truncate">{user.fullName}</span>
@@ -201,7 +201,7 @@ export default function Header() {
                     <div className="px-4 py-2 border-b hairline-border">
                       <p className="text-[10px] font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold">Tài khoản</p>
                       <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{user.fullName}</p>
-                      <span className="inline-block mt-1 px-1.5 py-0.5 text-[9px] font-mono font-bold uppercase tracking-wider rounded border hairline-border bg-cyan-500/10 text-cyan-700 dark:text-signal-cyan border-cyan-500/30">
+                      <span className="inline-block mt-1 px-1.5 py-0.5 text-[9px] font-mono font-bold uppercase tracking-wider rounded border hairline-border bg-slate-100 dark:bg-surface-elevated text-slate-950 dark:text-white border-slate-300 dark:border-white/10">
                         {user.role}
                       </span>
                     </div>
@@ -210,7 +210,7 @@ export default function Header() {
                       <Link
                         href="/admin"
                         onClick={() => setIsUserMenuOpen(false)}
-                        className="flex items-center gap-2 px-4 py-2 text-xs font-mono text-cyan-700 dark:text-signal-cyan hover:bg-slate-100 dark:hover:bg-surface-subtle font-bold transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 text-xs font-mono text-slate-950 dark:text-white hover:bg-slate-100 dark:hover:bg-surface-subtle font-bold transition-colors"
                       >
                         <ShieldCheck className="w-4 h-4" />
                         Trang Quản Trị (Admin)
@@ -269,7 +269,7 @@ export default function Header() {
                 placeholder="Tìm kiếm thiết bị gaming..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 text-xs rounded-lg bg-slate-100 dark:bg-surface-card border hairline-border surface-bevel text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan/50 focus:ring-1 focus:ring-cyan-500/20"
+                className="w-full pl-9 pr-4 py-2 text-xs rounded-lg bg-slate-100 dark:bg-surface-card border hairline-border surface-bevel text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan/50 focus:ring-1 focus:ring-slate-400/20"
               />
               <Search className="w-4 h-4 text-slate-500 dark:text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             </form>
@@ -313,7 +313,7 @@ export default function Header() {
               <Link
                 href="/order-tracking"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="px-3 py-2 rounded-lg hover:bg-cyan-500/10 dark:hover:bg-surface-subtle text-cyan-700 dark:text-signal-cyan font-bold"
+                className="px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-surface-subtle text-slate-950 dark:text-signal-cyan font-bold"
               >
                 Tra cứu đơn hàng
               </Link>
