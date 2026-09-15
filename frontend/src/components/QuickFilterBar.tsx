@@ -45,7 +45,7 @@ export default function QuickFilterBar() {
     <div className="w-full rounded-xl bg-surface-card border hairline-border surface-bevel p-4 sm:p-5 shadow-lg transition-colors">
       <div className="flex items-center justify-between gap-2 mb-4 pb-3 border-b hairline-border">
         <div className="flex items-center gap-2">
-          <SlidersHorizontal className="w-4 h-4 text-slate-900 dark:text-signal-cyan" />
+          <SlidersHorizontal className="w-4 h-4 text-slate-900 dark:text-black" />
           <span className="text-xs font-mono font-bold uppercase tracking-wider text-slate-900 dark:text-white">
             Bộ Lọc Thông Số Phần Cứng // Hardware Inspection Bar
           </span>

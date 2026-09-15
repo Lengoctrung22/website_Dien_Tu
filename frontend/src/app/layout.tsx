@@ -21,26 +21,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="vi" className={`dark ${plusJakartaSans.variable}`} suppressHydrationWarning>
+    <html lang="vi" className={plusJakartaSans.variable} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
                 try {
-                  var theme = localStorage.getItem('techgear_theme');
-                  if (theme === 'light') {
-                    document.documentElement.classList.remove('dark');
-                  } else if (theme === 'dark') {
-                    document.documentElement.classList.add('dark');
-                  }
+                  document.documentElement.classList.remove('dark');
+                  localStorage.setItem('techgear_theme', 'light');
                 } catch(e) {}
               })();
             `,
           }}
         />
       </head>
-      <body className={`${plusJakartaSans.variable} font-sans min-h-screen bg-slate-50 dark:bg-surface-canvas text-slate-900 dark:text-slate-100 antialiased selection:bg-cyan-500 selection:text-white`}>
+      <body className={`${plusJakartaSans.variable} font-sans min-h-screen bg-white text-slate-900 antialiased selection:bg-cyan-500 selection:text-white`}>
         <Providers>
           <StorefrontWrapper>{children}</StorefrontWrapper>
         </Providers>

@@ -71,7 +71,7 @@ export default function CartPage() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-3">
             <span>Giỏ Hàng Của Bạn</span>
-            <span className="text-xs font-mono font-bold tabular-nums px-2.5 py-0.5 rounded-md bg-surface-card border hairline-border text-slate-900 dark:text-signal-cyan">
+            <span className="text-xs font-mono font-bold tabular-nums px-2.5 py-0.5 rounded-md bg-surface-card border hairline-border text-slate-900 dark:text-black">
               {items.length} MẶT HÀNG
             </span>
           </h1>
@@ -122,12 +122,12 @@ export default function CartPage() {
 
                   {/* Product Details */}
                   <div className="flex-1 space-y-1 text-center sm:text-left">
-                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-700 dark:text-signal-cyan">
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-700 dark:text-black">
                       {product.brand} • {product.category}
                     </span>
                     <Link
                       href={`/products/${product.slug}`}
-                      className="block font-bold text-sm sm:text-base text-slate-900 dark:text-slate-100 hover:text-slate-950 dark:hover:text-signal-cyan transition-colors line-clamp-1"
+                      className="block font-bold text-sm sm:text-base text-slate-900 dark:text-slate-100 hover:text-slate-950 dark:hover:text-black transition-colors line-clamp-1"
                     >
                       {product.name}
                     </Link>
@@ -164,7 +164,7 @@ export default function CartPage() {
 
                   {/* Item Total */}
                   <div className="text-right min-w-[110px]">
-                    <div className="text-sm sm:text-base font-mono tabular-nums font-black text-slate-950 dark:text-signal-cyan">
+                    <div className="text-sm sm:text-base font-mono tabular-nums font-black text-slate-950 dark:text-black">
                       {formatVND(itemTotal)}
                     </div>
                   </div>
@@ -183,7 +183,7 @@ export default function CartPage() {
           </div>
 
           <div className="flex justify-between items-center text-xs font-mono text-slate-600 dark:text-slate-400">
-            <Link href="/products" className="hover:text-slate-950 dark:hover:text-signal-cyan flex items-center gap-1 font-semibold transition-colors">
+            <Link href="/products" className="hover:text-slate-950 dark:hover:text-black flex items-center gap-1 font-semibold transition-colors">
               ← Tiếp tục mua sắm phụ kiện khác
             </Link>
           </div>
@@ -217,7 +217,7 @@ export default function CartPage() {
             <div className="pt-4 border-t hairline-border flex justify-between items-baseline">
               <span className="text-xs font-mono uppercase tracking-wider font-bold text-slate-700 dark:text-slate-400">Tổng thanh toán:</span>
               <div className="text-right">
-                <span className="text-2xl font-mono tabular-nums font-black text-slate-950 dark:text-signal-cyan block">
+                <span className="text-2xl font-mono tabular-nums font-black text-slate-950 dark:text-black block">
                   {formatVND(finalTotal)}
                 </span>
                 <span className="text-[10px] font-mono text-slate-500 dark:text-slate-400 font-medium">(Đã gồm VAT 8-10%)</span>
@@ -234,11 +234,11 @@ export default function CartPage() {
 
             <div className="text-[11px] font-mono text-slate-600 dark:text-slate-400 space-y-2 pt-2 border-t hairline-border font-medium">
               <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-slate-900 dark:text-signal-cyan flex-shrink-0" />
+                <ShieldCheck className="w-4 h-4 text-slate-900 dark:text-black flex-shrink-0" />
                 <span>Bảo mật chuẩn mã hóa SSL 256-bit</span>
               </div>
               <div className="flex items-center gap-2">
-                <Truck className="w-4 h-4 text-slate-900 dark:text-signal-cyan flex-shrink-0" />
+                <Truck className="w-4 h-4 text-slate-900 dark:text-black flex-shrink-0" />
                 <span>Được đồng kiểm tra hàng trước khi thanh toán</span>
               </div>
             </div>

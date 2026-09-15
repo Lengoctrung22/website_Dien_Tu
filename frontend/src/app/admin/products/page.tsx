@@ -294,7 +294,7 @@ export default function AdminProductsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-            <Package className="w-6 h-6 text-slate-900 dark:text-signal-cyan" />
+            <Package className="w-6 h-6 text-slate-900 dark:text-black" />
             <span>Quản Lý Sản Phẩm & Ghim HOT</span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium mt-1">
@@ -431,7 +431,7 @@ export default function AdminProductsPage() {
                       {p.isHot ? (
                         <div className="flex items-center justify-center gap-1.5">
                           <span
-                            className="cursor-grab active:cursor-grabbing text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-signal-cyan p-0.5"
+                            className="cursor-grab active:cursor-grabbing text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-black p-0.5"
                             title="Kéo thả dòng để sắp xếp thứ tự hiển thị HOT"
                           >
                             <GripVertical className="w-3.5 h-3.5" />
@@ -654,7 +654,7 @@ export default function AdminProductsPage() {
                     type="checkbox"
                     checked={formData.isHot}
                     onChange={(e) => setFormData({ ...formData, isHot: e.target.checked })}
-                    className="rounded text-slate-950 focus:ring-slate-900 dark:text-signal-cyan dark:focus:ring-signal-cyan"
+                    className="rounded text-slate-950 focus:ring-slate-900 dark:text-black dark:focus:ring-signal-cyan"
                   />
                   <span>Ghim hiển thị tại mục &quot;Sản Phẩm HOT&quot;</span>
                 </label>

@@ -131,7 +131,7 @@ export default function CheckoutPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       <div className="flex items-center gap-2">
-        <Link href="/cart" className="text-xs font-mono text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-signal-cyan flex items-center gap-1 font-semibold transition-colors">
+        <Link href="/cart" className="text-xs font-mono text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-black flex items-center gap-1 font-semibold transition-colors">
           <ChevronLeft className="w-4 h-4" />
           <span>Quay lại giỏ hàng</span>
         </Link>
@@ -290,7 +290,7 @@ export default function CheckoutPage() {
                 <div className="flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <CreditCard className="w-4 h-4 text-slate-900 dark:text-signal-cyan" />
+                      <CreditCard className="w-4 h-4 text-slate-900 dark:text-black" />
                       <span className="font-bold text-xs text-slate-900 dark:text-white">
                         Thanh toán trực tuyến qua cổng VNPAY
                       </span>

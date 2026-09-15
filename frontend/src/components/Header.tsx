@@ -16,7 +16,6 @@ import {
 } from 'lucide-react';
 import { useCartStore } from '@/store/cartStore';
 import { useAuthStore } from '@/store/authStore';
-import ThemeToggle from './ThemeToggle';
 
 export default function Header() {
   const router = useRouter();
@@ -108,13 +107,13 @@ export default function Header() {
         <div className="flex items-center justify-between h-16 gap-4">
           {/* High-Tech "TG" Monogram Branding */}
           <Link href="/" className="flex items-center gap-2.5 flex-shrink-0 group">
-            <div className="w-9 h-9 rounded-lg bg-surface-card border hairline-border surface-bevel flex items-center justify-center text-slate-900 dark:text-white group-hover:border-slate-400 dark:group-hover:border-signal-cyan/50 group-hover:text-slate-950 dark:group-hover:text-signal-cyan transition-all duration-200 shadow-sm">
+            <div className="w-9 h-9 rounded-lg bg-surface-card border hairline-border surface-bevel flex items-center justify-center text-slate-900 dark:text-white group-hover:border-slate-400 dark:group-hover:border-signal-cyan/50 group-hover:text-slate-950 dark:group-hover:text-black transition-all duration-200 shadow-sm">
               <span className="font-mono font-black text-sm tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-slate-900 to-indigo-600 dark:from-signal-cyan dark:to-indigo-400">TG</span>
             </div>
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-lg tracking-tight text-slate-900 dark:text-white group-hover:text-slate-950 dark:group-hover:text-signal-cyan transition-colors">
-                  TECH<span className="text-slate-950 dark:text-signal-cyan">GEAR</span>
+                <span className="font-extrabold text-lg tracking-tight text-slate-900 dark:text-white group-hover:text-slate-950 dark:group-hover:text-black transition-colors">
+                  TECH<span className="text-slate-950 dark:text-black">GEAR</span>
                 </span>
                 <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border hairline-border bg-slate-100 dark:bg-surface-subtle text-slate-700 dark:text-slate-300 tracking-wider">
                   PRO
@@ -142,38 +141,36 @@ export default function Header() {
 
           {/* Desktop Nav Links */}
           <nav className="hidden lg:flex items-center gap-6 text-xs font-mono uppercase tracking-wider text-slate-800 dark:text-slate-200 font-semibold">
-            <Link href="/products" className="hover:text-slate-950 dark:hover:text-signal-cyan transition-colors">
+            <Link href="/products" className="hover:text-slate-950 dark:hover:text-black transition-colors">
               Sản phẩm
             </Link>
-            <Link href="/products?category=monitor" className="hover:text-slate-950 dark:hover:text-signal-cyan transition-colors">
+            <Link href="/products?category=monitor" className="hover:text-slate-950 dark:hover:text-black transition-colors">
               Màn hình
             </Link>
-            <Link href="/products?category=keyboard" className="hover:text-slate-950 dark:hover:text-signal-cyan transition-colors">
+            <Link href="/products?category=keyboard" className="hover:text-slate-950 dark:hover:text-black transition-colors">
               Bàn phím
             </Link>
-            <Link href="/products?category=mouse" className="hover:text-slate-950 dark:hover:text-signal-cyan transition-colors">
+            <Link href="/products?category=mouse" className="hover:text-slate-950 dark:hover:text-black transition-colors">
               Chuột
             </Link>
-            <Link href="/products?category=headphone" className="hover:text-slate-950 dark:hover:text-signal-cyan transition-colors">
+            <Link href="/products?category=headphone" className="hover:text-slate-950 dark:hover:text-black transition-colors">
               Tai nghe
             </Link>
-            <Link href="/order-tracking" className="hover:text-slate-950 dark:hover:text-signal-cyan transition-colors flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
-              <PackageCheck className="w-3.5 h-3.5 text-slate-800 dark:text-signal-cyan" />
+            <Link href="/order-tracking" className="hover:text-slate-950 dark:hover:text-black transition-colors flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+              <PackageCheck className="w-3.5 h-3.5 text-slate-800 dark:text-black" />
               <span>Tra cứu</span>
             </Link>
           </nav>
 
-          {/* Action Buttons: Theme, Cart, Auth */}
+          {/* Action Buttons: Cart, Auth */}
           <div className="flex items-center gap-2.5">
-            <ThemeToggle />
-
             {/* Cart Icon with tabular-nums hairline badge */}
             <Link
               href="/cart"
               className="relative p-2 rounded-lg border hairline-border bg-white dark:bg-surface-card hover:bg-slate-100 dark:hover:bg-surface-subtle surface-bevel text-slate-700 dark:text-slate-200 transition-all group"
               title="Giỏ hàng"
             >
-              <ShoppingBag className="w-4 h-4 group-hover:text-slate-950 dark:group-hover:text-signal-cyan transition-colors" />
+              <ShoppingBag className="w-4 h-4 group-hover:text-slate-950 dark:group-hover:text-black transition-colors" />
               {isMounted && totalItems > 0 && (
                 <span className="absolute -top-1.5 -right-1.5 bg-signal-rose text-white text-[10px] font-mono font-bold rounded-full px-1 min-w-[18px] h-[18px] flex items-center justify-center tabular-nums border hairline-border shadow-sm">
                   {totalItems > 99 ? '99+' : totalItems}
@@ -313,7 +310,7 @@ export default function Header() {
               <Link
                 href="/order-tracking"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-surface-subtle text-slate-950 dark:text-signal-cyan font-bold"
+                className="px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-surface-subtle text-slate-950 dark:text-black font-bold"
               >
                 Tra cứu đơn hàng
               </Link>

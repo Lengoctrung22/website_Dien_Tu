@@ -93,7 +93,7 @@ function InventoryContent() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-            <Boxes className="w-6 h-6 text-slate-900 dark:text-signal-cyan" />
+            <Boxes className="w-6 h-6 text-slate-900 dark:text-black" />
             <span>Quản Lý Kho Hàng & Cảnh Báo Tồn Kho</span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium mt-1">
@@ -245,7 +245,7 @@ function InventoryContent() {
       {/* Row 2: Inventory Audit Log (Lịch sử nhập hàng & điều chỉnh tồn kho) */}
       <div className="rounded-xl hairline-border surface-bevel bg-surface-card p-6 shadow-sm space-y-4">
         <div className="flex items-center gap-2 pb-3 border-b hairline-border">
-          <History className="w-4 h-4 text-slate-900 dark:text-signal-cyan" />
+          <History className="w-4 h-4 text-slate-900 dark:text-black" />
           <h2 className="text-base font-black text-slate-900 dark:text-white">
             Lịch Sử Nhập Hàng & Điều Chỉnh Tồn Kho Gần Đây
           </h2>

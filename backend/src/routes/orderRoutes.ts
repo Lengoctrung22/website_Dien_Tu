@@ -9,6 +9,7 @@ import {
   handleVnpayReturn,
   handleVnpayIpn,
   handlePaymentWebhook,
+  verifyOrderPayment,
 } from '../controllers/orderController';
 import { authenticateToken, optionalAuthenticateToken, requireRole } from '../middlewares/auth';
 import { orderRateLimiter } from '../middlewares/rateLimiter';
@@ -32,6 +33,7 @@ router.get('/:id', optionalAuthenticateToken, getOrderById);
 
 // Update status (admin/staff)
 router.patch('/:id/status', authenticateToken, requireRole(['admin', 'staff']), updateOrderStatus);
+router.post('/:id/verify-payment', authenticateToken, requireRole(['admin', 'staff']), verifyOrderPayment);
 
 // VNPAY & Online Payment Callbacks / Webhooks
 router.get('/payment/vnpay-return', handleVnpayReturn);

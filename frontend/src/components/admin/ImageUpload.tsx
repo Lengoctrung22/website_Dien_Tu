@@ -247,7 +247,7 @@ export function SingleImageUpload({
             >
               {isUploading ? (
                 <div className="flex flex-col items-center justify-center py-3 space-y-2">
-                  <Loader2 className="w-6 h-6 text-slate-900 dark:text-signal-cyan animate-spin" />
+                  <Loader2 className="w-6 h-6 text-slate-900 dark:text-black animate-spin" />
                   <p className="text-xs font-bold text-slate-900 dark:text-white">
                     Đang tải ảnh lên máy chủ...
                   </p>
@@ -401,7 +401,7 @@ export function GalleryUpload({
             className="aspect-square rounded-lg border border-dashed border-slate-300 dark:border-white/10 hover:border-slate-400 dark:hover:border-signal-cyan flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all bg-surface-subtle/20 dark:bg-surface-elevated/40"
           >
             {isUploading ? (
-              <Loader2 className="w-4 h-4 animate-spin text-slate-900 dark:text-signal-cyan" />
+              <Loader2 className="w-4 h-4 animate-spin text-slate-900 dark:text-black" />
             ) : (
               <>
                 <Plus className="w-4 h-4" />

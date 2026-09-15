@@ -286,7 +286,7 @@ export const getOrderById = async (req: Request, res: Response) => {
 export const updateOrderStatus = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { orderStatus, paymentStatus } = req.body;
+    const { orderStatus, paymentStatus, autoAdvance } = req.body;
 
     const order = await Order.findById(id);
     if (!order) {
@@ -301,75 +301,99 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
       });
     }
 
-    if (!orderStatus) {
+    // If autoAdvance requested: automatically determine next lifecycle status
+    let targetOrderStatus = orderStatus;
+    if (autoAdvance) {
+      if (order.orderStatus === 'pending') targetOrderStatus = 'processing';
+      else if (order.orderStatus === 'processing') targetOrderStatus = 'shipping';
+      else if (order.orderStatus === 'shipping') targetOrderStatus = 'delivered';
+    }
+
+    if (!targetOrderStatus && !paymentStatus) {
       return res.status(400).json({
         success: false,
-        message: 'Vui lòng cung cấp trạng thái đơn hàng (orderStatus) cần cập nhật',
+        message: 'Vui lòng cung cấp trạng thái đơn hàng (orderStatus) hoặc trạng thái thanh toán (paymentStatus)',
       });
     }
 
-    if (orderStatus === order.orderStatus) {
-      return res.status(400).json({
-        success: false,
-        message: `Đơn hàng hiện tại đã ở trạng thái "${orderStatus}".`,
-      });
+    let message = 'Cập nhật đơn hàng thành công';
+
+    // 1. Process paymentStatus update if provided
+    if (paymentStatus && paymentStatus !== order.paymentStatus) {
+      if (paymentStatus === 'paid') {
+        order.paymentStatus = 'paid';
+        // Auto-progress order from pending to processing upon payment
+        if (order.orderStatus === 'pending' && !targetOrderStatus) {
+          targetOrderStatus = 'processing';
+          message = 'Tự động xác nhận thanh toán thành công và chuyển đơn sang "Đang xử lý"';
+        } else {
+          message = 'Xác nhận thanh toán thành công';
+        }
+      } else if (paymentStatus === 'failed') {
+        await handleFailedPaymentOrder(order, 'Hủy đơn do thanh toán thất bại');
+        return res.json({ success: true, message: 'Đã cập nhật thanh toán thất bại và tự động hoàn kho', data: order });
+      } else {
+        order.paymentStatus = paymentStatus;
+      }
     }
 
-    // Sequential lifecycle transitions
-    const ALLOWED_TRANSITIONS: Record<string, string[]> = {
-      pending: ['processing', 'cancelled'],
-      processing: ['shipping', 'cancelled'],
-      shipping: ['delivered', 'cancelled'],
-      delivered: [],
-      cancelled: [],
-    };
+    // 2. Process orderStatus transition if requested
+    if (targetOrderStatus && targetOrderStatus !== order.orderStatus) {
+      const ALLOWED_TRANSITIONS: Record<string, string[]> = {
+        pending: ['processing', 'cancelled'],
+        processing: ['shipping', 'cancelled'],
+        shipping: ['delivered', 'cancelled'],
+        delivered: [],
+        cancelled: [],
+      };
 
-    const allowed = ALLOWED_TRANSITIONS[order.orderStatus] || [];
-    if (!allowed.includes(orderStatus)) {
-      return res.status(400).json({
-        success: false,
-        message: `Không thể chuyển trạng thái đơn hàng từ "${order.orderStatus}" sang "${orderStatus}".`,
-      });
-    }
+      const allowed = ALLOWED_TRANSITIONS[order.orderStatus] || [];
+      if (!allowed.includes(targetOrderStatus)) {
+        return res.status(400).json({
+          success: false,
+          message: `Không thể chuyển trạng thái đơn hàng từ "${order.orderStatus}" sang "${targetOrderStatus}".`,
+        });
+      }
 
-    // If order is now being cancelled -> restore stock & handle automatic refund
-    if (orderStatus === 'cancelled') {
-      for (const item of order.items) {
-        const product = await Product.findById(item.productId);
-        if (product) {
-          const prev = product.stock;
-          product.stock += item.quantity;
-          product.soldCount = Math.max(0, product.soldCount - item.quantity);
-          await product.save();
+      // If cancelling: restore stock and mark as refunded if already paid
+      if (targetOrderStatus === 'cancelled') {
+        for (const item of order.items) {
+          const product = await Product.findById(item.productId);
+          if (product) {
+            const prev = product.stock;
+            product.stock += item.quantity;
+            product.soldCount = Math.max(0, product.soldCount - item.quantity);
+            await product.save();
 
-          await InventoryLog.create({
-            productId: product._id,
-            productName: product.name,
-            changeAmount: item.quantity,
-            previousStock: prev,
-            newStock: product.stock,
-            reason: 'order_cancellation',
-            note: `Hủy đơn hàng ${order.orderCode}`,
-            updatedBy: req.user?.email || 'Staff',
-          });
+            await InventoryLog.create({
+              productId: product._id,
+              productName: product.name,
+              changeAmount: item.quantity,
+              previousStock: prev,
+              newStock: product.stock,
+              reason: 'order_cancellation',
+              note: `Hủy đơn hàng ${order.orderCode}`,
+              updatedBy: req.user?.email || 'Staff',
+            });
+          }
+        }
+
+        if (order.paymentStatus === 'paid') {
+          order.paymentStatus = 'refunded';
         }
       }
 
-      // If order was paid, mark as refunded
-      if (order.paymentStatus === 'paid') {
-        order.paymentStatus = 'refunded';
+      // Auto-confirm payment as 'paid' when delivered (e.g. COD collected on delivery)
+      if (targetOrderStatus === 'delivered') {
+        order.paymentStatus = 'paid';
+        message = 'Đã giao hàng thành công và tự động xác nhận thanh toán (COD/Đã thu tiền)';
       }
-    }
 
-    order.orderStatus = orderStatus;
-
-    // Auto-confirm payment as 'paid' when delivered (e.g. COD collected)
-    if (orderStatus === 'delivered') {
-      order.paymentStatus = 'paid';
+      order.orderStatus = targetOrderStatus;
     }
 
     await order.save();
-    return res.json({ success: true, message: 'Cập nhật trạng thái đơn hàng thành công', data: order });
+    return res.json({ success: true, message, data: order });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message });
   }
@@ -506,6 +530,46 @@ export const handlePaymentWebhook = async (req: Request, res: Response) => {
     return res.json({
       success: true,
       message: 'Xử lý webhook thanh toán thành công',
+      data: order,
+    });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * Auto-verify payment status for an order and auto-advance status
+ */
+export const verifyOrderPayment = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const order = await Order.findById(id);
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' });
+    }
+
+    if (order.paymentStatus === 'paid') {
+      return res.json({
+        success: true,
+        message: 'Đơn hàng đã được xác nhận thanh toán trước đó',
+        data: order,
+      });
+    }
+
+    // Auto verify payment: update to paid and auto-progress status to processing if pending
+    order.paymentStatus = 'paid';
+    if (!order.vnpayTransactionNo) {
+      order.vnpayTransactionNo = `VERIFIED-${Date.now().toString().slice(-8)}`;
+    }
+    if (order.orderStatus === 'pending') {
+      order.orderStatus = 'processing';
+    }
+
+    await order.save();
+
+    return res.json({
+      success: true,
+      message: `Đã tự động xác nhận thanh toán thành công! Đơn hàng đã chuyển sang trạng thái "Đang xử lý".`,
       data: order,
     });
   } catch (error: any) {

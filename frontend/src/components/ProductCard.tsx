@@ -132,7 +132,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           </div>
 
           {/* Product Title */}
-          <Link href={`/products/${product.slug}`} className="block group-hover:text-slate-950 dark:group-hover:text-signal-cyan transition-colors">
+          <Link href={`/products/${product.slug}`} className="block group-hover:text-slate-950 dark:group-hover:text-black transition-colors">
             <h3 className="font-semibold text-sm text-slate-900 dark:text-slate-100 line-clamp-2 leading-snug">
               {product.name}
             </h3>

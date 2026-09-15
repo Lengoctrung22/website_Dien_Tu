@@ -124,11 +124,11 @@ function ProductsContent() {
           <div className="flex items-center gap-1.5 text-xs font-mono text-slate-600 dark:text-slate-400 mb-1">
             <span>Trang chủ</span>
             <ChevronRight className="w-3 h-3" />
-            <span className="text-slate-900 dark:text-signal-cyan font-bold">Cửa Hàng Gear</span>
+            <span className="text-slate-900 dark:text-black font-bold">Cửa Hàng Gear</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-3">
             <span>Tất Cả Sản Phẩm</span>
-            <span className="text-sm font-mono font-bold tabular-nums px-2.5 py-0.5 rounded-md bg-surface-card border hairline-border text-slate-900 dark:text-signal-cyan">
+            <span className="text-sm font-mono font-bold tabular-nums px-2.5 py-0.5 rounded-md bg-surface-card border hairline-border text-slate-900 dark:text-black">
               {pagination.total} SP
             </span>
           </h1>
@@ -174,7 +174,7 @@ function ProductsContent() {
       {hasActiveFilters && (
         <div className="flex flex-wrap items-center gap-2 p-3 rounded-xl bg-surface-card border hairline-border surface-bevel shadow-sm">
           <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1 mr-1">
-            <Filter className="w-3.5 h-3.5 text-slate-900 dark:text-signal-cyan" />
+            <Filter className="w-3.5 h-3.5 text-slate-900 dark:text-black" />
             Đang lọc:
           </span>
 
@@ -304,7 +304,7 @@ function ProductsContent() {
             {/* Header of Sidebar */}
             <div className="flex items-center justify-between pb-3 border-b hairline-border">
               <div className="flex items-center gap-2 font-mono font-bold text-xs uppercase tracking-wider text-slate-900 dark:text-white">
-                <SlidersHorizontal className="w-4 h-4 text-slate-900 dark:text-signal-cyan" />
+                <SlidersHorizontal className="w-4 h-4 text-slate-900 dark:text-black" />
                 <span>Bộ Lọc Thông Số</span>
               </div>
               <div className="flex items-center gap-2">
@@ -389,7 +389,7 @@ function ProductsContent() {
                       }`}
                     >
                       <span className="tabular-nums">{range.label}</span>
-                      {isSelected && <Check className="w-3.5 h-3.5 text-slate-950 dark:text-signal-cyan" />}
+                      {isSelected && <Check className="w-3.5 h-3.5 text-slate-950 dark:text-black" />}
                     </button>
                   );
                 })}

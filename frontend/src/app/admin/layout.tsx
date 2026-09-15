@@ -110,7 +110,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     : 'border-transparent text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-surface-elevated/50 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
-                <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-slate-950 dark:text-signal-cyan' : 'text-slate-600 dark:text-slate-400'}`} />
+                <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-slate-950 dark:text-black' : 'text-slate-600 dark:text-slate-400'}`} />
                 <span>{item.label}</span>
               </Link>
             );
@@ -193,7 +193,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                       : 'border-transparent text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-surface-elevated/50 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-slate-950 dark:text-signal-cyan' : 'text-slate-600 dark:text-slate-400'}`} />
+                  <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-slate-950 dark:text-black' : 'text-slate-600 dark:text-slate-400'}`} />
                   <span>{item.label}</span>
                 </Link>
               );

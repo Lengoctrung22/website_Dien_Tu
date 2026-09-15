@@ -129,9 +129,9 @@ export default function ProductDetailPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
       {/* Breadcrumb */}
       <div className="flex items-center gap-1.5 text-xs font-mono text-slate-600 dark:text-slate-400 flex-wrap font-medium">
-        <Link href="/" className="hover:text-slate-950 dark:hover:text-signal-cyan transition-colors">Trang chủ</Link>
+        <Link href="/" className="hover:text-slate-950 dark:hover:text-black transition-colors">Trang chủ</Link>
         <ChevronRight className="w-3.5 h-3.5" />
-        <Link href={`/products?category=${product.category}`} className="hover:text-slate-950 dark:hover:text-signal-cyan capitalize transition-colors">
+        <Link href={`/products?category=${product.category}`} className="hover:text-slate-950 dark:hover:text-black capitalize transition-colors">
           {product.category}
         </Link>
         <ChevronRight className="w-3.5 h-3.5" />
@@ -301,15 +301,15 @@ export default function ProductDetailPage() {
           {/* Guarantee Badges */}
           <div className="grid grid-cols-3 gap-3 p-4 rounded-xl bg-surface-card border hairline-border surface-bevel text-center text-xs text-slate-700 dark:text-slate-400 font-mono font-semibold">
             <div className="flex flex-col items-center gap-1">
-              <ShieldCheck className="w-5 h-5 text-slate-900 dark:text-signal-cyan" />
+              <ShieldCheck className="w-5 h-5 text-slate-900 dark:text-black" />
               <span>Bảo hành 24 tháng</span>
             </div>
             <div className="flex flex-col items-center gap-1">
-              <Truck className="w-5 h-5 text-slate-900 dark:text-signal-cyan" />
+              <Truck className="w-5 h-5 text-slate-900 dark:text-black" />
               <span>Giao hỏa tốc 2h</span>
             </div>
             <div className="flex flex-col items-center gap-1">
-              <RotateCcw className="w-5 h-5 text-slate-900 dark:text-signal-cyan" />
+              <RotateCcw className="w-5 h-5 text-slate-900 dark:text-black" />
               <span>Đổi mới 7 ngày</span>
             </div>
           </div>

@@ -70,7 +70,7 @@ export default function HomePage() {
       sub: 'OLED 240Hz, Mini-LED, 4K UHD',
       count: categoryCounts['monitor'] ?? 0,
       icon: Monitor,
-      image: 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?auto=format&fit=crop&w=600&q=80',
+      image: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80',
     },
     {
       id: 'keyboard',
@@ -99,7 +99,7 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="space-y-12 sm:space-y-16 pb-16">
+    <div className="bg-white space-y-12 sm:space-y-16 pb-16">
       {/* 1. Hero Carousel & Quick Search Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 space-y-6">
         <HeroSlider />
@@ -125,7 +125,7 @@ export default function HomePage() {
           </div>
           <Link
             href="/products"
-            className="text-xs font-mono font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-signal-cyan flex items-center gap-1 transition-colors"
+            className="text-xs font-mono font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-black flex items-center gap-1 transition-colors"
           >
             <span>Xem tất cả</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -139,36 +139,36 @@ export default function HomePage() {
               <Link
                 key={cat.id}
                 href={`/products?category=${cat.id}`}
-                className="group relative h-48 rounded-2xl overflow-hidden border hairline-border surface-bevel bg-surface-card hover:border-slate-400 dark:hover:border-signal-cyan/50 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+                className="group relative h-52 rounded-2xl overflow-hidden bg-slate-900 border border-slate-700/80 hover:border-cyan-500/70 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1.5"
               >
-                {/* Background Hardware Image with Zoom & Dark Matte Tint */}
+                {/* Background Hardware Image with Zoom */}
                 <Image
                   src={cat.image}
                   alt={cat.name}
                   fill
-                  className="object-cover object-center opacity-35 dark:opacity-25 group-hover:opacity-50 dark:group-hover:opacity-40 group-hover:scale-105 transition-all duration-500"
+                  className="object-cover object-center opacity-80 group-hover:opacity-95 group-hover:scale-105 transition-all duration-500"
                   unoptimized
                 />
 
-                {/* Matte Obsidian Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-surface-card via-surface-card/80 to-transparent" />
+                {/* Balanced Gradient Overlay: Clear Product Visibility + Legible Text */}
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent" />
 
                 {/* Content */}
                 <div className="absolute inset-0 p-5 flex flex-col justify-between z-10">
                   <div className="flex items-center justify-between">
-                    <div className="w-10 h-10 rounded-xl bg-surface-elevated/90 border hairline-border surface-bevel flex items-center justify-center text-slate-800 dark:text-slate-200 group-hover:text-slate-950 dark:group-hover:text-signal-cyan group-hover:border-slate-400 dark:group-hover:border-cyan-500/40 transition-colors">
+                    <div className="w-10 h-10 rounded-xl bg-slate-800/95 border border-slate-700 flex items-center justify-center text-cyan-400 group-hover:bg-cyan-400 group-hover:text-slate-950 transition-all shadow-sm">
                       <Icon className="w-5 h-5" />
                     </div>
-                    <span className="text-[10px] font-mono tabular-nums font-bold px-2 py-0.5 rounded-md bg-surface-elevated/90 text-slate-700 dark:text-slate-300 border hairline-border backdrop-blur-sm">
+                    <span className="text-[11px] font-mono tabular-nums font-bold px-2.5 py-1 rounded-lg bg-slate-800/95 text-cyan-400 border border-slate-700 backdrop-blur-sm shadow-sm">
                       {cat.count} SP
                     </span>
                   </div>
 
                   <div>
-                    <h3 className="font-bold text-base text-slate-900 dark:text-white group-hover:text-slate-950 dark:group-hover:text-signal-cyan transition-colors">
+                    <h3 className="font-bold text-base sm:text-lg text-white group-hover:text-cyan-400 transition-colors tracking-tight">
                       {cat.name}
                     </h3>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 font-mono line-clamp-1 mt-0.5">
+                    <p className="text-xs text-slate-300 font-mono line-clamp-1 mt-1 font-medium">
                       {cat.sub}
                     </p>
                   </div>
@@ -301,7 +301,7 @@ export default function HomePage() {
                 <Link
                   key={brand}
                   href={`/products?brand=${encodeURIComponent(brand.split(' ')[0])}`}
-                  className="font-mono font-bold text-xs sm:text-sm tracking-wider text-slate-700 dark:text-slate-400 hover:text-slate-950 dark:hover:text-signal-cyan transition-colors"
+                  className="font-mono font-bold text-xs sm:text-sm tracking-wider text-slate-700 dark:text-slate-400 hover:text-slate-950 dark:hover:text-black transition-colors"
                 >
                   {brand}
                 </Link>

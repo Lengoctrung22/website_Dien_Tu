@@ -189,7 +189,7 @@ export default function AdminDashboardPage() {
         </div>
 
         <div className="flex items-center gap-2 text-xs font-mono font-bold px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-surface-elevated text-slate-900 dark:text-white border border-slate-300 dark:border-white/10 surface-bevel self-start sm:self-auto shadow-sm">
-          <Sparkles className="w-3.5 h-3.5 text-slate-900 dark:text-signal-cyan" />
+          <Sparkles className="w-3.5 h-3.5 text-slate-900 dark:text-black" />
           <span>Dữ liệu thời gian thực</span>
         </div>
       </div>
@@ -272,7 +272,7 @@ export default function AdminDashboardPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b hairline-border">
             <div>
               <h2 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-slate-900 dark:text-signal-cyan" />
+                <Calendar className="w-4 h-4 text-slate-900 dark:text-black" />
                 <span>Biểu Đồ Doanh Thu Định Kỳ</span>
               </h2>
               <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Doanh số bán hàng thực tế qua các mốc thời gian</p>
@@ -339,7 +339,7 @@ export default function AdminDashboardPage() {
         <div className="lg:col-span-4 rounded-xl hairline-border surface-bevel bg-surface-card p-6 shadow-sm space-y-6">
           <div className="pb-4 border-b hairline-border">
             <h2 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
-              <Layers className="w-4 h-4 text-slate-900 dark:text-signal-cyan" />
+              <Layers className="w-4 h-4 text-slate-900 dark:text-black" />
               <span>Sản Phẩm Bán Hôm Nay Theo Danh Mục</span>
             </h2>
             <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Phân bổ 4 nhóm thiết bị chính trong ngày</p>

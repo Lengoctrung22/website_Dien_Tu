@@ -139,7 +139,7 @@ export default function AdminUsersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-            <Users className="w-6 h-6 text-slate-900 dark:text-signal-cyan" />
+            <Users className="w-6 h-6 text-slate-900 dark:text-black" />
             <span>Quản Lý Người Dùng & Phân Quyền RBAC</span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
@@ -298,7 +298,7 @@ export default function AdminUsersPage() {
           <div className="w-full max-w-md rounded-2xl bg-surface-card hairline-border surface-bevel p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between pb-3 border-b hairline-border">
               <h3 className="font-black text-sm text-slate-900 dark:text-white flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-slate-900 dark:text-signal-cyan" />
+                <ShieldCheck className="w-4 h-4 text-slate-900 dark:text-black" />
                 <span>Tạo Tài Khoản Nhân Viên (RBAC)</span>
               </h3>
               <button

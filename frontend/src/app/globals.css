@@ -3,14 +3,14 @@
 @tailwind utilities;
 
 :root {
-  --background: #f8fafc;
+  --background: #ffffff;
   --foreground: #0f172a;
   --card: #ffffff;
   --card-border: #e2e8f0;
-  --surface-canvas: 248 250 252;
+  --surface-canvas: 255 255 255;
   --surface-card: 255 255 255;
-  --surface-elevated: 241 245 249;
-  --surface-subtle: 226 232 240;
+  --surface-elevated: 248 250 252;
+  --surface-subtle: 241 245 249;
 }
 
 .dark {

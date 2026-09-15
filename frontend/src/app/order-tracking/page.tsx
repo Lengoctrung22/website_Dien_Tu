@@ -289,7 +289,7 @@ function OrderTrackingContent() {
             {/* Customer & Shipping info */}
             <div className="p-4 rounded-xl bg-surface-elevated border hairline-border surface-bevel space-y-3 text-xs font-mono">
               <h4 className="font-bold text-slate-900 dark:text-white uppercase tracking-wider text-[11px] flex items-center gap-1.5">
-                <MapPin className="w-4 h-4 text-slate-900 dark:text-signal-cyan" />
+                <MapPin className="w-4 h-4 text-slate-900 dark:text-black" />
                 <span>Thông Tin Nhận Hàng</span>
               </h4>
               <div className="space-y-1.5 text-slate-700 dark:text-slate-300">
@@ -316,7 +316,7 @@ function OrderTrackingContent() {
             {/* Payment info */}
             <div className="p-4 rounded-xl bg-surface-elevated border hairline-border surface-bevel space-y-3 text-xs font-mono">
               <h4 className="font-bold text-slate-900 dark:text-white uppercase tracking-wider text-[11px] flex items-center gap-1.5">
-                <CreditCard className="w-4 h-4 text-slate-900 dark:text-signal-cyan" />
+                <CreditCard className="w-4 h-4 text-slate-900 dark:text-black" />
                 <span>Thanh Toán & Hóa Đơn</span>
               </h4>
               <div className="space-y-1.5 text-slate-700 dark:text-slate-300 font-medium">
