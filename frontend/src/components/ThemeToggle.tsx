@@ -1,32 +1,18 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { Sun, Moon } from 'lucide-react';
+import { useTheme } from '@/lib/useTheme';
 
 export default function ThemeToggle() {
-  const [isDark, setIsDark] = useState(true);
-
-  useEffect(() => {
-    // Default to dark mode for Gaming/Tech vibe
-    const saved = localStorage.getItem('techgear_theme');
-    if (saved === 'light') {
-      setTimeout(() => setIsDark(false), 0);
-      document.documentElement.classList.remove('dark');
-    } else {
-      setTimeout(() => setIsDark(true), 0);
-      document.documentElement.classList.add('dark');
-    }
-  }, []);
+  const { isDark } = useTheme();
 
   const toggle = () => {
     if (isDark) {
       document.documentElement.classList.remove('dark');
       localStorage.setItem('techgear_theme', 'light');
-      setTimeout(() => setIsDark(false), 0);
     } else {
       document.documentElement.classList.add('dark');
       localStorage.setItem('techgear_theme', 'dark');
-      setTimeout(() => setIsDark(true), 0);
     }
   };
 

@@ -13,6 +13,7 @@ import {
   X,
   AlertCircle,
   ExternalLink,
+  GripVertical,
 } from 'lucide-react';
 import { fetchApi } from '@/lib/api';
 import { formatVND } from '@/lib/utils';
@@ -23,6 +24,8 @@ export default function AdminProductsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterHotOnly, setFilterHotOnly] = useState(false);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   // Edit / Add Modal state
   const [modalOpen, setModalOpen] = useState(false);
@@ -148,6 +151,8 @@ export default function AdminProductsPage() {
         setProducts(products.map((p) => (p._id === product._id ? { ...p, isHot: newHot } : p)));
         setFeedback(`Đã ${newHot ? 'ghim' : 'hủy ghim'} sản phẩm HOT: "${product.name}"`);
         setTimeout(() => setFeedback(null), 3000);
+      } else {
+        alert(res.message || 'Không thể cập nhật trạng thái HOT');
       }
     } catch {
       alert('Không thể cập nhật trạng thái HOT');
@@ -156,13 +161,60 @@ export default function AdminProductsPage() {
 
   const handleUpdateHotOrder = async (productId: string, hotOrder: number) => {
     try {
-      await fetchApi(`/products/${productId}/hot`, {
+      const res = await fetchApi(`/products/${productId}/hot`, {
         method: 'PATCH',
         body: JSON.stringify({ hotOrder }),
       });
-      setProducts(products.map((p) => (p._id === productId ? { ...p, hotOrder } : p)));
+      if (res.success) {
+        setProducts(products.map((p) => (p._id === productId ? { ...p, hotOrder } : p)));
+      } else {
+        alert(res.message || 'Lỗi cập nhật thứ tự');
+      }
     } catch {
       alert('Lỗi cập nhật thứ tự');
+    }
+  };
+
+  const handleDropHotRow = async (dropIndex: number) => {
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+    const newProducts = [...products];
+    const [removed] = newProducts.splice(draggedIndex, 1);
+    newProducts.splice(dropIndex, 0, removed);
+
+    // Reassign hotOrder sequentially 1, 2, 3...
+    const updatedProducts = newProducts.map((p, idx) => {
+      if (p.isHot) {
+        return { ...p, hotOrder: idx + 1 };
+      }
+      return p;
+    });
+    setProducts(updatedProducts);
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+
+    try {
+      const hotItems = updatedProducts
+        .filter((p) => p.isHot)
+        .map((p) => ({ id: p._id, hotOrder: p.hotOrder }));
+
+      if (hotItems.length > 0) {
+        const res = await fetchApi('/products/hot/reorder', {
+          method: 'PATCH',
+          body: JSON.stringify({ items: hotItems }),
+        });
+        if (res.success) {
+          setFeedback('Đã cập nhật thứ tự ghim HOT thành công!');
+          setTimeout(() => setFeedback(null), 3000);
+        } else {
+          alert(res.message || 'Lỗi cập nhật thứ tự');
+        }
+      }
+    } catch {
+      alert('Lỗi cập nhật thứ tự HOT');
     }
   };
 
@@ -238,21 +290,21 @@ export default function AdminProductsPage() {
   };
 
   return (
-    <div className="space-y-8 pb-10">
+    <div className="space-y-6 pb-10">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-            <Package className="w-7 h-7 text-indigo-500 dark:text-cyan-400" />
-            <span>Quản Lý Sản Phẩm & Ghim Sản Phẩm HOT</span>
+            <Package className="w-6 h-6 text-cyan-600 dark:text-signal-cyan" />
+            <span>Quản Lý Sản Phẩm & Ghim HOT</span>
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium mt-1">
             Ghim các thiết bị bán chạy lên trang chủ, sắp xếp thứ tự hiển thị và quản lý thông tin sản phẩm.
           </p>
         </div>
 
         <button
           onClick={openAddModal}
-          className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-indigo-500/20 self-start sm:self-auto"
+          className="px-3.5 py-2 rounded-lg bg-surface-elevated text-cyan-700 dark:text-signal-cyan hairline-border border-cyan-500/30 hover:bg-cyan-500/10 font-mono font-bold text-xs flex items-center gap-1.5 transition-colors self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
           <span>Thêm Sản Phẩm Mới</span>
@@ -260,14 +312,14 @@ export default function AdminProductsPage() {
       </div>
 
       {feedback && (
-        <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs flex items-center gap-2">
-          <Check className="w-4 h-4 flex-shrink-0" />
+        <div className="p-3 rounded-lg bg-emerald-500/10 hairline-border border-emerald-500/20 text-emerald-700 dark:text-signal-emerald text-xs font-semibold flex items-center gap-2">
+          <Check className="w-4 h-4 flex-shrink-0 text-emerald-600 dark:text-signal-emerald" />
           <span>{feedback}</span>
         </div>
       )}
 
       {/* Filter and Table Card */}
-      <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-xl space-y-6">
+      <div className="rounded-xl hairline-border surface-bevel bg-surface-card p-6 shadow-sm space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex gap-2 max-w-md w-full">
             <div className="relative flex-1">
@@ -277,13 +329,13 @@ export default function AdminProductsPage() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && loadProducts()}
-                className="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none"
+                className="w-full pl-8 pr-3 py-2 text-xs rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500"
               />
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
             </div>
             <button
               onClick={loadProducts}
-              className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold"
+              className="px-3.5 py-2 rounded-lg bg-surface-elevated text-cyan-700 dark:text-signal-cyan hairline-border border-cyan-500/30 hover:bg-cyan-500/10 text-xs font-mono font-bold transition-colors"
             >
               Lọc
             </button>
@@ -291,39 +343,57 @@ export default function AdminProductsPage() {
 
           <button
             onClick={() => setFilterHotOnly(!filterHotOnly)}
-            className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 border transition-all ${
+            className={`px-3.5 py-2 rounded-lg text-xs font-mono font-bold flex items-center gap-1.5 hairline-border transition-all ${
               filterHotOnly
-                ? 'bg-rose-500 text-white border-rose-600 shadow-md shadow-rose-500/20'
-                : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700'
+                ? 'bg-rose-500/15 text-rose-700 dark:text-signal-rose border border-rose-500/30 shadow-sm'
+                : 'bg-surface-card hover:bg-surface-subtle/50 text-slate-700 dark:text-slate-300'
             }`}
           >
-            <Flame className="w-4 h-4" />
+            <Flame className="w-3.5 h-3.5 text-rose-600 dark:text-signal-rose" />
             <span>{filterHotOnly ? 'Đang lọc: Chỉ sản phẩm HOT' : 'Xem danh sách ghim HOT'}</span>
           </button>
         </div>
 
         {loading ? (
-          <div className="p-8 text-center text-xs text-slate-400">Đang tải danh sách sản phẩm...</div>
+          <div className="p-8 text-center text-xs text-slate-600 dark:text-slate-400 font-mono font-medium">Đang tải danh sách sản phẩm...</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-slate-200 dark:border-slate-800 text-slate-400 font-bold uppercase tracking-wider">
+              <thead className="border-b hairline-border text-slate-700 dark:text-slate-400 font-mono text-[11px] uppercase tracking-wider font-bold">
                 <tr>
-                  <th className="pb-3 px-3">Ảnh</th>
-                  <th className="pb-3 px-3">Tên & Hãng</th>
-                  <th className="pb-3 px-3">Danh Mục</th>
-                  <th className="pb-3 px-3">Giá Bán</th>
-                  <th className="pb-3 px-3">Tồn Kho</th>
-                  <th className="pb-3 px-3 text-center">Ghim HOT</th>
-                  <th className="pb-3 px-3 text-center">Thứ Tự HOT</th>
-                  <th className="pb-3 px-3 text-right">Thao Tác</th>
+                  <th className="pb-2.5 px-3">Ảnh</th>
+                  <th className="pb-2.5 px-3">Tên & Hãng</th>
+                  <th className="pb-2.5 px-3">Danh Mục</th>
+                  <th className="pb-2.5 px-3">Giá Bán</th>
+                  <th className="pb-2.5 px-3">Tồn Kho</th>
+                  <th className="pb-2.5 px-3 text-center">Ghim HOT</th>
+                  <th className="pb-2.5 px-3 text-center">Thứ Tự & Kéo Thả</th>
+                  <th className="pb-2.5 px-3 text-right">Thao Tác</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {products.map((p) => (
-                  <tr key={p._id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40">
-                    <td className="py-3 px-3">
-                      <div className="relative w-10 h-10 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800">
+              <tbody className="divide-y hairline-border">
+                {products.map((p, idx) => (
+                  <tr
+                    key={p._id}
+                    draggable={p.isHot}
+                    onDragStart={() => setDraggedIndex(idx)}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      setDragOverIndex(idx);
+                    }}
+                    onDragEnd={() => {
+                      setDraggedIndex(null);
+                      setDragOverIndex(null);
+                    }}
+                    onDrop={() => handleDropHotRow(idx)}
+                    className={`transition-colors ${
+                      dragOverIndex === idx
+                        ? 'border-t-2 border-cyan-500 bg-cyan-500/5'
+                        : 'hover:bg-surface-subtle/30 dark:hover:bg-surface-elevated/40'
+                    }`}
+                  >
+                    <td className="py-2.5 px-3">
+                      <div className="relative w-9 h-9 rounded-md overflow-hidden bg-surface-subtle/40 dark:bg-surface-elevated hairline-border flex-shrink-0">
                         <Image
                           src={p.images?.[0] || 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?auto=format&fit=crop&w=100&q=80'}
                           alt={p.name}
@@ -333,56 +403,65 @@ export default function AdminProductsPage() {
                         />
                       </div>
                     </td>
-                    <td className="py-3 px-3 max-w-xs">
-                      <p className="font-bold text-slate-900 dark:text-white truncate">{p.name}</p>
-                      <span className="text-[10px] text-slate-400 uppercase font-semibold">{p.brand}</span>
+                    <td className="py-2.5 px-3 max-w-xs">
+                      <p className="font-medium text-slate-900 dark:text-slate-100 truncate">{p.name}</p>
+                      <span className="text-[10px] text-slate-600 dark:text-slate-400 uppercase font-mono font-bold">{p.brand}</span>
                     </td>
-                    <td className="py-3 px-3 uppercase text-slate-500 font-semibold">{p.category}</td>
-                    <td className="py-3 px-3">
-                      <span className="font-black text-indigo-600 dark:text-cyan-400">
+                    <td className="py-2.5 px-3 uppercase text-slate-600 dark:text-slate-400 font-mono text-[11px] font-medium">{p.category}</td>
+                    <td className="py-2.5 px-3">
+                      <span className="font-bold text-cyan-700 dark:text-signal-cyan tabular-nums font-mono">
                         {formatVND(p.discountPrice && p.discountPrice > 0 ? p.discountPrice : p.price)}
                       </span>
                     </td>
-                    <td className="py-3 px-3 font-bold">{p.stock}</td>
-                    <td className="py-3 px-3 text-center">
+                    <td className="py-2.5 px-3 font-medium tabular-nums font-mono text-slate-800 dark:text-slate-200">{p.stock}</td>
+                    <td className="py-2.5 px-3 text-center">
                       <button
                         onClick={() => handleToggleHot(p)}
-                        className={`p-2 rounded-xl border transition-all ${
+                        className={`p-1.5 rounded-lg border transition-all ${
                           p.isHot
-                            ? 'bg-rose-500/15 text-rose-500 border-rose-500/40 shadow-sm'
-                            : 'bg-slate-100 dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700'
+                            ? 'bg-rose-500/15 text-rose-700 dark:text-signal-rose border-rose-500/40 shadow-sm'
+                            : 'bg-surface-subtle/40 dark:bg-surface-elevated text-slate-600 dark:text-slate-400 hairline-border hover:text-slate-900 dark:hover:text-slate-100'
                         }`}
                         title={p.isHot ? 'Bấm để hủy ghim HOT' : 'Bấm để ghim lên mục HOT trang chủ'}
                       >
-                        <Flame className={`w-4 h-4 ${p.isHot ? 'fill-current' : ''}`} />
+                        <Flame className={`w-3.5 h-3.5 ${p.isHot ? 'fill-current' : ''}`} />
                       </button>
                     </td>
-                    <td className="py-3 px-3 text-center">
+                    <td className="py-2.5 px-3 text-center">
                       {p.isHot ? (
-                        <input
-                          type="number"
-                          value={p.hotOrder || 1}
-                          onChange={(e) => handleUpdateHotOrder(p._id, Number(e.target.value))}
-                          className="w-14 px-2 py-1 rounded-lg text-center font-bold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono"
-                        />
+                        <div className="flex items-center justify-center gap-1.5">
+                          <span
+                            className="cursor-grab active:cursor-grabbing text-slate-600 dark:text-slate-400 hover:text-cyan-700 dark:hover:text-signal-cyan p-0.5"
+                            title="Kéo thả dòng để sắp xếp thứ tự hiển thị HOT"
+                          >
+                            <GripVertical className="w-3.5 h-3.5" />
+                          </span>
+                          <input
+                            type="number"
+                            value={p.hotOrder || 1}
+                            onChange={(e) => handleUpdateHotOrder(p._id, Number(e.target.value))}
+                            className="w-12 px-1.5 py-0.5 rounded-lg text-center font-bold bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white font-mono text-xs tabular-nums"
+                            title="Hoặc nhập trực tiếp số thứ tự"
+                          />
+                        </div>
                       ) : (
-                        <span className="text-slate-400">-</span>
+                        <span className="text-slate-500 dark:text-slate-400 font-mono font-bold">-</span>
                       )}
                     </td>
-                    <td className="py-3 px-3 text-right space-x-1">
+                    <td className="py-2.5 px-3 text-right space-x-1">
                       <button
                         onClick={() => openEditModal(p)}
-                        className="p-1.5 rounded-lg text-indigo-600 dark:text-cyan-400 hover:bg-indigo-50 dark:hover:bg-slate-800"
+                        className="p-1.5 rounded-lg text-cyan-700 dark:text-signal-cyan hover:bg-cyan-500/10 dark:hover:bg-surface-elevated transition-colors"
                         title="Chỉnh sửa"
                       >
-                        <Edit2 className="w-4 h-4" />
+                        <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => handleDelete(p._id)}
-                        className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-slate-800"
+                        className="p-1.5 rounded-lg text-rose-600 dark:text-signal-rose hover:bg-rose-500/10 transition-colors"
                         title="Xóa"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </td>
                   </tr>
@@ -395,24 +474,24 @@ export default function AdminProductsPage() {
 
       {/* Add / Edit Product Modal */}
       {modalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-xl rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 space-y-4 shadow-2xl overflow-y-auto max-h-[90vh]">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-xl rounded-2xl bg-surface-card hairline-border surface-bevel p-6 space-y-4 shadow-2xl overflow-y-auto max-h-[90vh]">
+            <div className="flex items-center justify-between pb-3 border-b hairline-border">
               <h3 className="font-black text-base text-slate-900 dark:text-white">
                 {editingProduct ? 'Chỉnh Sửa Sản Phẩm' : 'Thêm Sản Phẩm Mới'}
               </h3>
               <button
                 onClick={closeModal}
-                className="p-1 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                className="p-1 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-surface-elevated transition-colors"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmitModal} className="space-y-4 text-xs">
+            <form onSubmit={handleSubmitModal} className="space-y-3.5 text-xs">
               <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  Tên sản phẩm <span className="text-rose-500">*</span>
+                <label className="block font-bold text-slate-800 dark:text-slate-200 mb-1">
+                  Tên sản phẩm <span className="text-rose-600 dark:text-signal-rose">*</span>
                 </label>
                 <input
                   type="text"
@@ -420,19 +499,19 @@ export default function AdminProductsPage() {
                   placeholder="Ví dụ: Bàn phím cơ ASUS ROG Azoth 75%..."
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+                  className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    Danh mục <span className="text-rose-500">*</span>
+                  <label className="block font-bold text-slate-800 dark:text-slate-200 mb-1">
+                    Danh mục <span className="text-rose-600 dark:text-signal-rose">*</span>
                   </label>
                   <select
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+                    className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan"
                   >
                     <option value="monitor">Màn hình máy tính</option>
                     <option value="keyboard">Bàn phím cơ</option>
@@ -442,8 +521,8 @@ export default function AdminProductsPage() {
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    Thương hiệu (Brand) <span className="text-rose-500">*</span>
+                  <label className="block font-bold text-slate-800 dark:text-slate-200 mb-1">
+                    Thương hiệu (Brand) <span className="text-rose-600 dark:text-signal-rose">*</span>
                   </label>
                   <input
                     type="text"
@@ -451,47 +530,47 @@ export default function AdminProductsPage() {
                     placeholder="ASUS, Logitech, Razer, Keychron..."
                     value={formData.brand}
                     onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+                    className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    Giá gốc (VNĐ) <span className="text-rose-500">*</span>
+                  <label className="block font-bold text-slate-800 dark:text-slate-200 mb-1">
+                    Giá gốc (VNĐ) <span className="text-rose-600 dark:text-signal-rose">*</span>
                   </label>
                   <input
                     type="number"
                     required
                     value={formData.price}
                     onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono"
+                    className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border font-mono font-bold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block font-bold text-slate-800 dark:text-slate-200 mb-1">
                     Giá giảm (VNĐ)
                   </label>
                   <input
                     type="number"
                     value={formData.discountPrice}
                     onChange={(e) => setFormData({ ...formData, discountPrice: Number(e.target.value) })}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono"
+                    className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border font-mono font-bold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    Tồn kho <span className="text-rose-500">*</span>
+                  <label className="block font-bold text-slate-800 dark:text-slate-200 mb-1">
+                    Tồn kho <span className="text-rose-600 dark:text-signal-rose">*</span>
                   </label>
                   <input
                     type="number"
                     required
                     value={formData.stock}
                     onChange={(e) => setFormData({ ...formData, stock: Number(e.target.value) })}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono"
+                    className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border font-mono font-bold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan"
                   />
                 </div>
               </div>
@@ -517,7 +596,7 @@ export default function AdminProductsPage() {
               {/* Specs */}
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block font-bold text-slate-800 dark:text-slate-200 mb-1">
                     Loại Switch
                   </label>
                   <input
@@ -525,12 +604,12 @@ export default function AdminProductsPage() {
                     placeholder="Jupiter Brown, Linear..."
                     value={formData.switchSpec}
                     onChange={(e) => setFormData({ ...formData, switchSpec: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+                    className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block font-bold text-slate-800 dark:text-slate-200 mb-1">
                     Tần số quét
                   </label>
                   <input
@@ -538,12 +617,12 @@ export default function AdminProductsPage() {
                     placeholder="240Hz, 165Hz..."
                     value={formData.refreshRateSpec}
                     onChange={(e) => setFormData({ ...formData, refreshRateSpec: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+                    className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block font-bold text-slate-800 dark:text-slate-200 mb-1">
                     Kiểu kết nối
                   </label>
                   <input
@@ -551,43 +630,43 @@ export default function AdminProductsPage() {
                     placeholder="Không dây 2.4G, Type-C..."
                     value={formData.connectionSpec}
                     onChange={(e) => setFormData({ ...formData, connectionSpec: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+                    className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block font-bold text-slate-800 dark:text-slate-200 mb-1">
                   Mô tả sản phẩm
                 </label>
                 <textarea
                   rows={3}
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 resize-none"
+                  className="w-full px-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan resize-none"
                 />
               </div>
 
               {/* Hot switch */}
-              <div className="flex items-center gap-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
-                <label className="flex items-center gap-2 cursor-pointer font-bold">
+              <div className="flex items-center gap-4 p-3 rounded-xl bg-surface-subtle/30 dark:bg-surface-elevated/70 hairline-border">
+                <label className="flex items-center gap-2 cursor-pointer font-bold text-slate-800 dark:text-slate-200">
                   <input
                     type="checkbox"
                     checked={formData.isHot}
                     onChange={(e) => setFormData({ ...formData, isHot: e.target.checked })}
-                    className="rounded text-indigo-600"
+                    className="rounded text-signal-cyan"
                   />
                   <span>Ghim hiển thị tại mục &quot;Sản Phẩm HOT&quot;</span>
                 </label>
 
                 {formData.isHot && (
                   <div className="flex items-center gap-2 ml-auto">
-                    <span className="text-slate-400">Thứ tự:</span>
+                    <span className="text-slate-600 dark:text-slate-400 font-mono text-[11px] font-medium">Thứ tự:</span>
                     <input
                       type="number"
                       value={formData.hotOrder}
                       onChange={(e) => setFormData({ ...formData, hotOrder: Number(e.target.value) })}
-                      className="w-16 px-2 py-1 rounded bg-white dark:bg-slate-700 text-center font-bold"
+                      className="w-16 px-2 py-1 rounded-lg bg-surface-card hairline-border text-center font-mono font-bold tabular-nums text-slate-900 dark:text-white"
                     />
                   </div>
                 )}
@@ -597,14 +676,14 @@ export default function AdminProductsPage() {
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 font-bold text-slate-600"
+                  className="flex-1 py-2 rounded-lg hairline-border bg-surface-subtle/30 dark:bg-surface-elevated font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
                 >
                   Đóng
                 </button>
                 <button
                   type="submit"
                   disabled={modalLoading || isUploadingImage}
-                  className="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white dark:bg-signal-cyan/15 dark:text-signal-cyan hairline-border dark:border-signal-cyan/30 dark:hover:bg-signal-cyan/20 font-bold transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {modalLoading ? 'Đang lưu...' : isUploadingImage ? 'Đang tải ảnh lên...' : 'Lưu Sản Phẩm'}
                 </button>

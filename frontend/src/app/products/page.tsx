@@ -42,6 +42,10 @@ function ProductsContent() {
   // Search input state
   const [keyword, setKeyword] = useState(searchParam);
 
+  useEffect(() => {
+    setTimeout(() => setKeyword(searchParam), 0);
+  }, [searchParam]);
+
   // Fetch filter metadata
   useEffect(() => {
     async function loadFilters() {
@@ -76,7 +80,9 @@ function ProductsContent() {
     } else {
       params.delete(key);
     }
-    params.set('page', '1'); // Reset to page 1 on filter change
+    if (key !== 'page') {
+      params.set('page', '1'); // Reset to page 1 on filter change
+    }
     router.push(`/products?${params.toString()}`);
   };
 
@@ -90,26 +96,41 @@ function ProductsContent() {
     router.push('/products');
   };
 
+  const totalAllCategories = Object.values(categoriesCount).reduce((acc, count) => acc + count, 0);
   const categories = [
-    { id: '', label: 'Tất cả sản phẩm', count: pagination.total },
+    { id: '', label: 'Tất cả sản phẩm', count: totalAllCategories || pagination.total },
     { id: 'monitor', label: 'Màn hình máy tính', count: categoriesCount['monitor'] || 0 },
     { id: 'keyboard', label: 'Bàn phím cơ', count: categoriesCount['keyboard'] || 0 },
     { id: 'mouse', label: 'Chuột gaming', count: categoriesCount['mouse'] || 0 },
     { id: 'headphone', label: 'Tai nghe cao cấp', count: categoriesCount['headphone'] || 0 },
   ];
 
+  const hasActiveFilters = Boolean(
+    searchParam ||
+    categoryParam ||
+    brandParam ||
+    minPriceParam ||
+    maxPriceParam ||
+    switchTypeParam ||
+    refreshRateParam ||
+    connectionParam
+  );
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-6">
       {/* Breadcrumb & Header Title */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b hairline-border">
         <div>
-          <div className="flex items-center gap-1.5 text-xs text-slate-500 mb-1">
+          <div className="flex items-center gap-1.5 text-xs font-mono text-slate-600 dark:text-slate-400 mb-1">
             <span>Trang chủ</span>
             <ChevronRight className="w-3 h-3" />
-            <span className="text-indigo-600 dark:text-cyan-400 font-bold">Cửa Hàng Gear</span>
+            <span className="text-cyan-700 dark:text-signal-cyan font-bold">Cửa Hàng Gear</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-            Tất Cả Sản Phẩm ({pagination.total})
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-3">
+            <span>Tất Cả Sản Phẩm</span>
+            <span className="text-sm font-mono font-bold tabular-nums px-2.5 py-0.5 rounded-md bg-surface-card border hairline-border text-cyan-700 dark:text-signal-cyan">
+              {pagination.total} SP
+            </span>
           </h1>
         </div>
 
@@ -121,15 +142,15 @@ function ProductsContent() {
               placeholder="Tìm theo tên, hãng..."
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
-              className="w-48 sm:w-64 pl-9 pr-3 py-2 text-xs rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:border-indigo-500 dark:focus:border-cyan-400"
+              className="w-48 sm:w-64 pl-9 pr-3 py-2 text-xs rounded-lg bg-surface-card border hairline-border text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 font-medium focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan/60"
             />
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           </form>
 
           <select
             value={sortByParam}
             onChange={(e) => updateParam('sortBy', e.target.value)}
-            className="px-3 py-2 text-xs font-semibold rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none"
+            className="px-3 py-2 text-xs font-mono font-semibold rounded-lg bg-surface-card border hairline-border text-slate-900 dark:text-slate-100 focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan/60"
           >
             <option value="newest">Mới nhất trước</option>
             <option value="best_seller">Bán chạy nhất</option>
@@ -141,13 +162,130 @@ function ProductsContent() {
           {/* Mobile Filter Toggle */}
           <button
             onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
-            className="lg:hidden p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 flex items-center gap-1.5 text-xs font-bold"
+            className="lg:hidden p-2 rounded-lg bg-surface-card border hairline-border text-slate-800 dark:text-slate-200 flex items-center gap-1.5 text-xs font-mono font-bold"
           >
             <Filter className="w-4 h-4" />
             <span>Lọc</span>
           </button>
         </div>
       </div>
+
+      {/* Active Filter Tags Bar with Dismiss Buttons */}
+      {hasActiveFilters && (
+        <div className="flex flex-wrap items-center gap-2 p-3 rounded-xl bg-surface-card border hairline-border surface-bevel shadow-sm">
+          <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1 mr-1">
+            <Filter className="w-3.5 h-3.5 text-cyan-700 dark:text-signal-cyan" />
+            Đang lọc:
+          </span>
+
+          {searchParam && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono bg-surface-elevated border hairline-border text-slate-900 dark:text-slate-100 font-medium">
+              <span>Từ khóa: &quot;{searchParam}&quot;</span>
+              <button
+                onClick={() => { setKeyword(''); updateParam('search', ''); }}
+                className="hover:text-rose-700 dark:hover:text-signal-rose ml-0.5"
+                title="Xóa lọc từ khóa"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          )}
+
+          {categoryParam && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono bg-surface-elevated border hairline-border text-slate-900 dark:text-slate-100 font-medium">
+              <span>Danh mục: {categories.find((c) => c.id === categoryParam)?.label || categoryParam}</span>
+              <button
+                onClick={() => updateParam('category', '')}
+                className="hover:text-rose-700 dark:hover:text-signal-rose ml-0.5"
+                title="Xóa lọc danh mục"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          )}
+
+          {brandParam && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono bg-surface-elevated border hairline-border text-slate-900 dark:text-slate-100 font-medium">
+              <span>Hãng: {brandParam}</span>
+              <button
+                onClick={() => updateParam('brand', '')}
+                className="hover:text-rose-700 dark:hover:text-signal-rose ml-0.5"
+                title="Xóa lọc hãng"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          )}
+
+          {(minPriceParam || maxPriceParam) && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono tabular-nums bg-surface-elevated border hairline-border text-slate-900 dark:text-slate-100 font-medium">
+              <span>
+                Giá: {minPriceParam ? `${Number(minPriceParam) / 1000000}tr` : '0'} - {maxPriceParam ? `${Number(maxPriceParam) / 1000000}tr` : '∞'}
+              </span>
+              <button
+                onClick={() => {
+                  const params = new URLSearchParams(searchParams.toString());
+                  params.delete('minPrice');
+                  params.delete('maxPrice');
+                  params.set('page', '1');
+                  router.push(`/products?${params.toString()}`);
+                }}
+                className="hover:text-rose-700 dark:hover:text-signal-rose ml-0.5"
+                title="Xóa lọc giá"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          )}
+
+          {switchTypeParam && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono bg-surface-elevated border hairline-border text-slate-900 dark:text-slate-100 font-medium">
+              <span>Switch: {switchTypeParam}</span>
+              <button
+                onClick={() => updateParam('switchType', '')}
+                className="hover:text-rose-700 dark:hover:text-signal-rose ml-0.5"
+                title="Xóa lọc switch"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          )}
+
+          {refreshRateParam && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono tabular-nums bg-surface-elevated border hairline-border text-slate-900 dark:text-slate-100 font-medium">
+              <span>Tần số: {refreshRateParam}</span>
+              <button
+                onClick={() => updateParam('refreshRate', '')}
+                className="hover:text-rose-700 dark:hover:text-signal-rose ml-0.5"
+                title="Xóa lọc tần số quét"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          )}
+
+          {connectionParam && (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono bg-surface-elevated border hairline-border text-slate-900 dark:text-slate-100 font-medium">
+              <span>Kết nối: {connectionParam}</span>
+              <button
+                onClick={() => updateParam('connection', '')}
+                className="hover:text-rose-700 dark:hover:text-signal-rose ml-0.5"
+                title="Xóa lọc kết nối"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          )}
+
+          <button
+            onClick={handleResetFilters}
+            className="ml-auto text-xs font-mono text-rose-700 dark:text-signal-rose hover:underline flex items-center gap-1 font-bold"
+          >
+            <RotateCcw className="w-3 h-3" />
+            <span>Xóa tất cả</span>
+          </button>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* SIDEBAR FILTER (Desktop & Mobile Drawer) */}
@@ -159,20 +297,20 @@ function ProductsContent() {
           }`}
         >
           <div
-            className={`w-full max-w-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-6 overflow-y-auto max-h-[90vh] shadow-xl ${
+            className={`w-full max-w-xs bg-surface-card border hairline-border surface-bevel rounded-2xl p-5 space-y-6 overflow-y-auto max-h-[90vh] shadow-xl ${
               isMobileFilterOpen ? 'h-full animate-in slide-in-from-right duration-200' : ''
             }`}
           >
             {/* Header of Sidebar */}
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-              <div className="flex items-center gap-2 font-bold text-sm text-slate-900 dark:text-white">
-                <SlidersHorizontal className="w-4 h-4 text-indigo-500 dark:text-cyan-400" />
-                <span>Bộ Lọc Nâng Cao</span>
+            <div className="flex items-center justify-between pb-3 border-b hairline-border">
+              <div className="flex items-center gap-2 font-mono font-bold text-xs uppercase tracking-wider text-slate-900 dark:text-white">
+                <SlidersHorizontal className="w-4 h-4 text-cyan-700 dark:text-signal-cyan" />
+                <span>Bộ Lọc Thông Số</span>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleResetFilters}
-                  className="text-xs text-slate-400 hover:text-rose-500 transition-colors flex items-center gap-1"
+                  className="text-xs font-mono font-semibold text-slate-600 dark:text-slate-400 hover:text-rose-700 dark:hover:text-signal-rose transition-colors flex items-center gap-1"
                   title="Xóa bộ lọc"
                 >
                   <RotateCcw className="w-3 h-3" />
@@ -181,7 +319,7 @@ function ProductsContent() {
                 {isMobileFilterOpen && (
                   <button
                     onClick={() => setIsMobileFilterOpen(false)}
-                    className="p-1 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    className="p-1 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-surface-elevated"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -191,7 +329,7 @@ function ProductsContent() {
 
             {/* 1. Categories Filter */}
             <div className="space-y-2">
-              <h3 className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <h3 className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-800 dark:text-slate-300">
                 Danh Mục Sản Phẩm
               </h3>
               <div className="space-y-1">
@@ -202,15 +340,15 @@ function ProductsContent() {
                       updateParam('category', c.id);
                       setIsMobileFilterOpen(false);
                     }}
-                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-mono transition-all ${
                       categoryParam === c.id
-                        ? 'bg-indigo-50 dark:bg-cyan-950/40 text-indigo-600 dark:text-cyan-400 border border-indigo-200 dark:border-cyan-800'
-                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60'
+                        ? 'bg-surface-elevated text-cyan-700 dark:text-signal-cyan border border-cyan-500/30 dark:border-signal-cyan/30 surface-bevel font-bold shadow-sm'
+                        : 'text-slate-700 dark:text-slate-300 hover:bg-surface-elevated/80 font-semibold'
                     }`}
                   >
                     <span>{c.label}</span>
                     {c.count !== undefined && (
-                      <span className="text-[10px] opacity-70">({c.count})</span>
+                      <span className="text-[10px] font-mono tabular-nums opacity-75 font-semibold">({c.count})</span>
                     )}
                   </button>
                 ))}
@@ -219,7 +357,7 @@ function ProductsContent() {
 
             {/* 2. Price Filter Presets */}
             <div className="space-y-2">
-              <h3 className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <h3 className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-800 dark:text-slate-300">
                 Khoảng Giá
               </h3>
               <div className="space-y-1 text-xs">
@@ -244,14 +382,14 @@ function ProductsContent() {
                         router.push(`/products?${params.toString()}`);
                         setIsMobileFilterOpen(false);
                       }}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                      className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-mono transition-all ${
                         isSelected
-                          ? 'bg-indigo-50 dark:bg-cyan-950/40 text-indigo-600 dark:text-cyan-400 font-bold border border-indigo-200 dark:border-cyan-800'
-                          : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60'
+                          ? 'bg-surface-elevated text-cyan-700 dark:text-signal-cyan font-bold border border-cyan-500/30 dark:border-signal-cyan/30 surface-bevel shadow-sm'
+                          : 'text-slate-700 dark:text-slate-400 hover:bg-surface-elevated/80 font-medium'
                       }`}
                     >
-                      <span>{range.label}</span>
-                      {isSelected && <Check className="w-3.5 h-3.5 text-indigo-600 dark:text-cyan-400" />}
+                      <span className="tabular-nums">{range.label}</span>
+                      {isSelected && <Check className="w-3.5 h-3.5 text-cyan-700 dark:text-signal-cyan" />}
                     </button>
                   );
                 })}
@@ -261,16 +399,16 @@ function ProductsContent() {
             {/* 3. Brands */}
             {availableBrands.length > 0 && (
               <div className="space-y-2">
-                <h3 className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                <h3 className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-800 dark:text-slate-300">
                   Thương Hiệu
                 </h3>
                 <div className="flex flex-wrap gap-1.5">
                   <button
                     onClick={() => updateParam('brand', '')}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold border ${
+                    className={`px-2.5 py-1 rounded-lg text-xs font-mono transition-colors border ${
                       !brandParam
-                        ? 'bg-indigo-600 text-white border-indigo-600'
-                        : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                        ? 'bg-slate-900 text-white border-slate-900 dark:bg-signal-cyan dark:text-slate-950 dark:border-signal-cyan font-bold shadow-sm'
+                        : 'border hairline-border text-slate-700 dark:text-slate-400 hover:border-slate-400 dark:hover:border-signal-cyan/40 bg-slate-50 dark:bg-surface-elevated font-medium'
                     }`}
                   >
                     Tất cả
@@ -282,10 +420,10 @@ function ProductsContent() {
                         updateParam('brand', brandParam === b ? '' : b);
                         setIsMobileFilterOpen(false);
                       }}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-colors ${
+                      className={`px-2.5 py-1 rounded-lg text-xs font-mono transition-colors border ${
                         brandParam === b
-                          ? 'bg-indigo-600 text-white border-indigo-600'
-                          : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                          ? 'bg-slate-900 text-white border-slate-900 dark:bg-signal-cyan dark:text-slate-950 dark:border-signal-cyan font-bold shadow-sm'
+                          : 'border hairline-border text-slate-700 dark:text-slate-400 hover:border-slate-400 dark:hover:border-signal-cyan/40 bg-slate-50 dark:bg-surface-elevated font-medium'
                       }`}
                     >
                       {b}
@@ -297,13 +435,13 @@ function ProductsContent() {
 
             {/* 4. Switch Type Filter (for Keyboards) */}
             <div className="space-y-2">
-              <h3 className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <h3 className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-800 dark:text-slate-300">
                 Loại Switch Phím Cơ
               </h3>
               <div className="flex flex-wrap gap-1.5">
                 {[
                   { label: 'Tất cả', val: '' },
-                  { label: 'Magnetic (Hall Effect)', val: 'Magnetic' },
+                  { label: 'Magnetic', val: 'Magnetic' },
                   { label: 'Linear', val: 'Linear' },
                   { label: 'Tactile', val: 'Tactile' },
                   { label: 'Optical', val: 'Optical' },
@@ -311,10 +449,10 @@ function ProductsContent() {
                   <button
                     key={s.val}
                     onClick={() => updateParam('switchType', s.val)}
-                    className={`px-2 py-1 rounded-lg text-[11px] font-semibold border ${
+                    className={`px-2.5 py-1 rounded-lg text-xs font-mono transition-colors border ${
                       switchTypeParam === s.val
-                        ? 'bg-indigo-600 text-white border-indigo-600'
-                        : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                        ? 'bg-slate-900 text-white border-slate-900 dark:bg-signal-cyan dark:text-slate-950 dark:border-signal-cyan font-bold shadow-sm'
+                        : 'border hairline-border text-slate-700 dark:text-slate-400 hover:border-slate-400 dark:hover:border-signal-cyan/40 bg-slate-50 dark:bg-surface-elevated font-medium'
                     }`}
                   >
                     {s.label}
@@ -325,7 +463,7 @@ function ProductsContent() {
 
             {/* 5. Refresh Rate Filter (for Monitors) */}
             <div className="space-y-2">
-              <h3 className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <h3 className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-800 dark:text-slate-300">
                 Tần Số Quét Màn Hình
               </h3>
               <div className="flex flex-wrap gap-1.5">
@@ -333,10 +471,10 @@ function ProductsContent() {
                   <button
                     key={r}
                     onClick={() => updateParam('refreshRate', r)}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold border ${
+                    className={`px-2.5 py-1 rounded-lg text-xs font-mono tabular-nums transition-colors border ${
                       refreshRateParam === r
-                        ? 'bg-indigo-600 text-white border-indigo-600'
-                        : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                        ? 'bg-slate-900 text-white border-slate-900 dark:bg-signal-cyan dark:text-slate-950 dark:border-signal-cyan font-bold shadow-sm'
+                        : 'border hairline-border text-slate-700 dark:text-slate-400 hover:border-slate-400 dark:hover:border-signal-cyan/40 bg-slate-50 dark:bg-surface-elevated font-medium'
                     }`}
                   >
                     {r || 'Tất cả'}
@@ -347,7 +485,7 @@ function ProductsContent() {
 
             {/* 6. Connection Filter */}
             <div className="space-y-2">
-              <h3 className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <h3 className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-800 dark:text-slate-300">
                 Kiểu Kết Nối
               </h3>
               <div className="flex flex-wrap gap-1.5">
@@ -355,10 +493,10 @@ function ProductsContent() {
                   <button
                     key={conn}
                     onClick={() => updateParam('connection', conn)}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold border ${
+                    className={`px-2.5 py-1 rounded-lg text-xs font-mono transition-colors border ${
                       connectionParam === conn
-                        ? 'bg-indigo-600 text-white border-indigo-600'
-                        : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                        ? 'bg-slate-900 text-white border-slate-900 dark:bg-signal-cyan dark:text-slate-950 dark:border-signal-cyan font-bold shadow-sm'
+                        : 'border hairline-border text-slate-700 dark:text-slate-400 hover:border-slate-400 dark:hover:border-signal-cyan/40 bg-slate-50 dark:bg-surface-elevated font-medium'
                     }`}
                   >
                     {conn || 'Tất cả'}
@@ -374,23 +512,23 @@ function ProductsContent() {
           {loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="h-80 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
+                <div key={i} className="h-80 bg-surface-card border hairline-border rounded-xl" />
               ))}
             </div>
           ) : products.length === 0 ? (
-            <div className="py-16 text-center space-y-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8">
-              <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 mx-auto flex items-center justify-center text-slate-400">
-                <Layers className="w-8 h-8" />
+            <div className="py-16 text-center space-y-4 rounded-2xl bg-surface-card border hairline-border surface-bevel p-8">
+              <div className="w-14 h-14 rounded-xl bg-surface-elevated border hairline-border mx-auto flex items-center justify-center text-slate-400">
+                <Layers className="w-7 h-7" />
               </div>
-              <h3 className="text-lg font-bold text-slate-800 dark:text-white">
-                Không tìm thấy sản phẩm phù hợp
+              <h3 className="text-base font-mono font-bold text-slate-900 dark:text-white">
+                KHÔNG TÌM THẤY THIẾT BỊ PHÙ HỢP
               </h3>
-              <p className="text-xs text-slate-500 max-w-sm mx-auto">
+              <p className="text-xs text-slate-600 dark:text-slate-400 max-w-sm mx-auto font-medium">
                 Hãy thử điều chỉnh bộ lọc hoặc từ khóa tìm kiếm để tìm được sản phẩm mong muốn.
               </p>
               <button
                 onClick={handleResetFilters}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold shadow-md shadow-indigo-500/20"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-surface-elevated hover:bg-surface-subtle border hairline-border surface-bevel text-slate-800 dark:text-slate-200 text-xs font-mono font-bold shadow-sm transition-all"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span>Đặt lại toàn bộ lọc</span>
@@ -404,7 +542,7 @@ function ProductsContent() {
             </div>
           )}
 
-          {/* Pagination */}
+          {/* Monospaced Pagination */}
           {pagination.totalPages > 1 && (
             <div className="pt-6 flex items-center justify-center gap-2">
               {[...Array(pagination.totalPages)].map((_, idx) => {
@@ -414,10 +552,10 @@ function ProductsContent() {
                   <button
                     key={pageNum}
                     onClick={() => updateParam('page', String(pageNum))}
-                    className={`w-10 h-10 rounded-xl text-xs font-bold transition-all ${
+                    className={`w-9 h-9 rounded-lg text-xs font-mono tabular-nums transition-all border hairline-border surface-bevel ${
                       isActive
-                        ? 'bg-indigo-600 dark:bg-cyan-500 text-white shadow-lg'
-                        : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
+                        ? 'bg-slate-900 text-white border-slate-900 dark:bg-signal-cyan dark:text-slate-950 dark:border-signal-cyan font-bold shadow-md'
+                        : 'bg-surface-card dark:bg-surface-elevated text-slate-800 dark:text-slate-200 hover:bg-surface-subtle font-semibold'
                     }`}
                   >
                     {pageNum}

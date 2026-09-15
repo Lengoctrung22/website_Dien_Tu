@@ -27,7 +27,7 @@ export const seedDatabase = async () => {
 
   const [adminUser, warehouseStaff, orderStaff, customerUser] = await User.create([
     {
-      fullName: 'Trần Văn Quản Trị (Super Admin)',
+      fullName: 'Trần Văn Quản',
       email: 'admin@techgear.vn',
       phone: '0901234567',
       passwordHash: adminPassword,
@@ -36,7 +36,7 @@ export const seedDatabase = async () => {
       isActive: true,
     },
     {
-      fullName: 'Nguyễn Kho Vận (Warehouse Manager)',
+      fullName: 'Nguyễn Tuấn Kiên',
       email: 'warehouse@techgear.vn',
       phone: '0912345678',
       passwordHash: staffPassword,
@@ -45,7 +45,7 @@ export const seedDatabase = async () => {
       isActive: true,
     },
     {
-      fullName: 'Lê Xử Lý Đơn (Order Processor)',
+      fullName: 'Lê Minh Đức',
       email: 'orders@techgear.vn',
       phone: '0923456789',
       passwordHash: staffPassword,
@@ -54,7 +54,7 @@ export const seedDatabase = async () => {
       isActive: true,
     },
     {
-      fullName: 'Hoàng Minh Khách Hàng',
+      fullName: 'Hoàng Minh Khang',
       email: 'customer@gmail.com',
       phone: '0987654321',
       passwordHash: customerPassword,
@@ -77,7 +77,7 @@ export const seedDatabase = async () => {
       price: 24990000,
       discountPrice: 22990000,
       stock: 12,
-      soldCount: 38,
+      soldCount: 0,
       isHot: true,
       hotOrder: 1,
       images: [
@@ -103,7 +103,7 @@ export const seedDatabase = async () => {
       price: 21900000,
       discountPrice: 19990000,
       stock: 8,
-      soldCount: 45,
+      soldCount: 0,
       isHot: true,
       hotOrder: 2,
       images: [
@@ -128,7 +128,7 @@ export const seedDatabase = async () => {
       price: 38990000,
       discountPrice: 35500000,
       stock: 4, // LOW STOCK TRIGGER (< 5)
-      soldCount: 16,
+      soldCount: 0,
       isHot: true,
       hotOrder: 3,
       images: [
@@ -153,7 +153,7 @@ export const seedDatabase = async () => {
       price: 28500000,
       discountPrice: 26900000,
       stock: 6,
-      soldCount: 22,
+      soldCount: 0,
       isHot: false,
       hotOrder: 0,
       images: [
@@ -177,7 +177,7 @@ export const seedDatabase = async () => {
       price: 11900000,
       discountPrice: 10490000,
       stock: 15,
-      soldCount: 65,
+      soldCount: 0,
       isHot: false,
       hotOrder: 0,
       images: [
@@ -200,7 +200,7 @@ export const seedDatabase = async () => {
       price: 12900000,
       discountPrice: 12200000,
       stock: 9,
-      soldCount: 94,
+      soldCount: 0,
       isHot: false,
       hotOrder: 0,
       images: [
@@ -226,7 +226,7 @@ export const seedDatabase = async () => {
       price: 4990000,
       discountPrice: 4590000,
       stock: 14,
-      soldCount: 52,
+      soldCount: 0,
       isHot: true,
       hotOrder: 4,
       images: [
@@ -251,7 +251,7 @@ export const seedDatabase = async () => {
       price: 6490000,
       discountPrice: 5990000,
       stock: 7,
-      soldCount: 41,
+      soldCount: 0,
       isHot: true,
       hotOrder: 5,
       images: [
@@ -275,7 +275,7 @@ export const seedDatabase = async () => {
       price: 3690000,
       discountPrice: 3290000,
       stock: 3, // LOW STOCK TRIGGER (< 5)
-      soldCount: 78,
+      soldCount: 0,
       isHot: true,
       hotOrder: 6,
       images: [
@@ -298,7 +298,7 @@ export const seedDatabase = async () => {
       price: 5490000,
       discountPrice: 4890000,
       stock: 10,
-      soldCount: 29,
+      soldCount: 0,
       isHot: false,
       hotOrder: 0,
       images: [
@@ -321,7 +321,7 @@ export const seedDatabase = async () => {
       price: 4200000,
       discountPrice: 3850000,
       stock: 8,
-      soldCount: 31,
+      soldCount: 0,
       isHot: false,
       hotOrder: 0,
       images: [
@@ -344,7 +344,7 @@ export const seedDatabase = async () => {
       price: 5990000,
       discountPrice: 5790000,
       stock: 5,
-      soldCount: 60,
+      soldCount: 0,
       isHot: false,
       hotOrder: 0,
       images: [
@@ -368,7 +368,7 @@ export const seedDatabase = async () => {
       price: 3690000,
       discountPrice: 3390000,
       stock: 20,
-      soldCount: 120,
+      soldCount: 0,
       isHot: true,
       hotOrder: 7,
       images: [
@@ -391,7 +391,7 @@ export const seedDatabase = async () => {
       price: 4190000,
       discountPrice: 3890000,
       stock: 11,
-      soldCount: 56,
+      soldCount: 0,
       isHot: true,
       hotOrder: 8,
       images: [
@@ -414,7 +414,7 @@ export const seedDatabase = async () => {
       price: 2490000,
       discountPrice: 2250000,
       stock: 2, // LOW STOCK TRIGGER (< 5)
-      soldCount: 44,
+      soldCount: 0,
       isHot: false,
       hotOrder: 0,
       images: [
@@ -437,7 +437,7 @@ export const seedDatabase = async () => {
       price: 3990000,
       discountPrice: 3690000,
       stock: 9,
-      soldCount: 68,
+      soldCount: 0,
       isHot: false,
       hotOrder: 0,
       images: [
@@ -459,7 +459,7 @@ export const seedDatabase = async () => {
       price: 2650000,
       discountPrice: 2450000,
       stock: 8,
-      soldCount: 35,
+      soldCount: 0,
       isHot: false,
       hotOrder: 0,
       images: [
@@ -481,7 +481,7 @@ export const seedDatabase = async () => {
       price: 6800000,
       discountPrice: 6500000,
       stock: 3, // LOW STOCK (< 5)
-      soldCount: 15,
+      soldCount: 0,
       isHot: false,
       hotOrder: 0,
       images: [
@@ -504,7 +504,7 @@ export const seedDatabase = async () => {
       price: 9490000,
       discountPrice: 8690000,
       stock: 12,
-      soldCount: 48,
+      soldCount: 0,
       isHot: true,
       hotOrder: 9,
       images: [
@@ -527,7 +527,7 @@ export const seedDatabase = async () => {
       price: 3890000,
       discountPrice: 3490000,
       stock: 16,
-      soldCount: 82,
+      soldCount: 0,
       isHot: true,
       hotOrder: 10,
       images: [
@@ -549,7 +549,7 @@ export const seedDatabase = async () => {
       price: 4990000,
       discountPrice: 4490000,
       stock: 14,
-      soldCount: 58,
+      soldCount: 0,
       isHot: false,
       hotOrder: 0,
       images: [
@@ -571,7 +571,7 @@ export const seedDatabase = async () => {
       price: 5990000,
       discountPrice: 5490000,
       stock: 10,
-      soldCount: 37,
+      soldCount: 0,
       isHot: false,
       hotOrder: 0,
       images: [
@@ -593,7 +593,7 @@ export const seedDatabase = async () => {
       price: 3300000,
       discountPrice: 2990000,
       stock: 8,
-      soldCount: 26,
+      soldCount: 0,
       isHot: false,
       hotOrder: 0,
       images: [
@@ -615,7 +615,7 @@ export const seedDatabase = async () => {
       price: 7200000,
       discountPrice: 6490000,
       stock: 6,
-      soldCount: 19,
+      soldCount: 0,
       isHot: false,
       hotOrder: 0,
       images: [
@@ -641,145 +641,12 @@ export const seedDatabase = async () => {
     previousStock: 0,
     newStock: p.stock,
     reason: 'restock' as const,
-    note: 'Khởi tạo dữ liệu mẫu ban đầu',
+    note: 'Khởi tạo tồn kho ban đầu',
     updatedBy: 'System Seed',
   }));
   await InventoryLog.create(logs);
 
-  // 3. Create 55 realistic orders across Q1, Q2, Q3, Q4 of 2026 and TODAY
-  const customers = [
-    { name: 'Hoàng Minh Khách Hàng', phone: '0987654321', address: 'Số 12 ngõ 89 Thái Hà, Đống Đa, Hà Nội' },
-    { name: 'Nguyễn Tiến Dũng', phone: '0978112233', address: '45 Lê Duẩn, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh' },
-    { name: 'Trần Thị Thùy Linh', phone: '0966445566', address: '120 Nguyễn Thị Minh Khai, Quận 3, TP. Hồ Chí Minh' },
-    { name: 'Phạm Đức Anh', phone: '0933778899', address: '68 Cầu Giấy, Phường Quan Hoa, Cầu Giấy, Hà Nội' },
-    { name: 'Vũ Quốc Huy', phone: '0919223344', address: '15 Trần Phú, Phường Lộc Thọ, Nha Trang, Khánh Hòa' },
-    { name: 'Đặng Mai Phương', phone: '0944556677', address: '88 Nguyễn Văn Linh, Hải Châu, Đà Nẵng' },
-    { name: 'Bùi Tuấn Khang', phone: '0908123456', address: '22 Quang Trung, Hồng Bàng, Hải Phòng' },
-  ];
-
-  const ordersToInsert: any[] = [];
-  const now = new Date();
-  const currentYear = now.getFullYear();
-
-  // Helper to generate dates in quarters
-  const getRandomDateInMonth = (year: number, month: number) => {
-    const day = Math.floor(Math.random() * 26) + 1;
-    const hour = Math.floor(Math.random() * 14) + 8;
-    const min = Math.floor(Math.random() * 59);
-    return new Date(year, month, day, hour, min);
-  };
-
-  // Generate historical orders across Q1 (months 0-2), Q2 (months 3-5), Q3 (months 6-8)
-  const quarterConfigs = [
-    { months: [0, 1, 2], count: 12 }, // Q1
-    { months: [3, 4, 5], count: 14 }, // Q2
-    { months: [6, 7, 8], count: 18 }, // Q3
-  ];
-
-  let orderIndex = 100;
-
-  for (const q of quarterConfigs) {
-    for (let i = 0; i < q.count; i++) {
-      const randomMonth = q.months[Math.floor(Math.random() * q.months.length)];
-      const orderDate = getRandomDateInMonth(currentYear, randomMonth);
-      const cust = customers[Math.floor(Math.random() * customers.length)];
-
-      // Pick 1 to 2 random products
-      const p1 = createdProducts[Math.floor(Math.random() * createdProducts.length)];
-      const p2 = Math.random() > 0.6 ? createdProducts[Math.floor(Math.random() * createdProducts.length)] : null;
-
-      const p1Price = p1.discountPrice && p1.discountPrice > 0 ? p1.discountPrice : p1.price;
-      const items = [
-        {
-          productId: p1._id,
-          name: p1.name,
-          image: p1.images[0] || '',
-          quantity: 1,
-          price: p1Price,
-          category: p1.category,
-        },
-      ];
-
-      let total = p1Price;
-      if (p2 && p2._id.toString() !== p1._id.toString()) {
-        const p2Price = p2.discountPrice && p2.discountPrice > 0 ? p2.discountPrice : p2.price;
-        items.push({
-          productId: p2._id,
-          name: p2.name,
-          image: p2.images[0] || '',
-          quantity: 1,
-          price: p2Price,
-          category: p2.category,
-        });
-        total += p2Price;
-      }
-
-      orderIndex++;
-      ordersToInsert.push({
-        orderCode: `TG${orderDate.toISOString().slice(2, 10).replace(/-/g, '')}-${orderIndex}`,
-        userId: cust.phone === '0987654321' ? customerUser._id : null,
-        customerInfo: cust,
-        items,
-        totalAmount: total,
-        paymentMethod: Math.random() > 0.4 ? 'ONLINE' : 'COD',
-        paymentStatus: 'paid',
-        orderStatus: 'delivered',
-        createdAt: orderDate,
-        updatedAt: orderDate,
-      });
-    }
-  }
-
-  // Generate 8 Orders specifically for TODAY so daily analytics by category show rich data!
-  const todayOrdersConfig = [
-    { pIndex: 0, qty: 1 }, // monitor (ASUS PG27AQDM)
-    { pIndex: 1, qty: 2 }, // monitor (LG UltraGear)
-    { pIndex: 6, qty: 1 }, // keyboard (Keychron Q1 Pro)
-    { pIndex: 7, qty: 1 }, // keyboard (ASUS ROG Azoth)
-    { pIndex: 8, qty: 2 }, // keyboard (Akko MOD007B-HE)
-    { pIndex: 12, qty: 2 }, // mouse (Logitech Superlight 2)
-    { pIndex: 13, qty: 1 }, // mouse (Razer Viper V3 Pro)
-    { pIndex: 18, qty: 1 }, // headphone (SteelSeries Arctis Nova Pro)
-    { pIndex: 19, qty: 2 }, // headphone (HyperX Cloud III)
-  ];
-
-  for (let i = 0; i < todayOrdersConfig.length; i++) {
-    const cfg = todayOrdersConfig[i];
-    const prod = createdProducts[cfg.pIndex];
-    const cust = customers[i % customers.length];
-    const price = prod.discountPrice && prod.discountPrice > 0 ? prod.discountPrice : prod.price;
-
-    const todayDate = new Date();
-    todayDate.setHours(9 + i, Math.floor(Math.random() * 50), 0, 0);
-
-    orderIndex++;
-    ordersToInsert.push({
-      orderCode: `TG${todayDate.toISOString().slice(2, 10).replace(/-/g, '')}-${orderIndex}`,
-      userId: i % 2 === 0 ? customerUser._id : null,
-      customerInfo: cust,
-      items: [
-        {
-          productId: prod._id,
-          name: prod.name,
-          image: prod.images[0] || '',
-          quantity: cfg.qty,
-          price,
-          category: prod.category,
-        },
-      ],
-      totalAmount: price * cfg.qty,
-      paymentMethod: i % 2 === 0 ? 'ONLINE' : 'COD',
-      paymentStatus: i % 3 === 0 ? 'paid' : 'pending',
-      orderStatus: i < 3 ? 'delivered' : i < 6 ? 'shipping' : 'processing',
-      createdAt: todayDate,
-      updatedAt: todayDate,
-    });
-  }
-
-  await Order.insertMany(ordersToInsert);
-  console.log(`[Seed] Successfully inserted ${ordersToInsert.length} orders across Q1, Q2, Q3, and Today.`);
-
-  console.log('[Seed] Database seeding completed successfully! All requirements satisfied.');
+  console.log('[Seed] Database seeding completed successfully! Products and accounts initialized with real data (no fake orders).');
 };
 
 // If run directly via command line

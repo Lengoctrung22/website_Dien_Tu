@@ -53,10 +53,13 @@ export default function CheckoutPage() {
   if (items.length === 0) {
     return (
       <div className="max-w-md mx-auto py-20 px-4 text-center space-y-4">
-        <h2 className="text-xl font-bold">Giỏ hàng của bạn đang trống</h2>
-        <p className="text-xs text-slate-500">Vui lòng chọn sản phẩm vào giỏ trước khi tiến hành thanh toán.</p>
-        <Link href="/products" className="inline-block px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold">
-          Xem sản phẩm
+        <h2 className="text-xl font-black text-slate-900 dark:text-white">Giỏ hàng của bạn đang trống</h2>
+        <p className="text-xs font-mono text-slate-600 dark:text-slate-400 font-medium">Vui lòng chọn sản phẩm vào giỏ trước khi tiến hành thanh toán.</p>
+        <Link
+          href="/products"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white dark:bg-signal-cyan dark:text-slate-950 dark:hover:bg-cyan-400 rounded-xl text-xs font-mono font-bold shadow-md surface-bevel active:translate-y-0.5 transition-all"
+        >
+          <span>Xem sản phẩm</span>
         </Link>
       </div>
     );
@@ -110,8 +113,11 @@ export default function CheckoutPage() {
       clearCart();
 
       if (paymentMethod === 'ONLINE') {
-        // Redirect to payment result or VNPAY simulation
-        router.push(`/payment-result?orderCode=${order.orderCode}&paymentUrl=${encodeURIComponent(paymentUrl || '')}`);
+        if (paymentUrl) {
+          window.location.href = paymentUrl;
+        } else {
+          router.push(`/payment-result?orderCode=${order.orderCode}`);
+        }
       } else {
         // COD order confirmed directly
         router.push(`/order-tracking?orderCode=${order.orderCode}&phone=${encodeURIComponent(formData.phone.trim())}&newOrder=true`);
@@ -125,7 +131,7 @@ export default function CheckoutPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       <div className="flex items-center gap-2">
-        <Link href="/cart" className="text-xs text-slate-500 hover:text-indigo-600 flex items-center gap-1 font-semibold">
+        <Link href="/cart" className="text-xs font-mono text-slate-600 dark:text-slate-400 hover:text-cyan-700 dark:hover:text-signal-cyan flex items-center gap-1 font-semibold transition-colors">
           <ChevronLeft className="w-4 h-4" />
           <span>Quay lại giỏ hàng</span>
         </Link>
@@ -135,34 +141,36 @@ export default function CheckoutPage() {
         <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
           Thanh Toán Đơn Hàng
         </h1>
-        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+        <p className="text-xs sm:text-sm font-mono text-slate-600 dark:text-slate-400 mt-1">
           Hoàn tất thông tin nhận hàng và phương thức thanh toán an toàn
         </p>
       </div>
 
       {errorMsg && (
-        <div className="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-xs text-rose-600 dark:text-rose-400 flex items-center gap-2">
+        <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/25 text-xs font-mono text-rose-700 dark:text-signal-rose flex items-center gap-2 font-bold">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
           <span>{errorMsg}</span>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Column: Delivery Info & Payment Method (7 cols) */}
         <div className="lg:col-span-7 space-y-6">
-          {/* 1. Customer Information */}
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-4 shadow-sm">
-            <h2 className="text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs font-bold">
+          {/* 1. Customer Information - Minimalist Stripe style */}
+          <div className="rounded-2xl border hairline-border surface-bevel bg-surface-card p-6 space-y-4 shadow-sm">
+            <div className="flex items-center gap-2 pb-3 border-b hairline-border">
+              <span className="w-5 h-5 rounded-md bg-cyan-500/15 text-cyan-700 dark:text-signal-cyan border border-cyan-500/30 flex items-center justify-center text-xs font-mono font-bold">
                 1
               </span>
-              <span>Thông Tin Nhận Hàng</span>
-            </h2>
+              <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+                Thông Tin Nhận Hàng // Shipping Address
+              </h2>
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">
-                  Họ và tên người nhận <span className="text-rose-500">*</span>
+                <label className="block text-[10px] font-mono font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+                  Họ và tên người nhận <span className="text-rose-600 dark:text-signal-rose">*</span>
                 </label>
                 <input
                   type="text"
@@ -170,13 +178,13 @@ export default function CheckoutPage() {
                   placeholder="Ví dụ: Nguyễn Văn A"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:border-indigo-500 dark:focus:border-cyan-400"
+                  className="w-full px-3.5 py-2.5 text-xs rounded-lg bg-slate-50 dark:bg-surface-elevated border hairline-border text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan/60 transition-colors font-medium"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">
-                  Số điện thoại nhận hàng <span className="text-rose-500">*</span>
+                <label className="block text-[10px] font-mono font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+                  Số điện thoại nhận hàng <span className="text-rose-600 dark:text-signal-rose">*</span>
                 </label>
                 <input
                   type="tel"
@@ -184,14 +192,14 @@ export default function CheckoutPage() {
                   placeholder="Ví dụ: 0987654321"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:border-indigo-500 dark:focus:border-cyan-400"
+                  className="w-full px-3.5 py-2.5 text-xs rounded-lg bg-slate-50 dark:bg-surface-elevated border hairline-border text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan/60 font-mono transition-colors font-medium"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">
-                Địa chỉ giao hàng chi tiết <span className="text-rose-500">*</span>
+              <label className="block text-[10px] font-mono font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+                Địa chỉ giao hàng chi tiết <span className="text-rose-600 dark:text-signal-rose">*</span>
               </label>
               <input
                 type="text"
@@ -199,12 +207,12 @@ export default function CheckoutPage() {
                 placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố"
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:border-indigo-500 dark:focus:border-cyan-400"
+                className="w-full px-3.5 py-2.5 text-xs rounded-lg bg-slate-50 dark:bg-surface-elevated border hairline-border text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan/60 transition-colors font-medium"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">
+              <label className="block text-[10px] font-mono font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
                 Ghi chú cho shipper (Tùy chọn)
               </label>
               <textarea
@@ -212,27 +220,29 @@ export default function CheckoutPage() {
                 placeholder="Giao giờ hành chính, gọi trước khi đến..."
                 value={formData.note}
                 onChange={(e) => setFormData({ ...formData, note: e.target.value })}
-                className="w-full px-3.5 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:border-indigo-500 dark:focus:border-cyan-400 resize-none"
+                className="w-full px-3.5 py-2 text-xs rounded-lg bg-slate-50 dark:bg-surface-elevated border hairline-border text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan/60 resize-none transition-colors font-medium"
               />
             </div>
           </div>
 
-          {/* 2. Payment Method */}
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-4 shadow-sm">
-            <h2 className="text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs font-bold">
+          {/* 2. Payment Method Cards */}
+          <div className="rounded-2xl border hairline-border surface-bevel bg-surface-card p-6 space-y-4 shadow-sm">
+            <div className="flex items-center gap-2 pb-3 border-b hairline-border">
+              <span className="w-5 h-5 rounded-md bg-cyan-500/15 text-cyan-700 dark:text-signal-cyan border border-cyan-500/30 flex items-center justify-center text-xs font-mono font-bold">
                 2
               </span>
-              <span>Phương Thức Thanh Toán</span>
-            </h2>
+              <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+                Phương Thức Thanh Toán // Payment Channel
+              </h2>
+            </div>
 
             <div className="space-y-3">
-              {/* Option COD */}
+              {/* Option COD Card */}
               <label
-                className={`flex items-start gap-3.5 p-4 rounded-xl border cursor-pointer transition-all ${
+                className={`flex items-start gap-3.5 p-4 rounded-xl border transition-all cursor-pointer ${
                   paymentMethod === 'COD'
-                    ? 'border-indigo-600 dark:border-cyan-400 bg-indigo-50/50 dark:bg-cyan-950/20'
-                    : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40'
+                    ? 'border-cyan-600 dark:border-signal-cyan/80 bg-cyan-500/5 dark:bg-signal-cyan/10 surface-bevel shadow-sm ring-1 ring-cyan-500/50'
+                    : 'border hairline-border surface-bevel bg-surface-elevated/40 hover:bg-surface-elevated hover:border-slate-400 dark:hover:border-signal-cyan/30'
                 }`}
               >
                 <input
@@ -241,27 +251,32 @@ export default function CheckoutPage() {
                   value="COD"
                   checked={paymentMethod === 'COD'}
                   onChange={() => setPaymentMethod('COD')}
-                  className="mt-1 text-indigo-600 focus:ring-indigo-500"
+                  className="mt-1 accent-cyan-600"
                 />
                 <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <Truck className="w-4 h-4 text-emerald-500" />
-                    <span className="font-bold text-xs text-slate-900 dark:text-white">
-                      Thanh toán khi nhận hàng (COD)
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <Truck className="w-4 h-4 text-emerald-700 dark:text-signal-emerald" />
+                      <span className="font-bold text-xs text-slate-900 dark:text-white">
+                        Thanh toán khi nhận hàng (COD)
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-surface-card border hairline-border text-slate-700 dark:text-slate-300">
+                      TIỀN MẶT
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-                    Kiểm tra sản phẩm cẩn thận trước khi thanh toán tiền mặt cho nhân viên giao hàng.
+                  <p className="text-[11px] font-mono text-slate-600 dark:text-slate-400 mt-1 font-medium">
+                    Được mở hộp đồng kiểm chất lượng trước khi thanh toán tiền mặt trực tiếp cho nhân viên vận chuyển.
                   </p>
                 </div>
               </label>
 
-              {/* Option ONLINE / VNPAY */}
+              {/* Option ONLINE / VNPAY Card */}
               <label
-                className={`flex items-start gap-3.5 p-4 rounded-xl border cursor-pointer transition-all ${
+                className={`flex items-start gap-3.5 p-4 rounded-xl border transition-all cursor-pointer ${
                   paymentMethod === 'ONLINE'
-                    ? 'border-indigo-600 dark:border-cyan-400 bg-indigo-50/50 dark:bg-cyan-950/20'
-                    : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40'
+                    ? 'border-cyan-600 dark:border-signal-cyan/80 bg-cyan-500/5 dark:bg-signal-cyan/10 surface-bevel shadow-sm ring-1 ring-cyan-500/50'
+                    : 'border hairline-border surface-bevel bg-surface-elevated/40 hover:bg-surface-elevated hover:border-slate-400 dark:hover:border-signal-cyan/30'
                 }`}
               >
                 <input
@@ -270,17 +285,22 @@ export default function CheckoutPage() {
                   value="ONLINE"
                   checked={paymentMethod === 'ONLINE'}
                   onChange={() => setPaymentMethod('ONLINE')}
-                  className="mt-1 text-indigo-600 focus:ring-indigo-500"
+                  className="mt-1 accent-cyan-600"
                 />
                 <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <CreditCard className="w-4 h-4 text-cyan-500" />
-                    <span className="font-bold text-xs text-slate-900 dark:text-white">
-                      Thanh toán trực tuyến (VNPAY Sandbox / Mock Test Mode)
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="w-4 h-4 text-cyan-700 dark:text-signal-cyan" />
+                      <span className="font-bold text-xs text-slate-900 dark:text-white">
+                        Thanh toán trực tuyến qua cổng VNPAY
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-700 dark:text-signal-cyan border border-cyan-500/30">
+                      QR / ATM / VISA
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-                    Thanh toán qua mã QR Ngân hàng / Thẻ ATM / Visa / VNPAY. Có sẵn Mock Test Mode để trải nghiệm ngay.
+                  <p className="text-[11px] font-mono text-slate-600 dark:text-slate-400 mt-1 font-medium">
+                    Cổng thanh toán an toàn VNPAY hỗ trợ quét mã QR qua ứng dụng ngân hàng, thẻ ATM nội địa &amp; thẻ Visa/Mastercard.
                   </p>
                 </div>
               </label>
@@ -289,20 +309,20 @@ export default function CheckoutPage() {
         </div>
 
         {/* Right Column: Order Items Summary (5 cols) */}
-        <div className="lg:col-span-5 space-y-6">
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 space-y-5 shadow-xl">
-            <h2 className="text-sm font-black uppercase tracking-wider text-slate-900 dark:text-white pb-3 border-b border-slate-100 dark:border-slate-800">
+        <div className="lg:col-span-5 sticky top-24">
+          <div className="rounded-2xl border hairline-border surface-bevel bg-surface-card p-6 space-y-5 shadow-xl">
+            <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-900 dark:text-white pb-3 border-b hairline-border">
               Kiểm Tra Đơn Hàng ({items.length} món)
             </h2>
 
             {/* Items scroll area */}
-            <div className="max-h-60 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800 pr-1">
+            <div className="max-h-60 overflow-y-auto divide-y hairline-border pr-1">
               {items.map(({ product, quantity }) => {
                 const price =
                   product.discountPrice && product.discountPrice > 0 ? product.discountPrice : product.price;
                 return (
                   <div key={product._id} className="py-2.5 flex items-center gap-3">
-                    <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-slate-100 dark:bg-slate-800">
+                    <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-surface-elevated border hairline-border">
                       <Image
                         src={product.images?.[0] || 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?auto=format&fit=crop&w=200&q=80'}
                         alt={product.name}
@@ -312,14 +332,14 @@ export default function CheckoutPage() {
                       />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">
+                      <p className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
                         {product.name}
                       </p>
-                      <p className="text-[11px] text-slate-400">
+                      <p className="text-[11px] font-mono text-slate-600 dark:text-slate-400 tabular-nums font-medium">
                         {formatVND(price)} × {quantity}
                       </p>
                     </div>
-                    <div className="text-xs font-black text-indigo-600 dark:text-cyan-400">
+                    <div className="text-xs font-mono tabular-nums font-black text-cyan-700 dark:text-signal-cyan">
                       {formatVND(price * quantity)}
                     </div>
                   </div>
@@ -328,20 +348,20 @@ export default function CheckoutPage() {
             </div>
 
             {/* Cost Breakdown */}
-            <div className="space-y-2 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs">
-              <div className="flex justify-between text-slate-600 dark:text-slate-400">
+            <div className="space-y-2 pt-3 border-t hairline-border text-xs font-mono">
+              <div className="flex justify-between text-slate-700 dark:text-slate-400 font-medium">
                 <span>Tạm tính tiền hàng:</span>
-                <span className="font-bold text-slate-800 dark:text-white">{formatVND(subtotal)}</span>
+                <span className="font-bold tabular-nums text-slate-900 dark:text-white">{formatVND(subtotal)}</span>
               </div>
-              <div className="flex justify-between text-slate-600 dark:text-slate-400">
+              <div className="flex justify-between text-slate-700 dark:text-slate-400 font-medium">
                 <span>Phí vận chuyển:</span>
-                <span className="font-bold text-emerald-500">
+                <span className="font-bold tabular-nums text-emerald-700 dark:text-signal-emerald">
                   {shippingFee === 0 ? 'MIỄN PHÍ' : formatVND(shippingFee)}
                 </span>
               </div>
-              <div className="flex justify-between items-baseline pt-2 border-t border-slate-100 dark:border-slate-800">
-                <span className="text-sm font-bold text-slate-900 dark:text-white">Tổng thanh toán:</span>
-                <span className="text-xl font-black text-indigo-600 dark:text-cyan-400">
+              <div className="flex justify-between items-baseline pt-2 border-t hairline-border">
+                <span className="text-xs font-mono uppercase tracking-wider font-bold text-slate-700 dark:text-slate-400">Tổng thanh toán:</span>
+                <span className="text-2xl font-mono tabular-nums font-black text-cyan-700 dark:text-signal-cyan">
                   {formatVND(finalTotal)}
                 </span>
               </div>
@@ -350,10 +370,10 @@ export default function CheckoutPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/25 disabled:opacity-50 transition-all"
+              className="w-full py-3.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-signal-cyan dark:text-slate-950 dark:hover:bg-cyan-400 font-black text-sm flex items-center justify-center gap-2 shadow-md disabled:opacity-50 active:translate-y-0.5 transition-all"
             >
               {isSubmitting ? (
-                <span>Đang xử lý đơn hàng...</span>
+                <span className="font-mono">Đang xử lý đơn hàng...</span>
               ) : (
                 <>
                   <CheckCircle2 className="w-4 h-4" />
@@ -362,7 +382,7 @@ export default function CheckoutPage() {
               )}
             </button>
 
-            <p className="text-[11px] text-slate-400 text-center leading-relaxed">
+            <p className="text-[11px] font-mono text-slate-600 dark:text-slate-400 text-center leading-relaxed font-medium">
               Bằng việc xác nhận đặt hàng, bạn đồng ý với các điều khoản bảo hành và chính sách mua sắm của TECHGEAR PRO.
             </p>
           </div>

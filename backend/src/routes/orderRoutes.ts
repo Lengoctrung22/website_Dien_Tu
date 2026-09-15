@@ -8,7 +8,6 @@ import {
   updateOrderStatus,
   handleVnpayReturn,
   handleVnpayIpn,
-  handleMockPayment,
   handlePaymentWebhook,
 } from '../controllers/orderController';
 import { authenticateToken, optionalAuthenticateToken, requireRole } from '../middlewares/auth';
@@ -39,6 +38,5 @@ router.get('/payment/vnpay-return', handleVnpayReturn);
 router.get('/payment/vnpay-ipn', handleVnpayIpn);
 router.post('/payment/vnpay-ipn', handleVnpayIpn);
 router.post('/payment/webhook', handlePaymentWebhook);
-router.post('/payment/mock-pay', handleMockPayment);
 
 export default router;

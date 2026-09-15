@@ -50,43 +50,57 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 dark:bg-[#07090e] text-slate-900 dark:text-slate-100 flex flex-col md:flex-row">
+    <div className="min-h-screen bg-surface-canvas text-slate-900 dark:text-slate-100 flex flex-col md:flex-row">
       {/* Sidebar Desktop */}
-      <aside className="hidden md:flex md:w-64 flex-col bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 p-5 space-y-6 flex-shrink-0 min-h-screen">
+      <aside className="hidden md:flex md:w-64 flex-col bg-surface-card border-r hairline-border p-5 space-y-6 flex-shrink-0 min-h-screen">
         {/* Brand Admin */}
-        <div className="flex items-center gap-2.5 pb-4 border-b border-slate-100 dark:border-slate-800">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-400 p-0.5 shadow-md">
-            <div className="w-full h-full bg-slate-900 rounded-[10px] flex items-center justify-center">
-              <span className="font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400 text-lg">TG</span>
-            </div>
+        <div className="flex items-center gap-2.5 pb-4 border-b hairline-border">
+          <div className="w-8 h-8 rounded-lg bg-surface-elevated hairline-border surface-bevel flex items-center justify-center flex-shrink-0">
+            <span className="font-mono font-black text-cyan-700 dark:text-signal-cyan text-sm tracking-tight">TG</span>
           </div>
           <div>
-            <span className="font-black text-base text-slate-900 dark:text-white block leading-tight">
-              ADMIN PRO
-            </span>
-            <span className="text-[10px] uppercase font-bold text-cyan-500 tracking-wider">
+            <div className="flex items-center gap-1.5">
+              <span className="font-black text-sm text-slate-900 dark:text-white tracking-tight">
+                TECHGEAR
+              </span>
+              <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-cyan-500/10 text-cyan-700 dark:text-signal-cyan border border-cyan-500/20">
+                ADMIN
+              </span>
+            </div>
+            <span className="text-[10px] font-mono uppercase font-bold text-slate-700 dark:text-slate-300 tracking-wider block">
               Bảng Quản Trị
             </span>
           </div>
         </div>
 
         {/* User Card */}
-        <div className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/70 flex items-center gap-3 shadow-sm">
-          <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs font-bold uppercase shadow-sm flex-shrink-0">
+        <div className="p-3 rounded-xl bg-surface-elevated/70 hairline-border surface-bevel flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-cyan-500/15 text-cyan-700 dark:text-signal-cyan border border-cyan-500/20 flex items-center justify-center text-xs font-mono font-bold uppercase flex-shrink-0">
             {(user?.fullName || user?.email || 'Admin').charAt(0).toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold truncate text-slate-800 dark:text-white" title={user?.fullName || 'Quản trị viên'}>
+            <p className="text-xs font-bold truncate text-slate-900 dark:text-white" title={user?.fullName || 'Quản trị viên'}>
               {user?.fullName || 'Quản trị viên'}
             </p>
-            <span className="text-[10px] font-bold text-indigo-600 dark:text-cyan-400 uppercase tracking-wider block">
-              {user?.role || 'Staff'}
-            </span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-mono font-bold text-cyan-700 dark:text-signal-cyan uppercase tracking-wider">
+                {user?.role || 'Staff'}
+              </span>
+              {user?.phone ? (
+                <span className="text-[10px] font-mono tabular-nums text-slate-700 dark:text-slate-300 truncate font-medium" title={user.phone}>
+                  • {user.phone}
+                </span>
+              ) : user?.email ? (
+                <span className="text-[10px] font-mono text-slate-700 dark:text-slate-300 truncate font-medium" title={user.email}>
+                  • {user.email}
+                </span>
+              ) : null}
+            </div>
           </div>
         </div>
 
         {/* Navigation Links */}
-        <nav className="flex-1 space-y-1.5 text-xs font-bold">
+        <nav className="flex-1 space-y-1 text-xs font-medium">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -94,13 +108,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${
+                className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all border-l-2 ${
                   isActive
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/25'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white'
+                    ? 'bg-cyan-50 dark:bg-surface-elevated text-cyan-700 dark:text-signal-cyan border-cyan-600 dark:border-signal-cyan font-bold surface-bevel'
+                    : 'border-transparent text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-surface-elevated/50 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
-                <Icon className="w-4 h-4 flex-shrink-0" />
+                <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-cyan-700 dark:text-signal-cyan' : 'text-slate-600 dark:text-slate-400'}`} />
                 <span>{item.label}</span>
               </Link>
             );
@@ -108,13 +122,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </nav>
 
         {/* Bottom Actions */}
-        <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
+        <div className="pt-4 border-t hairline-border space-y-1.5">
           <Link
             href="/"
-            className="w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+            className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-surface-elevated/50 hover:text-slate-900 dark:hover:text-white transition-colors"
           >
             <span className="flex items-center gap-2">
-              <ExternalLink className="w-3.5 h-3.5" />
+              <ExternalLink className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400" />
               <span>Về Storefront</span>
             </span>
             <ThemeToggle />
@@ -125,7 +139,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               logout();
               router.push('/auth/login');
             }}
-            className="w-full flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-rose-600 dark:text-signal-rose hover:bg-rose-50 dark:hover:bg-signal-rose/10 transition-colors"
           >
             <LogOut className="w-4 h-4" />
             <span>Đăng xuất</span>
@@ -134,15 +148,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       {/* Top Mobile Bar */}
-      <div className="md:hidden flex items-center justify-between p-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40">
+      <div className="md:hidden flex items-center justify-between p-4 bg-surface-card border-b hairline-border sticky top-0 z-40">
         <div className="flex items-center gap-2">
-          <span className="font-black text-sm text-indigo-600 dark:text-cyan-400">TG ADMIN PRO</span>
+          <div className="w-7 h-7 rounded-lg bg-surface-elevated hairline-border surface-bevel flex items-center justify-center flex-shrink-0">
+            <span className="font-mono font-black text-cyan-700 dark:text-signal-cyan text-xs">TG</span>
+          </div>
+          <span className="font-black text-sm text-slate-900 dark:text-white tracking-tight">ADMIN PRO</span>
         </div>
         <div className="flex items-center gap-2">
           <ThemeToggle />
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="p-2 rounded-lg border border-slate-200 dark:border-slate-800"
+            className="p-2 rounded-lg hairline-border bg-surface-elevated text-slate-700 dark:text-slate-200"
           >
             {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -151,45 +168,58 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Mobile Drawer */}
       {mobileOpen && (
-        <div className="md:hidden bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 p-4 space-y-3">
+        <div className="md:hidden bg-surface-card border-b hairline-border p-4 space-y-3">
           {/* User Card Mobile */}
-          <div className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/70 flex items-center gap-3 shadow-sm">
-            <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs font-bold uppercase shadow-sm flex-shrink-0">
+          <div className="p-3 rounded-xl bg-surface-elevated/70 hairline-border surface-bevel flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-cyan-500/15 text-cyan-700 dark:text-signal-cyan border border-cyan-500/20 flex items-center justify-center text-xs font-mono font-bold uppercase flex-shrink-0">
               {(user?.fullName || user?.email || 'Admin').charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold truncate text-slate-800 dark:text-white" title={user?.fullName || 'Quản trị viên'}>
+              <p className="text-xs font-bold truncate text-slate-900 dark:text-white" title={user?.fullName || 'Quản trị viên'}>
                 {user?.fullName || 'Quản trị viên'}
               </p>
-              <span className="text-[10px] font-bold text-indigo-600 dark:text-cyan-400 uppercase tracking-wider block">
-                {user?.role || 'Staff'}
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-mono font-bold text-cyan-700 dark:text-signal-cyan uppercase tracking-wider">
+                  {user?.role || 'Staff'}
+                </span>
+                {user?.phone ? (
+                  <span className="text-[10px] font-mono tabular-nums text-slate-700 dark:text-slate-300 truncate font-medium" title={user.phone}>
+                    • {user.phone}
+                  </span>
+                ) : user?.email ? (
+                  <span className="text-[10px] font-mono text-slate-700 dark:text-slate-300 truncate font-medium" title={user.email}>
+                    • {user.email}
+                  </span>
+                ) : null}
+              </div>
             </div>
           </div>
-          <nav className="space-y-1.5 text-xs font-bold">
+          <nav className="space-y-1 text-xs font-medium">
             {NAV_ITEMS.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMobileOpen(false)}
-                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold ${
-                  isActive ? 'bg-indigo-600 text-white' : 'text-slate-600 dark:text-slate-400'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
+              const Icon = item.icon;
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMobileOpen(false)}
+                  className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border-l-2 transition-all ${
+                    isActive
+                      ? 'bg-cyan-50 dark:bg-surface-elevated text-cyan-700 dark:text-signal-cyan border-cyan-600 dark:border-signal-cyan font-bold surface-bevel'
+                      : 'border-transparent text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-cyan-700 dark:text-signal-cyan' : 'text-slate-600 dark:text-slate-400'}`} />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
             <Link
               href="/"
               onClick={() => setMobileOpen(false)}
-              className="flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-slate-500"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-surface-elevated/50"
             >
-              <ExternalLink className="w-4 h-4" />
+              <ExternalLink className="w-4 h-4 text-slate-600 dark:text-slate-400" />
               <span>Về Storefront</span>
             </Link>
           </nav>

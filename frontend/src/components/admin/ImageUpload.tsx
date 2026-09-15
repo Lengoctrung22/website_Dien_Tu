@@ -112,17 +112,17 @@ export function SingleImageUpload({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <label className="block font-bold text-slate-700 dark:text-slate-300 text-xs">
-          {label} {required && <span className="text-rose-500">*</span>}
+        <label className="block font-bold text-slate-800 dark:text-slate-200 text-xs">
+          {label} {required && <span className="text-rose-600 dark:text-signal-rose">*</span>}
         </label>
-        <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg text-[11px] font-medium">
+        <div className="flex items-center gap-1 bg-surface-subtle/50 dark:bg-surface-elevated p-0.5 rounded-lg text-[11px] font-mono">
           <button
             type="button"
             onClick={() => setMode('upload')}
-            className={`px-2 py-0.5 rounded-md transition-all ${
+            className={`px-2.5 py-0.5 rounded-md transition-all ${
               mode === 'upload'
-                ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm font-semibold'
-                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                ? 'bg-surface-card text-cyan-700 dark:text-signal-cyan hairline-border font-bold shadow-sm'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium'
             }`}
           >
             Từ máy tính
@@ -130,10 +130,10 @@ export function SingleImageUpload({
           <button
             type="button"
             onClick={() => setMode('url')}
-            className={`px-2 py-0.5 rounded-md transition-all ${
+            className={`px-2.5 py-0.5 rounded-md transition-all ${
               mode === 'url'
-                ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm font-semibold'
-                : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                ? 'bg-surface-card text-cyan-700 dark:text-signal-cyan hairline-border font-bold shadow-sm'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium'
             }`}
           >
             Nhập URL
@@ -157,22 +157,22 @@ export function SingleImageUpload({
               placeholder="https://images.unsplash.com/photo-..."
               value={value}
               onChange={(e) => onChange(e.target.value)}
-              className="w-full pl-8 pr-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              className="w-full pl-8 pr-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-xs text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-600 dark:focus:border-signal-cyan font-mono"
             />
-            <LinkIcon className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+            <LinkIcon className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
           </div>
           {value && (
-            <div className="flex items-center gap-3 p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
-              <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 flex-shrink-0 bg-slate-100 dark:bg-slate-900">
+            <div className="flex items-center gap-3 p-2 rounded-xl bg-surface-subtle/30 dark:bg-surface-elevated/70 hairline-border surface-bevel">
+              <div className="relative w-12 h-12 rounded-lg overflow-hidden hairline-border flex-shrink-0 bg-surface-subtle/50">
                 <Image src={value} alt="Preview" fill className="object-cover" unoptimized />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[11px] text-slate-500 truncate">{value}</p>
+                <p className="text-[11px] font-mono text-slate-600 dark:text-slate-400 truncate">{value}</p>
               </div>
               <button
                 type="button"
                 onClick={() => onChange('')}
-                className="p-1 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                className="p-1 rounded-lg text-rose-600 dark:text-signal-rose hover:bg-rose-500/10 transition-colors"
                 title="Xóa ảnh"
               >
                 <X className="w-4 h-4" />
@@ -184,38 +184,38 @@ export function SingleImageUpload({
         <div>
           {value ? (
             /* Preview existing uploaded image */
-            <div className="relative group rounded-2xl border-2 border-indigo-500/20 bg-slate-50 dark:bg-slate-800/40 p-3 flex items-center gap-4 transition-all hover:border-indigo-500/40">
-              <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 flex-shrink-0 bg-slate-900 shadow-md">
+            <div className="relative group rounded-xl hairline-border surface-bevel bg-surface-subtle/30 dark:bg-surface-elevated/70 p-3 flex items-center gap-4 transition-all">
+              <div className="relative w-16 h-16 rounded-lg overflow-hidden hairline-border flex-shrink-0 bg-surface-subtle/50 shadow-sm">
                 <Image src={value} alt="Thumbnail" fill className="object-cover" unoptimized />
               </div>
 
               <div className="flex-1 min-w-0 space-y-1">
-                <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold text-xs">
+                <div className="flex items-center gap-1.5 text-emerald-700 dark:text-signal-emerald font-semibold text-xs">
                   <ImageIcon className="w-3.5 h-3.5" />
                   <span>Ảnh đã sẵn sàng</span>
                 </div>
-                <p className="text-[11px] text-slate-400 truncate max-w-xs">{value}</p>
+                <p className="text-[11px] font-mono text-slate-600 dark:text-slate-400 truncate max-w-xs">{value}</p>
 
                 <div className="flex items-center gap-2 pt-1">
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isUploading}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-mono font-semibold bg-cyan-500/15 text-cyan-700 dark:text-signal-cyan hairline-border border-cyan-500/30 hover:bg-cyan-500/25 transition-colors"
                   >
                     {isUploading ? (
                       <Loader2 className="w-3 h-3 animate-spin" />
                     ) : (
                       <RefreshCw className="w-3 h-3" />
                     )}
-                    <span>Đổi ảnh khác</span>
+                    <span>Đổi ảnh</span>
                   </button>
 
                   <a
                     href={value}
                     target="_blank"
                     rel="noreferrer"
-                    className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                    className="p-1 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors"
                     title="Xem ảnh gốc"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
@@ -224,7 +224,7 @@ export function SingleImageUpload({
                   <button
                     type="button"
                     onClick={() => onChange('')}
-                    className="p-1 rounded-lg text-slate-400 hover:text-rose-500 transition-colors"
+                    className="p-1 rounded-lg text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-signal-rose transition-colors"
                     title="Xóa ảnh"
                   >
                     <X className="w-3.5 h-3.5" />
@@ -239,29 +239,29 @@ export function SingleImageUpload({
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
               onClick={() => !isUploading && fileInputRef.current?.click()}
-              className={`border-2 border-dashed rounded-2xl p-4 text-center cursor-pointer transition-all ${
+              className={`border border-dashed rounded-xl p-4 text-center cursor-pointer transition-all ${
                 isDragging
-                  ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/20 scale-[0.99]'
-                  : 'border-slate-300 dark:border-slate-700 hover:border-indigo-400 dark:hover:border-indigo-500/60 bg-slate-50/50 dark:bg-slate-800/30'
+                  ? 'border-cyan-500 bg-cyan-500/10 scale-[0.99]'
+                  : 'border-slate-300 dark:border-white/10 hover:border-cyan-500/50 bg-surface-subtle/20 dark:bg-surface-elevated/40'
               }`}
             >
               {isUploading ? (
                 <div className="flex flex-col items-center justify-center py-3 space-y-2">
-                  <Loader2 className="w-8 h-8 text-indigo-600 dark:text-indigo-400 animate-spin" />
-                  <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                  <Loader2 className="w-6 h-6 text-cyan-600 dark:text-signal-cyan animate-spin" />
+                  <p className="text-xs font-bold text-slate-900 dark:text-white">
                     Đang tải ảnh lên máy chủ...
                   </p>
-                  <p className="text-[10px] text-slate-400">Vui lòng đợi trong giây lát</p>
+                  <p className="text-[10px] text-slate-600 dark:text-slate-400 font-mono">Vui lòng đợi trong giây lát</p>
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-2 space-y-1.5">
-                  <div className="w-10 h-10 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
-                    <UploadCloud className="w-5 h-5" />
+                  <div className="w-9 h-9 rounded-lg bg-surface-elevated hairline-border text-cyan-700 dark:text-signal-cyan flex items-center justify-center">
+                    <UploadCloud className="w-4 h-4" />
                   </div>
-                  <p className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                  <p className="text-xs font-semibold text-slate-800 dark:text-slate-200">
                     Bấm để chọn tệp hoặc kéo thả ảnh vào đây
                   </p>
-                  <p className="text-[10px] text-slate-400">{helperText}</p>
+                  <p className="text-[10px] font-mono text-slate-600 dark:text-slate-400">{helperText}</p>
                 </div>
               )}
             </div>
@@ -270,7 +270,7 @@ export function SingleImageUpload({
       )}
 
       {errorMsg && (
-        <div className="flex items-center gap-1.5 text-xs text-rose-500 bg-rose-50 dark:bg-rose-950/30 p-2 rounded-xl border border-rose-500/20">
+        <div className="flex items-center gap-1.5 text-xs text-rose-700 dark:text-signal-rose bg-rose-500/10 p-2 rounded-lg hairline-border border-rose-500/20 font-medium">
           <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
           <span>{errorMsg}</span>
         </div>
@@ -357,10 +357,10 @@ export function GalleryUpload({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <label className="block font-bold text-slate-700 dark:text-slate-300 text-xs">
-          {label} ({images.length}/{maxImages})
+        <label className="block font-bold text-slate-800 dark:text-slate-200 text-xs">
+          {label} <span className="font-mono tabular-nums text-slate-600 dark:text-slate-400">({images.length}/{maxImages})</span>
         </label>
-        <span className="text-[10px] text-slate-400">Hiển thị các góc độ ở trang chi tiết</span>
+        <span className="text-[10px] text-slate-600 dark:text-slate-400 font-mono">Tối đa {maxImages} ảnh chi tiết</span>
       </div>
 
       <input
@@ -379,13 +379,13 @@ export function GalleryUpload({
         {images.map((img, idx) => (
           <div
             key={idx}
-            className="relative aspect-square rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-900 group shadow-sm"
+            className="relative aspect-square rounded-lg overflow-hidden hairline-border bg-surface-subtle/50 group shadow-sm"
           >
             <Image src={img} alt={`Gallery ${idx + 1}`} fill className="object-cover" unoptimized />
             <button
               type="button"
               onClick={() => handleRemove(idx)}
-              className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 text-white hover:bg-rose-600 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+              className="absolute top-1 right-1 w-5 h-5 rounded-md bg-black/80 text-white hover:bg-rose-600 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
               title="Xóa ảnh"
             >
               <X className="w-3 h-3" />
@@ -398,14 +398,14 @@ export function GalleryUpload({
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
-            className="aspect-square rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-indigo-500 dark:hover:border-indigo-400 flex flex-col items-center justify-center text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all bg-slate-50/50 dark:bg-slate-800/30"
+            className="aspect-square rounded-lg border border-dashed border-slate-300 dark:border-white/10 hover:border-cyan-500 flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 hover:text-cyan-700 dark:hover:text-signal-cyan transition-all bg-surface-subtle/20 dark:bg-surface-elevated/40"
           >
             {isUploading ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin text-cyan-600 dark:text-signal-cyan" />
             ) : (
               <>
-                <Plus className="w-5 h-5" />
-                <span className="text-[10px] font-semibold mt-0.5">Thêm ảnh</span>
+                <Plus className="w-4 h-4" />
+                <span className="text-[10px] font-mono font-bold mt-0.5">Thêm</span>
               </>
             )}
           </button>
@@ -413,7 +413,7 @@ export function GalleryUpload({
       </div>
 
       {errorMsg && (
-        <div className="flex items-center gap-1.5 text-xs text-rose-500 bg-rose-50 dark:bg-rose-950/30 p-2 rounded-xl border border-rose-500/20">
+        <div className="flex items-center gap-1.5 text-xs text-rose-700 dark:text-signal-rose bg-rose-500/10 p-2 rounded-lg hairline-border border-rose-500/20 font-medium">
           <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
           <span>{errorMsg}</span>
         </div>

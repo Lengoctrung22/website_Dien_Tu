@@ -1,123 +1,218 @@
 import Link from 'next/link';
-import { Shield, Truck, RotateCcw, Headphones, CreditCard, Mail, Phone, MapPin } from 'lucide-react';
+import { Shield, Truck, RotateCcw, Headphones, CreditCard, Mail, Phone, MapPin, ChevronRight, Lock } from 'lucide-react';
 
 export default function Footer() {
   return (
-    <footer className="bg-slate-900 text-slate-300 border-t border-slate-800 transition-colors">
-      {/* 4 Feature Highlights */}
-      <div className="border-b border-slate-800/80">
-        <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-4 gap-6">
-          <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-cyan-400">
-              <Shield className="w-6 h-6" />
+    <footer className="bg-slate-100/90 dark:bg-surface-canvas text-slate-700 dark:text-slate-300 border-t hairline-border surface-bevel relative transition-colors">
+      {/* 4 Feature Highlights Grid */}
+      <div className="border-b hairline-border">
+        <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="flex items-center gap-3.5 p-3.5 rounded-xl bg-white dark:bg-surface-card/40 border hairline-border surface-bevel shadow-sm">
+            <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-surface-subtle/80 border hairline-border surface-bevel flex items-center justify-center text-cyan-700 dark:text-signal-cyan flex-shrink-0">
+              <Shield className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="font-bold text-white text-sm">Chính Hãng 100%</h4>
-              <p className="text-xs text-slate-400">Bảo hành 24 tháng toàn diện</p>
+              <span className="text-[9px] font-mono font-bold tabular-nums text-cyan-700 dark:text-signal-cyan uppercase tracking-widest block">AUTHENTIC // 100%</span>
+              <h4 className="font-bold text-slate-900 dark:text-white text-xs uppercase tracking-tight">Chính Hãng 100%</h4>
+              <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5">Bảo hành 24 tháng toàn diện</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
-              <Truck className="w-6 h-6" />
+          <div className="flex items-center gap-3.5 p-3.5 rounded-xl bg-white dark:bg-surface-card/40 border hairline-border surface-bevel shadow-sm">
+            <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-surface-subtle/80 border hairline-border surface-bevel flex items-center justify-center text-cyan-700 dark:text-signal-cyan flex-shrink-0">
+              <Truck className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="font-bold text-white text-sm">Giao Hàng Hỏa Tốc</h4>
-              <p className="text-xs text-slate-400">Freeship đơn từ 1.000.000đ</p>
+              <span className="text-[9px] font-mono font-bold tabular-nums text-cyan-700 dark:text-signal-cyan uppercase tracking-widest block">LOGISTICS // EXPRESS</span>
+              <h4 className="font-bold text-slate-900 dark:text-white text-xs uppercase tracking-tight">Giao Hàng Hỏa Tốc</h4>
+              <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5">Freeship đơn từ 1.000.000₫</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
-              <RotateCcw className="w-6 h-6" />
+          <div className="flex items-center gap-3.5 p-3.5 rounded-xl bg-white dark:bg-surface-card/40 border hairline-border surface-bevel shadow-sm">
+            <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-surface-subtle/80 border hairline-border surface-bevel flex items-center justify-center text-cyan-700 dark:text-signal-cyan flex-shrink-0">
+              <RotateCcw className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="font-bold text-white text-sm">Đổi Mới Trong 7 Ngày</h4>
-              <p className="text-xs text-slate-400">Nếu phát sinh lỗi phần cứng</p>
+              <span className="text-[9px] font-mono font-bold tabular-nums text-cyan-700 dark:text-signal-cyan uppercase tracking-widest block">POLICY // 7-DAY RETURN</span>
+              <h4 className="font-bold text-slate-900 dark:text-white text-xs uppercase tracking-tight">Đổi Mới Trong 7 Ngày</h4>
+              <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5">Lỗi 1-đổi-1 phần cứng tức thì</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
-              <Headphones className="w-6 h-6" />
+          <div className="flex items-center gap-3.5 p-3.5 rounded-xl bg-white dark:bg-surface-card/40 border hairline-border surface-bevel shadow-sm">
+            <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-surface-subtle/80 border hairline-border surface-bevel flex items-center justify-center text-cyan-700 dark:text-signal-cyan flex-shrink-0">
+              <Headphones className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="font-bold text-white text-sm">Hỗ Trợ 24/7</h4>
-              <p className="text-xs text-slate-400">Tư vấn cấu hình chuyên nghiệp</p>
+              <span className="text-[9px] font-mono font-bold tabular-nums text-cyan-700 dark:text-signal-cyan uppercase tracking-widest block">SUPPORT // 24/7 PRO</span>
+              <h4 className="font-bold text-slate-900 dark:text-white text-xs uppercase tracking-tight">Tư Vấn Chuyên Sâu</h4>
+              <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5">Tối ưu cấu hình gear thi đấu</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main Footer Links */}
-      <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8">
+      {/* Main Footer Columns */}
+      <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        {/* Column 1: Brand & Contact Info */}
         <div className="space-y-4">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-cyan-400 p-0.5">
-              <div className="w-full h-full bg-slate-900 rounded-[10px] flex items-center justify-center">
-                <span className="font-black text-cyan-400 text-lg">TG</span>
-              </div>
+            <div className="w-8 h-8 rounded-lg bg-white dark:bg-surface-card border hairline-border surface-bevel flex items-center justify-center text-slate-900 dark:text-white shadow-sm">
+              <span className="font-mono font-black text-sm tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-cyan-600 to-indigo-600 dark:from-signal-cyan dark:to-indigo-400">TG</span>
             </div>
-            <span className="font-black text-xl text-white">TECH<span className="text-cyan-400">GEAR</span></span>
+            <div className="flex items-center gap-1.5">
+              <span className="font-black text-lg text-slate-900 dark:text-white tracking-tight">
+                TECH<span className="text-cyan-700 dark:text-signal-cyan">GEAR</span>
+              </span>
+              <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border hairline-border bg-slate-200 dark:bg-surface-subtle text-slate-700 dark:text-slate-400 tracking-wider">
+                PRO
+              </span>
+            </div>
           </div>
-          <p className="text-xs text-slate-400 leading-relaxed">
-            Hệ thống phân phối thiết bị máy tính, phụ kiện gaming gear và công nghệ cao cấp hàng đầu Việt Nam. Tận tâm phục vụ cộng đồng đam mê công nghệ.
+
+          <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-sans">
+            Hệ thống phân phối thiết bị máy tính, phụ kiện gaming gear và công nghệ cao cấp hàng đầu Việt Nam. Chuẩn mực phần cứng cho game thủ và chuyên gia sáng tạo.
           </p>
-          <div className="space-y-2 text-xs text-slate-400">
-            <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+
+          <div className="space-y-2.5 pt-1 text-xs font-mono text-slate-700 dark:text-slate-400">
+            <div className="flex items-start gap-2">
+              <MapPin className="w-3.5 h-3.5 text-cyan-700 dark:text-signal-cyan flex-shrink-0 mt-0.5" />
               <span>Tòa nhà TechTower, 120 Cầu Giấy, Hà Nội</span>
             </div>
             <div className="flex items-center gap-2">
-              <Phone className="w-4 h-4 text-cyan-400 flex-shrink-0" />
-              <span>Hotline CSKH: 1900 8888 (8:00 - 21:30)</span>
+              <Phone className="w-3.5 h-3.5 text-cyan-700 dark:text-signal-cyan flex-shrink-0" />
+              <span>Hotline: <strong className="text-slate-900 dark:text-slate-200 font-bold">1900 8888</strong> (08:00 - 21:30)</span>
             </div>
             <div className="flex items-center gap-2">
-              <Mail className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+              <Mail className="w-3.5 h-3.5 text-cyan-700 dark:text-signal-cyan flex-shrink-0" />
               <span>support@techgear.vn</span>
             </div>
           </div>
         </div>
 
+        {/* Column 2: Danh Mục Sản Phẩm */}
         <div>
-          <h4 className="font-bold text-white text-sm uppercase tracking-wider mb-4">Danh Mục Sản Phẩm</h4>
-          <ul className="space-y-2.5 text-xs text-slate-400">
-            <li><Link href="/products?category=monitor" className="hover:text-cyan-400 transition-colors">Màn hình gaming OLED / 240Hz</Link></li>
-            <li><Link href="/products?category=keyboard" className="hover:text-cyan-400 transition-colors">Bàn phím cơ Custom & Rapid Trigger</Link></li>
-            <li><Link href="/products?category=mouse" className="hover:text-cyan-400 transition-colors">Chuột thi đấu siêu nhẹ (Ultralight)</Link></li>
-            <li><Link href="/products?category=headphone" className="hover:text-cyan-400 transition-colors">Tai nghe chống ồn chủ động (ANC)</Link></li>
-            <li><Link href="/products?isHot=true" className="hover:text-cyan-400 transition-colors">Sản phẩm HOT & Bán chạy nhất</Link></li>
+          <h4 className="text-[11px] font-bold tracking-wider uppercase text-slate-900 dark:text-slate-200 mb-4 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-600 dark:bg-signal-cyan" />
+            Danh Mục Sản Phẩm
+          </h4>
+          <ul className="space-y-2.5 text-xs font-mono text-slate-600 dark:text-slate-400">
+            <li>
+              <Link href="/products?category=monitor" className="hover:text-cyan-700 dark:hover:text-signal-cyan transition-colors flex items-center gap-1.5 group font-medium">
+                <ChevronRight className="w-3 h-3 text-slate-500 dark:text-slate-400 group-hover:text-cyan-700 dark:group-hover:text-signal-cyan transition-colors" />
+                Màn hình OLED / 240Hz
+              </Link>
+            </li>
+            <li>
+              <Link href="/products?category=keyboard" className="hover:text-cyan-700 dark:hover:text-signal-cyan transition-colors flex items-center gap-1.5 group font-medium">
+                <ChevronRight className="w-3 h-3 text-slate-500 dark:text-slate-400 group-hover:text-cyan-700 dark:group-hover:text-signal-cyan transition-colors" />
+                Bàn phím cơ & Rapid Trigger
+              </Link>
+            </li>
+            <li>
+              <Link href="/products?category=mouse" className="hover:text-cyan-700 dark:hover:text-signal-cyan transition-colors flex items-center gap-1.5 group font-medium">
+                <ChevronRight className="w-3 h-3 text-slate-500 dark:text-slate-400 group-hover:text-cyan-700 dark:group-hover:text-signal-cyan transition-colors" />
+                Chuột thi đấu Ultralight
+              </Link>
+            </li>
+            <li>
+              <Link href="/products?category=headphone" className="hover:text-cyan-700 dark:hover:text-signal-cyan transition-colors flex items-center gap-1.5 group font-medium">
+                <ChevronRight className="w-3 h-3 text-slate-500 dark:text-slate-400 group-hover:text-cyan-700 dark:group-hover:text-signal-cyan transition-colors" />
+                Tai nghe chống ồn chủ động
+              </Link>
+            </li>
+            <li>
+              <Link href="/products?isHot=true" className="hover:text-cyan-700 dark:hover:text-signal-cyan transition-colors flex items-center gap-1.5 group font-medium">
+                <ChevronRight className="w-3 h-3 text-slate-500 dark:text-slate-400 group-hover:text-cyan-700 dark:group-hover:text-signal-cyan transition-colors" />
+                Sản phẩm HOT & Bán chạy
+              </Link>
+            </li>
           </ul>
         </div>
 
+        {/* Column 3: Chính Sách & Hỗ Trợ */}
         <div>
-          <h4 className="font-bold text-white text-sm uppercase tracking-wider mb-4">Chính Sách & Hỗ Trợ</h4>
-          <ul className="space-y-2.5 text-xs text-slate-400">
-            <li><Link href="/order-tracking" className="hover:text-cyan-400 transition-colors">Tra cứu tiến trình đơn hàng</Link></li>
-            <li><Link href="#" className="hover:text-cyan-400 transition-colors">Chính sách bảo hành và đổi trả</Link></li>
-            <li><Link href="#" className="hover:text-cyan-400 transition-colors">Chính sách vận chuyển & kiểm hàng</Link></li>
-            <li><Link href="#" className="hover:text-cyan-400 transition-colors">Bảo mật thông tin khách hàng</Link></li>
-            <li><Link href="#" className="hover:text-cyan-400 transition-colors">Hướng dẫn thanh toán VNPAY / MoMo / COD</Link></li>
+          <h4 className="text-[11px] font-bold tracking-wider uppercase text-slate-900 dark:text-slate-200 mb-4 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 dark:bg-signal-emerald" />
+            Chính Sách & Hỗ Trợ
+          </h4>
+          <ul className="space-y-2.5 text-xs font-mono text-slate-600 dark:text-slate-400">
+            <li>
+              <Link href="/order-tracking" className="hover:text-cyan-700 dark:hover:text-signal-cyan transition-colors flex items-center gap-1.5 group font-medium">
+                <ChevronRight className="w-3 h-3 text-slate-500 dark:text-slate-400 group-hover:text-cyan-700 dark:group-hover:text-signal-cyan transition-colors" />
+                Tra cứu tiến trình đơn hàng
+              </Link>
+            </li>
+            <li>
+              <Link href="#" className="hover:text-cyan-700 dark:hover:text-signal-cyan transition-colors flex items-center gap-1.5 group font-medium">
+                <ChevronRight className="w-3 h-3 text-slate-500 dark:text-slate-400 group-hover:text-cyan-700 dark:group-hover:text-signal-cyan transition-colors" />
+                Chính sách bảo hành 24 tháng
+              </Link>
+            </li>
+            <li>
+              <Link href="#" className="hover:text-cyan-700 dark:hover:text-signal-cyan transition-colors flex items-center gap-1.5 group font-medium">
+                <ChevronRight className="w-3 h-3 text-slate-500 dark:text-slate-400 group-hover:text-cyan-700 dark:group-hover:text-signal-cyan transition-colors" />
+                Chính sách vận chuyển & kiểm hàng
+              </Link>
+            </li>
+            <li>
+              <Link href="#" className="hover:text-cyan-700 dark:hover:text-signal-cyan transition-colors flex items-center gap-1.5 group font-medium">
+                <ChevronRight className="w-3 h-3 text-slate-500 dark:text-slate-400 group-hover:text-cyan-700 dark:group-hover:text-signal-cyan transition-colors" />
+                Bảo mật thông tin khách hàng
+              </Link>
+            </li>
+            <li>
+              <Link href="#" className="hover:text-cyan-700 dark:hover:text-signal-cyan transition-colors flex items-center gap-1.5 group font-medium">
+                <ChevronRight className="w-3 h-3 text-slate-500 dark:text-slate-400 group-hover:text-cyan-700 dark:group-hover:text-signal-cyan transition-colors" />
+                Hướng dẫn thanh toán VNPAY / COD
+              </Link>
+            </li>
           </ul>
         </div>
 
+        {/* Column 4: Phương Thức Thanh Toán & Bảo Mật */}
         <div>
-          <h4 className="font-bold text-white text-sm uppercase tracking-wider mb-4">Phương Thức Thanh Toán</h4>
-          <p className="text-xs text-slate-400 mb-3">Hỗ trợ đa dạng phương thức an toàn, xác nhận giao dịch tức thời:</p>
+          <h4 className="text-[11px] font-bold tracking-wider uppercase text-slate-900 dark:text-slate-200 mb-4 flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-signal-amber" />
+            Thanh Toán & Bảo Mật
+          </h4>
+          <p className="text-xs text-slate-600 dark:text-slate-400 mb-3 font-sans">
+            Xác thực giao dịch thời gian thực qua các cổng thanh toán uy tín:
+          </p>
           <div className="grid grid-cols-3 gap-2">
-            <div className="p-2 bg-slate-800 rounded-lg text-center text-xs font-bold text-emerald-400 border border-slate-700">COD</div>
-            <div className="p-2 bg-slate-800 rounded-lg text-center text-xs font-bold text-cyan-400 border border-slate-700">VNPAY</div>
-            <div className="p-2 bg-slate-800 rounded-lg text-center text-xs font-bold text-pink-400 border border-slate-700">MOMO</div>
+            <div className="p-2 rounded-lg bg-white dark:bg-surface-card border hairline-border surface-bevel text-center font-mono text-xs font-bold text-emerald-700 dark:text-signal-emerald shadow-sm">
+              COD
+            </div>
+            <div className="p-2 rounded-lg bg-white dark:bg-surface-card border hairline-border surface-bevel text-center font-mono text-xs font-bold text-cyan-700 dark:text-signal-cyan shadow-sm">
+              VNPAY
+            </div>
+            <div className="p-2 rounded-lg bg-white dark:bg-surface-card border hairline-border surface-bevel text-center font-mono text-xs font-bold text-rose-700 dark:text-signal-rose shadow-sm">
+              MOMO
+            </div>
           </div>
-          <div className="mt-4 p-3 rounded-xl bg-slate-800/60 border border-slate-700/60 text-[11px] text-slate-400 flex items-center gap-2">
-            <CreditCard className="w-5 h-5 text-indigo-400 flex-shrink-0" />
+          <div className="mt-4 p-3 rounded-lg bg-white dark:bg-surface-card border hairline-border surface-bevel text-[11px] font-mono text-slate-700 dark:text-slate-400 flex items-center gap-2.5 shadow-sm">
+            <Lock className="w-4 h-4 text-cyan-700 dark:text-signal-cyan flex-shrink-0" />
             <span>Mã hóa SSL 256-bit chuẩn PCI DSS quốc tế</span>
           </div>
         </div>
       </div>
 
-      <div className="border-t border-slate-800/80 py-4 text-center text-xs text-slate-500">
-        © 2026 TECHGEAR PRO. All rights reserved. Hệ thống Thương Mại Điện Tử Phụ Kiện Máy Tính Cao Cấp.
+      {/* Bottom Editorial Bar */}
+      <div className="border-t hairline-border py-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-mono text-slate-600 dark:text-slate-400">
+        <div>
+          © 2026 TECHGEAR PRO. All rights reserved. Hệ thống Thương Mại Điện Tử Phụ Kiện Máy Tính Cao Cấp.
+        </div>
+        <div className="flex items-center gap-4 text-[11px]">
+          <span className="flex items-center gap-1.5 font-bold text-slate-700 dark:text-slate-300">
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-600 dark:bg-signal-emerald animate-pulse" />
+            SYS: ONLINE
+          </span>
+          <span className="text-slate-400 dark:text-slate-600">|</span>
+          <span className="font-semibold text-slate-700 dark:text-slate-400">TLS 1.3 SECURED</span>
+          <span className="text-slate-400 dark:text-slate-600">|</span>
+          <span className="font-semibold text-slate-700 dark:text-slate-400">PCI-DSS VERIFIED</span>
+        </div>
       </div>
     </footer>
   );

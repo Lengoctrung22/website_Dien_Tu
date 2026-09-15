@@ -1,0 +1,158 @@
+---
+description: Taste Skill UI design system standards, surface/signal tokens, typography, curvature scale, tabular-nums usage, and AI coding anti-patterns for TechGear Pro.
+globs: frontend/**/*
+alwaysApply: false
+---
+
+# Taste Skill UI Design System & Guidelines (TechGear Pro)
+
+This document establishes the UI design system standards and Taste Skill principles for TechGear Pro. All AI assistants working on frontend components (Storefront, Cart, Checkout, Admin Dashboard) must adhere strictly to these tokens and constraints.
+
+---
+
+## 1. Unified Surface & Signal Color Tokens
+
+### A. Surface Color Hierarchy (`surface.*`)
+TechGear Pro uses a calibrated 4-tier dark surface system designed to create optical depth without muddy grays:
+
+- **`surface.canvas` (`#09090b` / `bg-surface-canvas`)**:
+  - The root canvas background (`html`, `body`, global app shell).
+  - Clean, deep obsidian base replacing fragmented shades like `#07090e`, `#0f172a`, etc.
+- **`surface.card` (`#121215` / `bg-surface-card`)**:
+  - Standard container background: Product cards, filter panels, summary boxes, data tables.
+  - Paired with `.hairline-border` and `.surface-bevel`.
+- **`surface.elevated` (`#18181b` / `bg-surface-elevated`)**:
+  - Floating UI surfaces: Dropdowns, modal dialogs, popovers, sticky navigation on scroll, tooltips.
+- **`surface.subtle` (`#27272a` / `border-surface-subtle`, `bg-surface-subtle`)**:
+  - Outlines, section dividers, input backgrounds, disabled chips, subtle hover states (`hover:bg-surface-subtle`).
+
+### B. Signal Color Hierarchy (`signal.*`)
+High-contrast, purposeful accent colors reserved strictly for status communication, alerts, and focal micro-interactions. Never use them as broad background fills:
+
+- **`signal.cyan` (`#00F0FF` / `text-signal-cyan`, `border-signal-cyan`, `bg-signal-cyan`)**:
+  - Primary high-tech brand accent, active filter chips, focused inputs, focal CTA glow.
+- **`signal.emerald` (`#10b981` / `text-signal-emerald`, `bg-signal-emerald/10`)**:
+  - "In Stock" (`Còn hàng`), positive price trends, transaction success badges, growth metrics.
+- **`signal.amber` (`#f59e0b` / `text-signal-amber`, `bg-signal-amber/10`)**:
+  - "Low Stock" (`Chỉ còn 3 cái`), pending orders, promotional flash sale timers, caution states.
+- **`signal.rose` (`#f43f5e` / `text-signal-rose`, `bg-signal-rose/10`)**:
+  - "Out of Stock" (`Hết hàng`), discount tags (`-25%`), error messages, destructive actions.
+
+---
+
+## 2. Typography & Numerical Data
+
+### A. Primary Font Family
+- **Font Family**: `Plus Jakarta Sans` imported via `next/font/google` (`--font-plus-jakarta`, `font-sans`).
+- Configured with `latin` and `vietnamese` subsets for clean Vietnamese typographic rendering.
+
+### B. Mandatory `tabular-nums` for Numeric & Financial Data
+Any element rendering numbers that change, count up/down, or align in tables **MUST** apply `tabular-nums` (Tailwind class: `tabular-nums`):
+
+- **Product Prices & Currency**:
+  ```tsx
+  {/* Correct */}
+  <span className="tabular-nums font-semibold text-slate-100">
+    {formatCurrency(product.price)}
+  </span>
+  ```
+- **Technical Specifications & Hardware Metrics**:
+  - Refresh rates, latency, DPI, dimensions (e.g. `240Hz`, `0.1ms`, `4000DPI`, `54g`).
+- **Inventory Counters & Cart Quantities**:
+  - Stock levels (`Còn 5 sản phẩm`), stepper quantity controls (`1`, `2`, `3`).
+- **Order IDs, Timestamps, & Dashboard Analytics**:
+  - Revenue figures, order numbers (`#ORD-9021`), table columns.
+- **Rationale**: Tabular figures prevent layout shifting and jitter as digits change, ensuring pixel-perfect optical alignment.
+
+---
+
+## 3. Strict Curvature Scale (Curvature Geometry)
+
+Avoid random border radii (`rounded-[5px]`, `rounded-[14px]`, etc.). Follow this exact 3-step hierarchy:
+
+- **`8px` (`rounded-lg`)**:
+  - Form inputs, text fields, search boxes
+  - Action buttons (`Button`, `IconButton`)
+  - Badges, status tags, pill filters
+  - Dropdown menu items
+- **`12px` (`rounded-xl`)**:
+  - Product display cards
+  - Standard cards, dashboard widgets, panel containers
+  - Alert banners, list item containers
+- **`16px` (`rounded-2xl`)**:
+  - Modal dialogs, lightbox overlays
+  - Hero feature banners
+  - Flyout drawer sheets (e.g. Slide-over Cart)
+
+### Nested Radius Rule
+When nesting a rounded card inside a container, the inner radius must satisfy:
+$$\text{radius}_{\text{inner}} = \text{radius}_{\text{outer}} - \text{padding}$$
+Never place a larger radius inside a smaller radius container.
+
+---
+
+## 4. Physical Surface Detailing
+
+Instead of blurry drop shadows or heavy colored glows, create depth through crisp physical light interaction:
+
+- **`.hairline-border`**:
+  - Defined as `border: 1px solid rgba(255, 255, 255, 0.08)`.
+  - Gives razor-sharp separation against deep dark backgrounds.
+- **`.surface-bevel`**:
+  - Defined as `box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.07)`.
+  - Simulates a delicate, machined top light chamfer on cards and buttons.
+- **Example Pattern**:
+  ```tsx
+  <div className="bg-surface-card rounded-xl hairline-border surface-bevel p-5">
+    {/* High-craft physical surface */}
+  </div>
+  ```
+
+---
+
+## 5. Strict Contrast Invariants (Light & Dark Theme Parity)
+
+Mọi thành phần văn bản và số liệu trong dự án bắt buộc phải tuân thủ chuẩn tương phản WCAG AA (≥ 4.5:1 đối với văn bản thông thường, ≥ 3.0:1 đối với tiêu đề và huy hiệu lớn):
+
+### A. Quy tắc ghép cặp màu văn bản theo Theme:
+- **Tiêu đề & Nội dung chính:** `text-slate-900 dark:text-white`
+- **Nhãn phụ, chú thích, subtitle:** `text-slate-700 dark:text-slate-300` hoặc `text-slate-600 dark:text-slate-400`. **TUYỆT ĐỐI KHÔNG DÙNG** `text-slate-400` hay `text-slate-500` đơn độc trên nền sáng.
+- **Màu tín hiệu / Trạng thái trên nền sáng:**
+  - Thành công / Còn hàng: `text-emerald-700 dark:text-signal-emerald`
+  - Cảnh báo / Sắp hết hàng: `text-amber-700 dark:text-signal-amber`
+  - Lỗi / Giảm giá: `text-rose-700 dark:text-signal-rose`
+  - Điểm nhấn công nghệ (Cyan): `text-cyan-800 dark:text-signal-cyan` (Tránh dùng `#00F0FF` trên nền trắng)
+
+### B. Biểu đồ & Tọa độ SVG (Recharts):
+- Khi render biểu đồ SVG, bắt buộc sử dụng hook `useTheme()` để cấp phát màu sắc động:
+  - Trục tọa độ (Axis stroke): `#64748b` (Light) / `#475569` (Dark)
+  - Nhãn giá trị (Tick fill): `#334155` (Light) / `#94a3b8` (Dark)
+  - Lưới biểu đồ (Grid): `rgba(0, 0, 0, 0.06)` (Light) / `rgba(255, 255, 255, 0.06)` (Dark)
+
+---
+
+## 6. Anti-Patterns for AI Assistants (Do NOT Do)
+
+1. ❌ **Do NOT use fragmented dark hex values**:
+   - Never use `bg-[#07090e]`, `bg-[#0a0f1d]`, `bg-slate-900`, `bg-zinc-950`, or `bg-black`.
+   - Always use `bg-surface-canvas`, `bg-surface-card`, or `bg-surface-elevated`.
+
+2. ❌ **Do NOT use heavy cyber-glow drop shadows**:
+   - Never apply `box-shadow: 0 0 25px rgba(...)` or legacy `.cyber-glow` classes to general cards or buttons.
+   - High-end tech aesthetic is achieved through crisp `.hairline-border` and `.surface-bevel`.
+
+3. ❌ **Do NOT omit `tabular-nums` on numbers and prices**:
+   - Never render prices or specs with proportional default fonts.
+   - Always ensure `tabular-nums` is included for price labels, specs, and metrics.
+
+4. ❌ **Do NOT invent arbitrary border radii**:
+   - Do not use `rounded-[10px]`, `rounded-3xl` on small buttons, or mismatched radii.
+   - Adhere strictly to the `8px` (`rounded-lg`) -> `12px` (`rounded-xl`) -> `16px` (`rounded-2xl`) scale.
+
+5. ❌ **Do NOT create "Rainbow Signal Soup"**:
+   - Never display cyan, emerald, amber, and rose simultaneously in a single component without semantic justification.
+   - Signal colors are reserved for actionable status and feedback.
+
+6. ❌ **Do NOT use washed-out text colors on light backgrounds**:
+   - Never use `text-slate-400`, `text-slate-500`, or luminous cyan (`text-signal-cyan` / `text-cyan-400`) on white or light-gray surfaces without dark mode variants.
+   - Always enforce theme parity with WCAG AA compliance (e.g., `text-slate-700 dark:text-slate-300`, `text-cyan-800 dark:text-signal-cyan`).

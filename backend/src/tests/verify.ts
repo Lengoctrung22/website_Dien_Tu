@@ -220,16 +220,30 @@ async function runTests() {
     }
   });
 
-  // 7. Mock Payment Simulation
-  await test('Mock Payment Success Simulation', async () => {
-    const res = await fetch(`${BASE_URL}/orders/payment/mock-pay`, {
+  // 7. Payment Gateway Webhook Confirmation
+  await test('Payment Gateway HMAC SHA256 Webhook Confirmation', async () => {
+    const hashSecret = process.env.VNPAY_HASH_SECRET || 'VNPAYTECHGEARSECRETKEY2026SANDBOX';
+    const payload = {
+      orderCode: testOrderCode,
+      paymentStatus: 'paid',
+      transactionNo: `VNPAY_TXN_${Date.now()}`,
+    };
+    const signature = crypto
+      .createHmac('sha256', hashSecret)
+      .update(JSON.stringify(payload))
+      .digest('hex');
+
+    const res = await fetch(`${BASE_URL}/orders/payment/webhook`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ orderCode: testOrderCode, status: 'success' }),
+      headers: {
+        'Content-Type': 'application/json',
+        'x-signature': signature,
+      },
+      body: JSON.stringify(payload),
     });
     const json: any = await res.json();
-    if (!json.success || json.data.paymentStatus !== 'paid') {
-      throw new Error('Mock payment failed to set status to paid');
+    if (!json.success || json.data?.paymentStatus !== 'paid') {
+      throw new Error('Payment webhook confirmation failed to set status to paid');
     }
   });
 
@@ -475,15 +489,29 @@ async function runTests() {
     const refundOrderId = oJson.data.order._id;
     const refundOrderCode = oJson.data.order.orderCode;
 
-    // 2. Mock payment success -> paid & processing
-    const payRes = await fetch(`${BASE_URL}/orders/payment/mock-pay`, {
+    // 2. Real Payment Webhook confirmation -> paid & processing
+    const hashSecret = process.env.VNPAY_HASH_SECRET || 'VNPAYTECHGEARSECRETKEY2026SANDBOX';
+    const payload = {
+      orderCode: refundOrderCode,
+      paymentStatus: 'paid',
+      transactionNo: `VNPAY_${Date.now()}`,
+    };
+    const signature = crypto
+      .createHmac('sha256', hashSecret)
+      .update(JSON.stringify(payload))
+      .digest('hex');
+
+    const payRes = await fetch(`${BASE_URL}/orders/payment/webhook`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ orderCode: refundOrderCode, status: 'success' }),
+      headers: {
+        'Content-Type': 'application/json',
+        'x-signature': signature,
+      },
+      body: JSON.stringify(payload),
     });
     const payJson: any = await payRes.json();
-    if (!payJson.success || payJson.data.paymentStatus !== 'paid' || payJson.data.orderStatus !== 'processing') {
-      throw new Error('Mock payment failed to set paid & processing');
+    if (!payJson.success || payJson.data?.paymentStatus !== 'paid' || payJson.data?.orderStatus !== 'processing') {
+      throw new Error('Payment webhook failed to set paid & processing');
     }
 
     // 3. Cancel order -> automatically set paymentStatus = 'refunded'
@@ -508,6 +536,66 @@ async function runTests() {
     });
     if (lockCheck.status !== 400) {
       throw new Error('Cancelled refunded order should reject status updates with 400');
+    }
+  });
+
+  await test('Online Payment Failure Auto-Cancellation & Stock Restoration', async () => {
+    // 1. Get initial stock
+    const pRes = await fetch(`${BASE_URL}/products?limit=1`);
+    const pJson: any = await pRes.json();
+    const targetProduct = pJson.data.products[0];
+    const initialStock = targetProduct.stock;
+
+    // 2. Create online order
+    const orderRes = await fetch(`${BASE_URL}/orders`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        customerInfo: { name: 'Payment Fail Tester', phone: '0911223344', address: 'Da Nang' },
+        items: [{ productId: targetProduct._id, quantity: 2 }],
+        paymentMethod: 'ONLINE',
+      }),
+    });
+    const orderJson: any = await orderRes.json();
+    if (!orderJson.success) throw new Error('Failed to create online order for fail test');
+    const failedOrderCode = orderJson.data.order.orderCode;
+
+    // Check stock decremented
+    const pMidRes = await fetch(`${BASE_URL}/products/${targetProduct.slug}`);
+    const pMidJson: any = await pMidRes.json();
+    if (pMidJson.data.product.stock !== initialStock - 2) {
+      throw new Error('Stock was not decremented upon order creation');
+    }
+
+    // 3. Simulate failed payment webhook
+    const hashSecret = process.env.VNPAY_HASH_SECRET || 'VNPAYTECHGEARSECRETKEY2026SANDBOX';
+    const payload = {
+      orderCode: failedOrderCode,
+      paymentStatus: 'failed',
+    };
+    const signature = crypto
+      .createHmac('sha256', hashSecret)
+      .update(JSON.stringify(payload))
+      .digest('hex');
+
+    const failWebRes = await fetch(`${BASE_URL}/orders/payment/webhook`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-signature': signature,
+      },
+      body: JSON.stringify(payload),
+    });
+    const failWebJson: any = await failWebRes.json();
+    if (!failWebJson.success || failWebJson.data.paymentStatus !== 'failed' || failWebJson.data.orderStatus !== 'cancelled') {
+      throw new Error('Payment failure did not auto-cancel the pending order');
+    }
+
+    // 4. Verify stock was restored to initialStock
+    const pAfterRes = await fetch(`${BASE_URL}/products/${targetProduct.slug}`);
+    const pAfterJson: any = await pAfterRes.json();
+    if (pAfterJson.data.product.stock !== initialStock) {
+      throw new Error(`Stock was not restored after payment failure! Expected ${initialStock}, got ${pAfterJson.data.product.stock}`);
     }
   });
 

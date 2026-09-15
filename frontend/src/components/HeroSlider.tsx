@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
-import { ChevronLeft, ChevronRight, Zap, Flame, Award } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Zap, ArrowRight, Award } from 'lucide-react';
 
 const HERO_SLIDES = [
   {
@@ -70,7 +70,7 @@ export default function HeroSlider() {
   }, [emblaApi, onSelect]);
 
   return (
-    <div className="relative w-full overflow-hidden rounded-3xl group border border-slate-200/80 dark:border-slate-800 shadow-2xl">
+    <div className="relative w-full overflow-hidden rounded-2xl group border hairline-border surface-bevel shadow-2xl bg-surface-card">
       <div className="overflow-hidden" ref={emblaRef}>
         <div className="flex">
           {HERO_SLIDES.map((slide) => (
@@ -90,44 +90,46 @@ export default function HeroSlider() {
               </div>
 
               {/* Content overlay */}
-              <div className="relative h-full max-w-7xl mx-auto px-6 sm:px-12 flex flex-col justify-center max-w-2xl z-10 text-white space-y-4">
-                <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold tracking-wider uppercase bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 backdrop-blur-md">
-                    <Zap className="w-3.5 h-3.5 fill-current" />
-                    {slide.badge}
-                  </span>
-                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-slate-200 backdrop-blur-md border border-white/10">
-                    <Award className="w-3.5 h-3.5" />
-                    {slide.tag}
-                  </span>
-                </div>
+              <div className="relative h-full max-w-7xl mx-auto px-6 sm:px-12 flex flex-col justify-center z-10 text-white">
+                <div className="max-w-2xl space-y-4">
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-md text-xs font-mono font-bold tracking-wider uppercase bg-signal-cyan/20 text-signal-cyan border border-signal-cyan/30 backdrop-blur-md">
+                      <Zap className="w-3.5 h-3.5 fill-current" />
+                      {slide.badge}
+                    </span>
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-md text-xs font-mono font-semibold bg-white/10 text-slate-200 backdrop-blur-md border hairline-border">
+                      <Award className="w-3.5 h-3.5" />
+                      {slide.tag}
+                    </span>
+                  </div>
 
-                <h1 className="text-2xl sm:text-4xl md:text-5xl font-black tracking-tight leading-tight drop-shadow-md">
-                  {slide.title}
-                </h1>
+                  <h1 className="text-2xl sm:text-4xl md:text-5xl font-black tracking-tight leading-tight drop-shadow-md">
+                    {slide.title}
+                  </h1>
 
-                <p className="text-xs sm:text-sm md:text-base font-semibold text-cyan-300">
-                  {slide.subtitle}
-                </p>
+                  <p className="text-xs sm:text-sm md:text-base font-semibold text-cyan-300 font-mono">
+                    {slide.subtitle}
+                  </p>
 
-                <p className="text-xs sm:text-sm text-slate-300 max-w-lg line-clamp-2 sm:line-clamp-none">
-                  {slide.desc}
-                </p>
+                  <p className="text-xs sm:text-sm text-slate-300 max-w-lg line-clamp-2 sm:line-clamp-none">
+                    {slide.desc}
+                  </p>
 
-                <div className="pt-2 flex items-center gap-4">
-                  <Link
-                    href={slide.link}
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm bg-gradient-to-r from-indigo-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white shadow-lg shadow-indigo-500/30 hover:scale-105 transition-all duration-200"
-                  >
-                    <Flame className="w-4 h-4 fill-current" />
-                    {slide.cta}
-                  </Link>
-                  <Link
-                    href="/products"
-                    className="inline-flex items-center px-5 py-3 rounded-xl font-semibold text-sm bg-white/10 hover:bg-white/20 text-white backdrop-blur-md border border-white/15 transition-colors"
-                  >
-                    Xem tất cả sản phẩm
-                  </Link>
+                  <div className="pt-2 flex items-center gap-4">
+                    <Link
+                      href={slide.link}
+                      className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm bg-white text-slate-950 hover:bg-slate-100 shadow-md surface-bevel active:translate-y-0.5 transition-all"
+                    >
+                      <span>{slide.cta}</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </Link>
+                    <Link
+                      href="/products"
+                      className="inline-flex items-center px-5 py-3 rounded-xl font-semibold text-sm bg-white/10 hover:bg-white/20 text-white backdrop-blur-md border hairline-border transition-colors"
+                    >
+                      Xem tất cả sản phẩm
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
@@ -138,31 +140,36 @@ export default function HeroSlider() {
       {/* Navigation Arrows */}
       <button
         onClick={scrollPrev}
-        className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 hover:bg-black/70 text-white flex items-center justify-center backdrop-blur-sm border border-white/20 transition-all opacity-0 group-hover:opacity-100 z-20"
+        className="absolute left-4 top-1/2 -translate-y-1/2 w-9 h-9 rounded-xl bg-slate-950/70 hover:bg-slate-900 text-white flex items-center justify-center backdrop-blur-md border hairline-border surface-bevel transition-all opacity-0 group-hover:opacity-100 z-20 hover:scale-105"
         aria-label="Previous slide"
       >
-        <ChevronLeft className="w-6 h-6" />
+        <ChevronLeft className="w-5 h-5" />
       </button>
       <button
         onClick={scrollNext}
-        className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 hover:bg-black/70 text-white flex items-center justify-center backdrop-blur-sm border border-white/20 transition-all opacity-0 group-hover:opacity-100 z-20"
+        className="absolute right-4 top-1/2 -translate-y-1/2 w-9 h-9 rounded-xl bg-slate-950/70 hover:bg-slate-900 text-white flex items-center justify-center backdrop-blur-md border hairline-border surface-bevel transition-all opacity-0 group-hover:opacity-100 z-20 hover:scale-105"
         aria-label="Next slide"
       >
-        <ChevronRight className="w-6 h-6" />
+        <ChevronRight className="w-5 h-5" />
       </button>
 
-      {/* Slide Indicators */}
-      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-2 z-20">
-        {HERO_SLIDES.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => scrollTo(index)}
-            className={`h-2 rounded-full transition-all duration-300 ${
-              selectedIndex === index ? 'w-8 bg-cyan-400' : 'w-2 bg-white/40 hover:bg-white/70'
-            }`}
-            aria-label={`Go to slide ${index + 1}`}
-          />
-        ))}
+      {/* Sleek Hardware Slide Telemetry / Indicators */}
+      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-3 px-3.5 py-1.5 rounded-full bg-slate-950/75 dark:bg-surface-card/85 backdrop-blur-md border hairline-border surface-bevel z-20 shadow-lg">
+        <div className="flex items-center gap-1.5">
+          {HERO_SLIDES.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => scrollTo(index)}
+              className={`h-1.5 rounded-full transition-all duration-300 ${
+                selectedIndex === index ? 'w-6 bg-signal-cyan shadow-sm shadow-cyan-400/50' : 'w-2 bg-white/30 hover:bg-white/60'
+              }`}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
+        <span className="text-[10px] font-mono tabular-nums text-slate-300 border-l hairline-border pl-2.5">
+          0{selectedIndex + 1} / 0{HERO_SLIDES.length}
+        </span>
       </div>
     </div>
   );

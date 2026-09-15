@@ -9,7 +9,22 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['var(--font-plus-jakarta)', 'sans-serif'],
+      },
       colors: {
+        surface: {
+          canvas: 'rgb(var(--surface-canvas) / <alpha-value>)',
+          card: 'rgb(var(--surface-card) / <alpha-value>)',
+          elevated: 'rgb(var(--surface-elevated) / <alpha-value>)',
+          subtle: 'rgb(var(--surface-subtle) / <alpha-value>)',
+        },
+        signal: {
+          cyan: '#00F0FF',
+          emerald: '#10b981',
+          amber: '#f59e0b',
+          rose: '#f43f5e',
+        },
         brand: {
           50: "#eef2ff",
           100: "#e0e7ff",

@@ -18,17 +18,17 @@ export const getDashboardSummary = async (req: Request, res: Response) => {
       todayOrders,
       todayProductsSoldAgg,
     ] = await Promise.all([
-      // Total revenue from all paid or delivered orders
+      // Total revenue from all non-cancelled, non-failed orders
       Order.aggregate([
-        { $match: { orderStatus: { $ne: 'cancelled' } } },
+        { $match: { orderStatus: { $ne: 'cancelled' }, paymentStatus: { $ne: 'failed' } } },
         { $group: { _id: null, total: { $sum: '$totalAmount' } } },
       ]),
-      Order.countDocuments({ orderStatus: { $ne: 'cancelled' } }),
+      Order.countDocuments({ orderStatus: { $ne: 'cancelled' }, paymentStatus: { $ne: 'failed' } }),
       Product.countDocuments({ isActive: true }),
       Product.countDocuments({ isActive: true, stock: { $lt: 5 } }),
-      Order.find({ createdAt: { $gte: today }, orderStatus: { $ne: 'cancelled' } }),
+      Order.find({ createdAt: { $gte: today }, orderStatus: { $ne: 'cancelled' }, paymentStatus: { $ne: 'failed' } }),
       Order.aggregate([
-        { $match: { createdAt: { $gte: today }, orderStatus: { $ne: 'cancelled' } } },
+        { $match: { createdAt: { $gte: today }, orderStatus: { $ne: 'cancelled' }, paymentStatus: { $ne: 'failed' } } },
         { $unwind: '$items' },
         { $group: { _id: null, count: { $sum: '$items.quantity' } } },
       ]),
@@ -74,6 +74,7 @@ export const getPeriodicRevenue = async (req: Request, res: Response) => {
       const orders = await Order.find({
         createdAt: { $gte: startDate },
         orderStatus: { $ne: 'cancelled' },
+        paymentStatus: { $ne: 'failed' },
       });
 
       const dayMap: Record<string, { label: string; revenue: number; orders: number }> = {};
@@ -102,6 +103,7 @@ export const getPeriodicRevenue = async (req: Request, res: Response) => {
       const orders = await Order.find({
         createdAt: { $gte: startOfYear, $lte: endOfYear },
         orderStatus: { $ne: 'cancelled' },
+        paymentStatus: { $ne: 'failed' },
       });
 
       const monthMap = Array.from({ length: 12 }, (_, i) => ({
@@ -125,6 +127,7 @@ export const getPeriodicRevenue = async (req: Request, res: Response) => {
       const orders = await Order.find({
         createdAt: { $gte: startDate },
         orderStatus: { $ne: 'cancelled' },
+        paymentStatus: { $ne: 'failed' },
       });
 
       const yearMap: Record<number, { label: string; revenue: number; orders: number }> = {};
@@ -160,6 +163,7 @@ export const getQuarterlyRevenue = async (req: Request, res: Response) => {
     const orders = await Order.find({
       createdAt: { $gte: startOfYear, $lte: endOfYear },
       orderStatus: { $ne: 'cancelled' },
+      paymentStatus: { $ne: 'failed' },
     });
 
     const quarters = [
@@ -212,6 +216,7 @@ export const getDailyStatsByCategory = async (req: Request, res: Response) => {
     const ordersToday = await Order.find({
       createdAt: { $gte: today },
       orderStatus: { $ne: 'cancelled' },
+      paymentStatus: { $ne: 'failed' },
     });
 
     const categoryMap: Record<string, { category: string; name: string; quantity: number; revenue: number; color: string }> = {
@@ -293,7 +298,11 @@ export const getUsers = async (req: Request, res: Response) => {
     // Compute Customer Lifetime Value (LTV) for users
     const usersWithLTV = await Promise.all(
       users.map(async (u) => {
-        const orders = await Order.find({ userId: u._id, orderStatus: { $ne: 'cancelled' } });
+        const orders = await Order.find({
+          userId: u._id,
+          orderStatus: { $ne: 'cancelled' },
+          paymentStatus: { $ne: 'failed' },
+        });
         const totalSpent = orders.reduce((sum, o) => sum + o.totalAmount, 0);
         return {
           ...u.toObject(),

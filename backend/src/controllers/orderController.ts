@@ -78,10 +78,23 @@ export const createOrder = async (req: Request, res: Response) => {
       });
     }
 
-    // Generate unique order code: TG + YYMMDD + 4 random digits
+    // Generate unique order code: TG + YYMMDD + random digits (guaranteed collision-free)
     const dateStr = new Date().toISOString().slice(2, 10).replace(/-/g, '');
-    const randSuffix = Math.floor(1000 + Math.random() * 9000);
-    const orderCode = `TG${dateStr}-${randSuffix}`;
+    let orderCode = '';
+    let isUnique = false;
+    let attempts = 0;
+    while (!isUnique && attempts < 20) {
+      attempts++;
+      const randSuffix = attempts < 10
+        ? Math.floor(1000 + Math.random() * 9000)
+        : Math.floor(10000 + Math.random() * 90000);
+      const candidateCode = `TG${dateStr}-${randSuffix}`;
+      const existing = await Order.findOne({ orderCode: candidateCode });
+      if (!existing) {
+        orderCode = candidateCode;
+        isUnique = true;
+      }
+    }
 
     // Record inventory logs for each decremented product
     for (const log of successfullyDecremented) {
@@ -110,23 +123,34 @@ export const createOrder = async (req: Request, res: Response) => {
       category: entry.product.category,
     }));
 
-    const order = await Order.create({
-      orderCode,
-      userId: req.user ? req.user.id : null,
-      customerInfo: {
-        name: customerInfo.name,
-        phone: customerInfo.phone,
-        address: customerInfo.address,
-        note: customerInfo.note || '',
-      },
-      items: populatedItems,
-      totalAmount: finalTotal,
-      shippingFee,
-      paymentMethod,
-      paymentStatus: 'pending',
-      orderStatus: 'pending',
-      vnpayTxnRef: orderCode,
-    });
+    let order;
+    try {
+      order = await Order.create({
+        orderCode,
+        userId: req.user ? req.user.id : null,
+        customerInfo: {
+          name: customerInfo.name,
+          phone: customerInfo.phone,
+          address: customerInfo.address,
+          note: customerInfo.note || '',
+        },
+        items: populatedItems,
+        totalAmount: finalTotal,
+        shippingFee,
+        paymentMethod,
+        paymentStatus: 'pending',
+        orderStatus: 'pending',
+        vnpayTxnRef: orderCode,
+      });
+    } catch (orderCreateErr) {
+      // Rollback decremented stock if Order document creation fails
+      for (const rolled of successfullyDecremented) {
+        await Product.findByIdAndUpdate(rolled.productId, {
+          $inc: { stock: rolled.quantity, soldCount: -rolled.quantity },
+        });
+      }
+      throw orderCreateErr;
+    }
 
     let paymentUrl = null;
     if (paymentMethod === 'ONLINE') {
@@ -351,6 +375,34 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
   }
 };
 
+const handleFailedPaymentOrder = async (order: any, note: string) => {
+  order.paymentStatus = 'failed';
+  if (order.orderStatus === 'pending') {
+    order.orderStatus = 'cancelled';
+    for (const item of order.items) {
+      const product = await Product.findById(item.productId);
+      if (product) {
+        const prev = product.stock;
+        product.stock += item.quantity;
+        product.soldCount = Math.max(0, product.soldCount - item.quantity);
+        await product.save();
+
+        await InventoryLog.create({
+          productId: product._id,
+          productName: product.name,
+          changeAmount: item.quantity,
+          previousStock: prev,
+          newStock: product.stock,
+          reason: 'order_cancellation',
+          note: `${note} ${order.orderCode}`,
+          updatedBy: 'Payment Gateway',
+        });
+      }
+    }
+  }
+  await order.save();
+};
+
 export const handleVnpayReturn = async (req: Request, res: Response) => {
   try {
     const query = req.query;
@@ -370,40 +422,12 @@ export const handleVnpayReturn = async (req: Request, res: Response) => {
       await order.save();
       return res.json({ success: true, message: 'Thanh toán thành công qua VNPAY', data: order });
     } else {
-      order.paymentStatus = 'failed';
-      await order.save();
+      await handleFailedPaymentOrder(order, 'Hủy đơn do thanh toán VNPAY không thành công');
       return res.status(400).json({
         success: false,
         message: 'Thanh toán không thành công hoặc chữ ký không hợp lệ',
         data: order,
       });
-    }
-  } catch (error: any) {
-    return res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-export const handleMockPayment = async (req: Request, res: Response) => {
-  try {
-    const { orderCode, status = 'success' } = req.body;
-    const order = await Order.findOne({ orderCode: orderCode?.trim().toUpperCase() });
-
-    if (!order) {
-      return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' });
-    }
-
-    if (status === 'success') {
-      order.paymentStatus = 'paid';
-      order.vnpayTransactionNo = `MOCK_${Date.now()}`;
-      if (order.orderStatus === 'pending') {
-        order.orderStatus = 'processing';
-      }
-      await order.save();
-      return res.json({ success: true, message: 'Mô phỏng thanh toán thành công!', data: order });
-    } else {
-      order.paymentStatus = 'failed';
-      await order.save();
-      return res.json({ success: false, message: 'Mô phỏng thanh toán thất bại', data: order });
     }
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message });
@@ -441,8 +465,7 @@ export const handleVnpayIpn = async (req: Request, res: Response) => {
       await order.save();
       return res.status(200).json({ RspCode: '00', Message: 'Confirm Success' });
     } else {
-      order.paymentStatus = 'failed';
-      await order.save();
+      await handleFailedPaymentOrder(order, 'Hủy đơn do VNPAY IPN báo thanh toán thất bại');
       return res.status(200).json({ RspCode: '00', Message: 'Confirm Success' });
     }
   } catch (error: any) {
@@ -477,8 +500,7 @@ export const handlePaymentWebhook = async (req: Request, res: Response) => {
       if (order.orderStatus === 'pending') order.orderStatus = 'processing';
       await order.save();
     } else if (paymentStatus === 'failed') {
-      order.paymentStatus = 'failed';
-      await order.save();
+      await handleFailedPaymentOrder(order, 'Hủy đơn do Webhook báo thanh toán thất bại');
     }
 
     return res.json({

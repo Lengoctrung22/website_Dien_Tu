@@ -9,9 +9,7 @@ import {
   PlusCircle,
   History,
   CheckCircle2,
-  AlertCircle,
   X,
-  ArrowUpDown,
 } from 'lucide-react';
 import { fetchApi } from '@/lib/api';
 import { formatDate } from '@/lib/utils';
@@ -79,6 +77,8 @@ function InventoryContent() {
         setNote('');
         setTimeout(() => loadInventory(), 0);
         setTimeout(() => setFeedback(null), 3000);
+      } else {
+        alert(res.message || 'Không thể cập nhật tồn kho');
       }
     } catch {
       alert('Không thể cập nhật tồn kho');
@@ -86,15 +86,17 @@ function InventoryContent() {
     setModalLoading(false);
   };
 
+  const lowStockCount = products.filter((p) => p.stock < 5).length;
+
   return (
-    <div className="space-y-8 pb-10">
+    <div className="space-y-6 pb-10">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-            <Boxes className="w-7 h-7 text-indigo-500 dark:text-cyan-400" />
+            <Boxes className="w-6 h-6 text-cyan-600 dark:text-signal-cyan" />
             <span>Quản Lý Kho Hàng & Cảnh Báo Tồn Kho</span>
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium mt-1">
             Theo dõi tồn kho thời gian thực, tự động cảnh báo khi tồn &lt; 5 chiếc và ghi vết lịch sử điều chỉnh.
           </p>
         </div>
@@ -102,102 +104,130 @@ function InventoryContent() {
         {/* Filter Toggle */}
         <button
           onClick={() => setFilterLowStock(!filterLowStock)}
-          className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 border transition-all ${
+          className={`px-3.5 py-2 rounded-lg text-xs font-mono font-bold flex items-center gap-2 hairline-border transition-all ${
             filterLowStock
-              ? 'bg-amber-500 text-white border-amber-600 shadow-md shadow-amber-500/20'
-              : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700'
+              ? 'bg-amber-500/15 text-amber-800 dark:text-signal-amber border border-amber-500/30 shadow-sm'
+              : 'bg-surface-card hover:bg-surface-subtle/50 text-slate-700 dark:text-slate-300'
           }`}
         >
-          <AlertTriangle className="w-4 h-4" />
-          <span>{filterLowStock ? 'Đang lọc: Tồn kho < 5 chiếc' : 'Chỉ xem sản phẩm sắp hết hàng (< 5)'}</span>
+          <AlertTriangle className="w-3.5 h-3.5 text-amber-600 dark:text-signal-amber" />
+          <span>{filterLowStock ? 'Đang lọc: Tồn kho < 5 chiếc' : 'Chỉ xem sắp hết hàng (< 5)'}</span>
         </button>
       </div>
 
       {feedback && (
-        <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+        <div className="p-3 rounded-lg bg-emerald-500/10 hairline-border border-emerald-500/20 text-emerald-700 dark:text-signal-emerald text-xs font-semibold flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 flex-shrink-0 text-emerald-600 dark:text-signal-emerald" />
           <span>{feedback}</span>
         </div>
       )}
 
+      {/* Low stock warning banner */}
+      {lowStockCount > 0 && !filterLowStock && (
+        <div className="p-4 rounded-xl bg-amber-500/10 hairline-border border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-amber-500/15 text-amber-700 dark:text-signal-amber border border-amber-500/30 flex items-center justify-center flex-shrink-0">
+              <AlertTriangle className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <span>Cảnh Báo Tồn Kho Thấp</span>
+                <span className="px-2 py-0.5 rounded-lg bg-amber-500/20 text-amber-800 dark:text-signal-amber font-mono text-[11px] tabular-nums font-bold border border-amber-500/30">
+                  {lowStockCount} sản phẩm &lt; 5 chiếc
+                </span>
+              </h3>
+              <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-0.5">
+                Một số sản phẩm trong kho đang sắp hết hàng. Vui lòng kiểm tra và lên kế hoạch nhập thêm hàng để tránh gián đoạn bán hàng.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setFilterLowStock(true)}
+            className="px-3 py-1.5 rounded-lg bg-signal-amber text-slate-950 hover:bg-amber-400 font-mono font-bold text-xs transition-colors self-start sm:self-auto flex-shrink-0 shadow-sm"
+          >
+            Xem danh sách cần nhập
+          </button>
+        </div>
+      )}
+
       {/* Search & Stock Table */}
-      <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-xl space-y-6">
-        <form onSubmit={handleSearchSubmit} className="flex gap-3 max-w-md">
+      <div className="rounded-xl hairline-border surface-bevel bg-surface-card p-6 shadow-sm space-y-5">
+        <form onSubmit={handleSearchSubmit} className="flex gap-2 max-w-md">
           <div className="relative flex-1">
             <input
               type="text"
               placeholder="Tìm theo tên sản phẩm..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:border-indigo-500 dark:focus:border-cyan-400"
+              className="w-full pl-8 pr-3 py-2 text-xs rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500"
             />
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
           </div>
           <button
             type="submit"
-            className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold"
+            className="px-3.5 py-2 rounded-lg bg-surface-elevated text-cyan-700 dark:text-signal-cyan hairline-border border-cyan-500/30 hover:bg-cyan-500/10 text-xs font-mono font-bold transition-colors"
           >
             Tìm kiếm
           </button>
         </form>
 
         {loading ? (
-          <div className="p-8 text-center text-xs text-slate-400">Đang tải danh sách tồn kho...</div>
+          <div className="p-8 text-center text-xs text-slate-600 dark:text-slate-400 font-mono font-medium">Đang tải danh sách tồn kho...</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-slate-200 dark:border-slate-800 text-slate-400 font-bold uppercase tracking-wider">
+              <thead className="border-b hairline-border text-slate-700 dark:text-slate-400 font-mono text-[11px] uppercase tracking-wider font-bold">
                 <tr>
-                  <th className="pb-3 px-3">Tên Sản Phẩm</th>
-                  <th className="pb-3 px-3">Danh Mục</th>
-                  <th className="pb-3 px-3">Hãng</th>
-                  <th className="pb-3 px-3">Đã Bán</th>
-                  <th className="pb-3 px-3">Tồn Kho Hiện Tại</th>
-                  <th className="pb-3 px-3">Trạng Thái Cảnh Báo</th>
-                  <th className="pb-3 px-3 text-right">Thao Tác</th>
+                  <th className="pb-2.5 px-3">Tên Sản Phẩm</th>
+                  <th className="pb-2.5 px-3">Danh Mục</th>
+                  <th className="pb-2.5 px-3">Hãng</th>
+                  <th className="pb-2.5 px-3">Đã Bán</th>
+                  <th className="pb-2.5 px-3">Tồn Kho Hiện Tại</th>
+                  <th className="pb-2.5 px-3">Trạng Thái Cảnh Báo</th>
+                  <th className="pb-2.5 px-3 text-right">Thao Tác</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              <tbody className="divide-y hairline-border">
                 {products.map((p) => {
                   const isLow = p.stock < 5;
                   const isOut = p.stock <= 0;
                   return (
-                    <tr key={p._id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40">
-                      <td className="py-3.5 px-3 font-bold text-slate-800 dark:text-slate-200 max-w-xs truncate">
+                    <tr key={p._id} className="hover:bg-surface-subtle/30 dark:hover:bg-surface-elevated/40 transition-colors">
+                      <td className="py-2.5 px-3 font-medium text-slate-900 dark:text-slate-100 max-w-xs truncate">
                         {p.name}
                       </td>
-                      <td className="py-3.5 px-3 uppercase text-slate-500 font-medium">{p.category}</td>
-                      <td className="py-3.5 px-3 font-semibold text-slate-600 dark:text-slate-300">{p.brand}</td>
-                      <td className="py-3.5 px-3 font-bold text-slate-700 dark:text-slate-300">{p.soldCount || 0}</td>
-                      <td className="py-3.5 px-3">
-                        <span className="text-sm font-black text-slate-900 dark:text-white">
+                      <td className="py-2.5 px-3 uppercase text-slate-600 dark:text-slate-400 font-mono text-[11px] font-medium">{p.category}</td>
+                      <td className="py-2.5 px-3 font-semibold text-slate-700 dark:text-slate-200">{p.brand}</td>
+                      <td className="py-2.5 px-3 font-medium text-slate-800 dark:text-slate-300 tabular-nums font-mono">{p.soldCount || 0}</td>
+                      <td className="py-2.5 px-3">
+                        <span className="text-sm font-bold text-slate-900 dark:text-white tabular-nums font-mono">
                           {p.stock}
                         </span>
                       </td>
-                      <td className="py-3.5 px-3">
+                      <td className="py-2.5 px-3">
                         {isOut ? (
-                          <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-rose-500/10 text-rose-500 border border-rose-500/20">
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase bg-rose-500/10 text-rose-700 dark:text-signal-rose border border-rose-500/20">
                             Hết Hàng
                           </span>
                         ) : isLow ? (
-                          <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-amber-500/10 text-amber-500 border border-amber-500/20 flex items-center gap-1 w-fit">
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase bg-amber-500/10 text-amber-700 dark:text-signal-amber border border-amber-500/20 flex items-center gap-1 w-fit">
                             <AlertTriangle className="w-3 h-3" />
                             <span>Sắp Hết (&lt; 5)</span>
                           </span>
                         ) : (
-                          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase bg-emerald-500/10 text-emerald-700 dark:text-signal-emerald border border-emerald-500/20">
                             Đầy Đủ Tồn
                           </span>
                         )}
                       </td>
-                      <td className="py-3.5 px-3 text-right">
+                      <td className="py-2.5 px-3 text-right">
                         <button
                           onClick={() => {
                             setSelectedProduct(p);
                             setChangeAmount(10);
                             setReason('restock');
                           }}
-                          className="px-3 py-1.5 rounded-lg bg-indigo-50 dark:bg-slate-800 text-indigo-600 dark:text-cyan-400 hover:bg-indigo-100 font-bold text-xs inline-flex items-center gap-1 border border-indigo-200 dark:border-slate-700"
+                          className="px-2.5 py-1 rounded-lg bg-cyan-500/10 text-cyan-700 dark:text-signal-cyan hover:bg-cyan-500/20 font-mono font-bold text-xs inline-flex items-center gap-1 border border-cyan-500/20 transition-colors"
                         >
                           <PlusCircle className="w-3.5 h-3.5" />
                           <span>Nhập / Sửa Kho</span>
@@ -213,9 +243,9 @@ function InventoryContent() {
       </div>
 
       {/* Row 2: Inventory Audit Log (Lịch sử nhập hàng & điều chỉnh tồn kho) */}
-      <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-xl space-y-4">
-        <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
-          <History className="w-5 h-5 text-indigo-500 dark:text-cyan-400" />
+      <div className="rounded-xl hairline-border surface-bevel bg-surface-card p-6 shadow-sm space-y-4">
+        <div className="flex items-center gap-2 pb-3 border-b hairline-border">
+          <History className="w-4 h-4 text-cyan-600 dark:text-signal-cyan" />
           <h2 className="text-base font-black text-slate-900 dark:text-white">
             Lịch Sử Nhập Hàng & Điều Chỉnh Tồn Kho Gần Đây
           </h2>
@@ -223,7 +253,7 @@ function InventoryContent() {
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="border-b border-slate-200 dark:border-slate-800 text-slate-400 uppercase font-bold text-[11px]">
+            <thead className="border-b hairline-border text-slate-700 dark:text-slate-400 uppercase font-mono font-bold text-[11px]">
               <tr>
                 <th className="pb-2 px-3">Thời Gian</th>
                 <th className="pb-2 px-3">Sản Phẩm</th>
@@ -233,27 +263,27 @@ function InventoryContent() {
                 <th className="pb-2 px-3">Người Cập Nhật</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+            <tbody className="divide-y hairline-border">
               {logs.map((log) => (
-                <tr key={log._id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
-                  <td className="py-2.5 px-3 text-slate-400">{formatDate(log.createdAt)}</td>
-                  <td className="py-2.5 px-3 font-semibold text-slate-800 dark:text-slate-200 max-w-xs truncate">
+                <tr key={log._id} className="hover:bg-surface-subtle/30 dark:hover:bg-surface-elevated/40 transition-colors">
+                  <td className="py-2.5 px-3 text-slate-600 dark:text-slate-400 font-mono text-[11px] tabular-nums font-medium">{formatDate(log.createdAt)}</td>
+                  <td className="py-2.5 px-3 font-medium text-slate-900 dark:text-slate-100 max-w-xs truncate">
                     {log.productName}
                   </td>
                   <td className="py-2.5 px-3">
                     <span
-                      className={`font-black ${
-                        log.changeAmount > 0 ? 'text-emerald-500' : 'text-rose-500'
+                      className={`font-mono font-bold tabular-nums ${
+                        log.changeAmount > 0 ? 'text-emerald-700 dark:text-signal-emerald' : 'text-rose-700 dark:text-signal-rose'
                       }`}
                     >
                       {log.changeAmount > 0 ? `+${log.changeAmount}` : log.changeAmount}
                     </span>
                   </td>
-                  <td className="py-2.5 px-3 text-slate-500">
-                    {log.previousStock} → <strong className="text-slate-900 dark:text-white">{log.newStock}</strong>
+                  <td className="py-2.5 px-3 text-slate-600 dark:text-slate-400 font-mono text-[11px] tabular-nums font-medium">
+                    {log.previousStock} → <strong className="text-slate-900 dark:text-white font-bold">{log.newStock}</strong>
                   </td>
                   <td className="py-2.5 px-3">
-                    <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">
+                    <span className="px-2 py-0.5 rounded-md bg-surface-subtle/50 dark:bg-surface-elevated hairline-border text-slate-700 dark:text-slate-300 font-mono text-[11px] font-medium">
                       {log.reason === 'restock'
                         ? 'Nhập hàng thêm'
                         : log.reason === 'manual_adjustment'
@@ -262,9 +292,9 @@ function InventoryContent() {
                         ? 'Khách mua hàng'
                         : 'Hủy đơn hoàn kho'}
                     </span>
-                    {log.note && <span className="text-[10px] text-slate-400 block mt-0.5">{log.note}</span>}
+                    {log.note && <span className="text-[10px] text-slate-600 dark:text-slate-400 block mt-0.5 font-medium">{log.note}</span>}
                   </td>
-                  <td className="py-2.5 px-3 text-slate-400">{log.updatedBy || 'System'}</td>
+                  <td className="py-2.5 px-3 text-slate-600 dark:text-slate-400 font-mono text-[11px] font-medium">{log.updatedBy || 'System'}</td>
                 </tr>
               ))}
             </tbody>
@@ -274,28 +304,28 @@ function InventoryContent() {
 
       {/* Adjust Stock Modal */}
       {selectedProduct && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-md rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 space-y-4 shadow-2xl animate-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-md rounded-2xl bg-surface-card hairline-border surface-bevel p-6 space-y-4 shadow-2xl animate-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b hairline-border">
               <h3 className="font-black text-sm text-slate-900 dark:text-white">
                 Điều Chỉnh Tồn Kho
               </h3>
               <button
                 onClick={() => setSelectedProduct(null)}
-                className="p-1 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                className="p-1 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-surface-elevated transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+            <p className="text-xs font-medium text-slate-600 dark:text-slate-300">
               Sản phẩm: <strong className="text-slate-900 dark:text-white">{selectedProduct.name}</strong>
             </p>
-            <p className="text-xs text-slate-400">
-              Tồn kho hiện tại: <strong className="text-indigo-600 dark:text-cyan-400 font-bold">{selectedProduct.stock}</strong> chiếc
+            <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+              Tồn kho hiện tại: <strong className="text-cyan-700 dark:text-signal-cyan font-mono font-bold tabular-nums">{selectedProduct.stock}</strong> chiếc
             </p>
 
-            <form onSubmit={handleAdjustStock} className="space-y-4 text-xs">
+            <form onSubmit={handleAdjustStock} className="space-y-3.5 text-xs">
               <div>
                 <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
                   Hình thức điều chỉnh
@@ -303,7 +333,7 @@ function InventoryContent() {
                 <select
                   value={reason}
                   onChange={(e) => setReason(e.target.value as any)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+                  className="w-full px-3 py-2 rounded-lg bg-surface-subtle/50 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500 font-medium"
                 >
                   <option value="restock">Nhập thêm hàng mới vào kho (+)</option>
                   <option value="manual_adjustment">Điều chỉnh kiểm kê kho</option>
@@ -319,7 +349,7 @@ function InventoryContent() {
                   required
                   value={changeAmount}
                   onChange={(e) => setChangeAmount(Number(e.target.value))}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono font-bold"
+                  className="w-full px-3 py-2 rounded-lg bg-surface-subtle/50 dark:bg-surface-elevated hairline-border font-mono font-bold tabular-nums text-slate-900 dark:text-white focus:outline-none focus:border-cyan-500"
                 />
               </div>
 
@@ -332,7 +362,7 @@ function InventoryContent() {
                   placeholder="Ví dụ: Nhập lô hàng tháng 9, PO-1029..."
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+                  className="w-full px-3 py-2 rounded-lg bg-surface-subtle/50 dark:bg-surface-elevated hairline-border text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500"
                 />
               </div>
 
@@ -340,14 +370,14 @@ function InventoryContent() {
                 <button
                   type="button"
                   onClick={() => setSelectedProduct(null)}
-                  className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 font-bold text-slate-600 dark:text-slate-400"
+                  className="flex-1 py-2 rounded-lg hairline-border bg-surface-subtle/30 dark:bg-surface-elevated font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
                 >
                   Hủy
                 </button>
                 <button
                   type="submit"
                   disabled={modalLoading}
-                  className="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold transition-all shadow-md"
+                  className="flex-1 py-2 rounded-lg bg-cyan-500/15 text-cyan-700 dark:text-signal-cyan border border-cyan-500/30 hover:bg-cyan-500/25 font-bold transition-all disabled:opacity-50"
                 >
                   {modalLoading ? 'Đang lưu...' : 'Xác Nhận Lưu'}
                 </button>
@@ -362,7 +392,7 @@ function InventoryContent() {
 
 export default function InventoryPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center text-xs">Đang tải kho hàng...</div>}>
+    <Suspense fallback={<div className="p-8 text-center text-xs font-mono font-medium text-slate-600 dark:text-slate-400">Đang tải kho hàng...</div>}>
       <InventoryContent />
     </Suspense>
   );

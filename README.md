@@ -11,13 +11,13 @@ Hệ thống website thương mại điện tử chuyên nghiệp cung cấp thi
   - `frontend/`: Next.js 14+ (App Router) + Tailwind CSS + Framer Motion + Lucide React + Recharts + Embla Carousel.
 - **Cơ sở dữ liệu:** MongoDB (hỗ trợ MongoDB Local, MongoDB Atlas và **tự động fallback In-Memory MongoDB `mongodb-memory-server`** giúp khởi chạy ngay lập tức mà không cần cài đặt MongoDB daemon).
 - **Quản lý trạng thái:** Zustand (persist localStorage) & TanStack React Query.
-- **Cổng thanh toán:** VNPAY Sandbox (chữ ký HMAC SHA512) kết hợp COD và **Chế độ Mock Test Payment** giúp kiểm thử luồng thanh toán tức thì.
+- **Cổng thanh toán:** Cổng thanh toán trực tuyến VNPAY (chữ ký bảo mật HMAC SHA512) kết hợp COD và Payment Webhook xác thực chữ ký số.
 
 ---
 
-## 🔑 Tài Khoản Mẫu (Demo Credentials)
+## 🔑 Tài Khoản Quản Trị & Đăng Nhập
 
-Hệ thống có sẵn nút **"Bấm Để Điền Nhanh"** tại trang Đăng nhập:
+Hệ thống cung cấp sẵn các tài khoản khởi tạo để truy cập và quản trị:
 
 | Vai trò (Role) | Email | Mật khẩu | Quyền hạn (Permissions) |
 | :--- | :--- | :--- | :--- |
@@ -45,8 +45,8 @@ Hệ thống có sẵn nút **"Bấm Để Điền Nhanh"** tại trang Đăng n
   - Tự động điền nếu đã đăng nhập.
   - Lựa chọn phương thức: **COD** hoặc **Thanh toán trực tuyến (VNPAY)**.
 - **Kết quả thanh toán (`/payment-result`):**
-  - Xử lý phản hồi từ VNPAY Return URL.
-  - Tích hợp **Mock Payment Mode** với 2 nút: *Thành công (Test Pass)* và *Thất bại (Test Fail)* cùng hiệu ứng pháo hoa Confetti.
+  - Tiếp nhận và xác thực chữ ký bảo mật từ VNPAY Return URL với máy chủ.
+  - Hiển thị trạng thái giao dịch thực tế (Thành công / Thất bại / Chờ thanh toán) và nút điều hướng tới cổng VNPAY.
 - **Tra cứu đơn hàng (`/order-tracking`):**
   - Tra cứu nhanh bằng **Mã đơn hàng** (`TG...`) + **Số điện thoại**.
   - Hiển thị tiến trình trực quan đầy đủ **5 mốc chuẩn SRS**: `Chờ xác nhận` ➔ `Đang xử lý` ➔ `Đang giao hàng` ➔ `Đã giao` ➔ `Đã hủy`.
@@ -107,7 +107,7 @@ npm run dev
 npm run build
 npm start
 ```
-*Ghi chú: Nếu hệ thống chưa cài MongoDB, server sẽ tự động kích hoạt In-Memory MongoDB và tự động gieo dữ liệu mẫu ban đầu (seeding) gồm 24+ sản phẩm cao cấp, tài khoản người dùng và 50+ đơn hàng rải đều 4 quý.*
+*Ghi chú: Nếu hệ thống chưa cài MongoDB, server sẽ tự động kích hoạt In-Memory MongoDB và tự động khởi tạo danh mục sản phẩm (24 thiết bị cao cấp) cùng các tài khoản quản trị ban đầu.*
 
 ### 3. Khởi chạy Frontend (Port 3000)
 
@@ -137,7 +137,7 @@ Trong thư mục `backend`, chạy:
 npx tsx src/tests/verify.ts
 ```
 
-Bộ kiểm thử sẽ tự động chạy qua 18 kịch bản (Kiểm tra kết nối API, bộ lọc đa danh mục & thông số, đăng nhập Admin/Customer, đặt hàng, trừ tồn kho, chặn đặt quá số lượng kho, tra cứu đơn hàng, giả lập thanh toán VNPAY, hủy đơn hoàn kho, biểu đồ doanh thu Q1-Q4, cảnh báo tồn kho `< 5`, tính toán LTV khách hàng).
+Bộ kiểm thử sẽ tự động chạy qua 18 kịch bản (Kiểm tra kết nối API, bộ lọc đa danh mục & thông số, đăng nhập Admin/Customer, đặt hàng, trừ tồn kho, chặn đặt quá số lượng kho, tra cứu đơn hàng, xác thực webhook thanh toán thực tế HMAC SHA256, hủy đơn hoàn kho, báo cáo doanh thu, cảnh báo tồn kho `< 5`, tính toán LTV khách hàng).
 
 ---
 
@@ -152,7 +152,7 @@ website_Dien_Tu/
 │   │   ├── middlewares/     # auth, role check, error handler
 │   │   ├── models/          # User, Product, Order, InventoryLog
 │   │   ├── routes/          # API endpoints
-│   │   ├── scripts/         # seed.ts (24+ gear, 50+ orders Q1-Q4)
+│   │   ├── scripts/         # seed.ts (24 gear chính hãng, tài khoản khởi tạo)
 │   │   ├── tests/           # verify.ts (18 automated tests)
 │   │   ├── utils/           # vnpay HMAC SHA512
 │   │   └── index.ts         # Server entrypoint
@@ -166,7 +166,7 @@ website_Dien_Tu/
 │   │   │   ├── cart/        # Giỏ hàng
 │   │   │   ├── checkout/    # Thanh toán COD & VNPAY
 │   │   │   ├── order-tracking/ # Tra cứu đơn hàng trực quan
-│   │   │   ├── payment-result/ # Kết quả & Mock payment mode
+│   │   │   ├── payment-result/ # Kết quả thanh toán VNPAY
 │   │   │   ├── products/    # Cửa hàng & Chi tiết sản phẩm [slug]
 │   │   │   ├── profile/     # Quản lý cá nhân & Lịch sử
 │   │   │   ├── layout.tsx
