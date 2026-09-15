@@ -9,15 +9,11 @@ import {
   Boxes,
   ShoppingCart,
   Users,
-  ExternalLink,
   LogOut,
-  ShieldCheck,
   Menu,
   X,
-  Zap,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
-import ThemeToggle from '@/components/ThemeToggle';
 
 const NAV_ITEMS = [
   { href: '/admin', label: 'Báo Cáo & Thống Kê', icon: LayoutDashboard },
@@ -100,7 +96,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
 
         {/* Navigation Links */}
-        <nav className="flex-1 space-y-1 text-xs font-medium">
+        <nav className="flex-1 flex flex-col gap-1 text-xs font-medium">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -119,32 +115,21 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </Link>
             );
           })}
+
+          <div className="pt-2 mt-1 border-t hairline-border">
+            <button
+              type="button"
+              onClick={() => {
+                logout();
+                router.push('/auth/login');
+              }}
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg border-l-2 border-transparent hover:border-rose-600 dark:hover:border-signal-rose transition-all text-xs font-semibold text-rose-700 dark:text-signal-rose hover:bg-rose-50 dark:hover:bg-signal-rose/10 hover:text-rose-800 dark:hover:text-rose-200 active:scale-[0.99] text-left cursor-pointer"
+            >
+              <LogOut className="w-4 h-4 flex-shrink-0" />
+              <span>Đăng xuất</span>
+            </button>
+          </div>
         </nav>
-
-        {/* Bottom Actions */}
-        <div className="pt-4 border-t hairline-border space-y-1.5">
-          <Link
-            href="/"
-            className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-surface-elevated/50 hover:text-slate-900 dark:hover:text-white transition-colors"
-          >
-            <span className="flex items-center gap-2">
-              <ExternalLink className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400" />
-              <span>Về Storefront</span>
-            </span>
-            <ThemeToggle />
-          </Link>
-
-          <button
-            onClick={() => {
-              logout();
-              router.push('/auth/login');
-            }}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold text-rose-600 dark:text-signal-rose hover:bg-rose-50 dark:hover:bg-signal-rose/10 transition-colors"
-          >
-            <LogOut className="w-4 h-4" />
-            <span>Đăng xuất</span>
-          </button>
-        </div>
       </aside>
 
       {/* Top Mobile Bar */}
@@ -155,15 +140,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
           <span className="font-black text-sm text-slate-900 dark:text-white tracking-tight">ADMIN PRO</span>
         </div>
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="p-2 rounded-lg hairline-border bg-surface-elevated text-slate-700 dark:text-slate-200"
-          >
-            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => setMobileOpen(!mobileOpen)}
+          className="p-2 rounded-lg hairline-border bg-surface-elevated text-slate-700 dark:text-slate-200 cursor-pointer"
+          aria-label="Toggle Navigation Menu"
+        >
+          {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        </button>
       </div>
 
       {/* Mobile Drawer */}
@@ -194,7 +178,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </div>
             </div>
           </div>
-          <nav className="space-y-1 text-xs font-medium">
+          <nav className="flex flex-col gap-1 text-xs font-medium">
             {NAV_ITEMS.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
@@ -206,7 +190,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg border-l-2 transition-all ${
                     isActive
                       ? 'bg-cyan-50 dark:bg-surface-elevated text-cyan-700 dark:text-signal-cyan border-cyan-600 dark:border-signal-cyan font-bold surface-bevel'
-                      : 'border-transparent text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
+                      : 'border-transparent text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-surface-elevated/50 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-cyan-700 dark:text-signal-cyan' : 'text-slate-600 dark:text-slate-400'}`} />
@@ -214,14 +198,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </Link>
               );
             })}
-            <Link
-              href="/"
-              onClick={() => setMobileOpen(false)}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-surface-elevated/50"
-            >
-              <ExternalLink className="w-4 h-4 text-slate-600 dark:text-slate-400" />
-              <span>Về Storefront</span>
-            </Link>
+            <div className="pt-2 mt-1 border-t hairline-border">
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileOpen(false);
+                  logout();
+                  router.push('/auth/login');
+                }}
+                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg border-l-2 border-transparent hover:border-rose-600 dark:hover:border-signal-rose transition-all text-xs font-semibold text-rose-700 dark:text-signal-rose hover:bg-rose-50 dark:hover:bg-signal-rose/10 hover:text-rose-800 dark:hover:text-rose-200 active:scale-[0.99] text-left cursor-pointer"
+              >
+                <LogOut className="w-4 h-4 flex-shrink-0" />
+                <span>Đăng xuất</span>
+              </button>
+            </div>
           </nav>
         </div>
       )}
