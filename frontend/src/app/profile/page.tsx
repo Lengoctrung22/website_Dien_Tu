@@ -4,13 +4,14 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { User, Package, Calendar, Phone, Mail, Shield, CheckCircle2, ArrowRight, PackageCheck } from 'lucide-react';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore, useIsAuthHydrated } from '@/store/authStore';
 import { fetchApi } from '@/lib/api';
 import { formatVND, formatDate, ORDER_STATUS_MAP } from '@/lib/utils';
 
 export default function ProfilePage() {
   const router = useRouter();
   const { user, token, updateUser, logout } = useAuthStore();
+  const isHydrated = useIsAuthHydrated();
 
   const [orders, setOrders] = useState<any[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
@@ -20,6 +21,7 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    if (!isHydrated) return;
     if (!token) {
       router.push('/auth/login');
       return;
@@ -39,7 +41,7 @@ export default function ProfilePage() {
       setLoadingOrders(false);
     }
     loadMyOrders();
-  }, [token, user, router]);
+  }, [isHydrated, token, user, router]);
 
   const [confirmingOrderId, setConfirmingOrderId] = useState<string | null>(null);
   const [orderFeedback, setOrderFeedback] = useState<{
@@ -114,7 +116,13 @@ export default function ProfilePage() {
     setSaving(false);
   };
 
-  if (!user) return null;
+  if (!isHydrated || !user) {
+    return (
+      <div className="min-h-[50vh] flex items-center justify-center text-sm font-semibold text-slate-700 dark:text-slate-300">
+        Đang tải thông tin tài khoản...
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">

@@ -67,7 +67,12 @@ export default function LoginPage() {
 
       if (res.success && res.data) {
         setAuth(res.data.user, res.data.token);
-        if (res.data.user.role === 'admin' || res.data.user.role === 'staff') {
+        if (
+          res.data.user.role === 'admin' ||
+          res.data.user.role === 'staff' ||
+          res.data.user.role === 'orders' ||
+          res.data.user.role === 'warehouse'
+        ) {
           router.push('/admin');
         } else {
           router.push('/');

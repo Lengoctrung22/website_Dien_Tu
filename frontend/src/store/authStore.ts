@@ -1,5 +1,8 @@
+'use client';
+
+import { useSyncExternalStore } from 'react';
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage, type StateStorage } from 'zustand/middleware';
 
 export interface UserProfile {
   id: string;
@@ -10,9 +13,10 @@ export interface UserProfile {
   permissions?: string[];
 }
 
-interface AuthState {
+export interface AuthState {
   user: UserProfile | null;
   token: string | null;
+  isHydrated: boolean;
   setAuth: (user: UserProfile, token: string) => void;
   updateUser: (updatedData: Partial<UserProfile>) => void;
   logout: () => void;
@@ -21,12 +25,50 @@ interface AuthState {
   hasPermission: (permission: string) => boolean;
 }
 
+const dynamicSessionStorage: StateStorage = {
+  getItem: (name: string) => {
+    if (typeof window === 'undefined') return null;
+    try {
+      return window.sessionStorage.getItem(name);
+    } catch {
+      return null;
+    }
+  },
+  setItem: (name: string, value: string) => {
+    if (typeof window === 'undefined') return;
+    try {
+      window.sessionStorage.setItem(name, value);
+    } catch {
+      // ignore storage write errors
+    }
+  },
+  removeItem: (name: string) => {
+    if (typeof window === 'undefined') return;
+    try {
+      window.sessionStorage.removeItem(name);
+    } catch {
+      // ignore storage remove errors
+    }
+  },
+};
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
       user: null,
       token: null,
-      setAuth: (user, token) => set({ user, token }),
+      isHydrated: false,
+      setAuth: (user, token) => {
+        set({ user, token, isHydrated: true });
+        if (typeof window !== 'undefined') {
+          try {
+            // Clean up any legacy localStorage session to avoid cross-tab contamination
+            window.localStorage.removeItem('techgear_auth_storage');
+          } catch {
+            // ignore storage clear errors
+          }
+        }
+      },
       updateUser: (updatedData) =>
         set((state) => ({
           user: state.user ? { ...state.user, ...updatedData } : null,
@@ -35,8 +77,8 @@ export const useAuthStore = create<AuthState>()(
         set({ user: null, token: null });
         if (typeof window !== 'undefined') {
           try {
-            localStorage.removeItem('techgear_auth_storage');
-            sessionStorage.clear();
+            window.sessionStorage.removeItem('techgear_auth_storage');
+            window.localStorage.removeItem('techgear_auth_storage');
           } catch {
             // ignore storage clear errors
           }
@@ -63,7 +105,32 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'techgear_auth_storage',
+      storage: createJSONStorage(() => dynamicSessionStorage),
+      partialize: (state) => ({
+        user: state.user,
+        token: state.token,
+      }),
+      onRehydrateStorage: () => () => {
+        useAuthStore.setState({ isHydrated: true });
+      },
     }
   )
 );
+
+export function useIsAuthHydrated(): boolean {
+  return useSyncExternalStore(
+    (callback) => {
+      const unsubFinish = useAuthStore.persist?.onFinishHydration?.(callback);
+      const unsubStore = useAuthStore.subscribe((state) => {
+        if (state.isHydrated) callback();
+      });
+      return () => {
+        unsubFinish?.();
+        unsubStore();
+      };
+    },
+    () => Boolean(useAuthStore.persist?.hasHydrated?.() || useAuthStore.getState().isHydrated),
+    () => false
+  );
+}
 

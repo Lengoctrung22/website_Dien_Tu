@@ -17,7 +17,7 @@ import {
   Clock,
   type LucideIcon,
 } from 'lucide-react';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore, useIsAuthHydrated } from '@/store/authStore';
 import { getAdminRoleInfo, type RoleMetadata } from '@/lib/rbac';
 
 interface NavItem {
@@ -123,7 +123,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const { user, isStaff, isAdmin, hasPermission, logout } = useAuthStore();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [isHydrated, setIsHydrated] = useState(false);
+  const isHydrated = useIsAuthHydrated();
 
   const roleInfo: RoleMetadata = getAdminRoleInfo(user);
 
@@ -251,19 +251,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     logout();
     router.push('/auth/login');
   };
-
-  useEffect(() => {
-    const unsub = useAuthStore.persist?.onFinishHydration?.(() => {
-      setIsHydrated(true);
-    });
-    const timer = setTimeout(() => {
-      setIsHydrated(true);
-    }, 0);
-    return () => {
-      unsub?.();
-      clearTimeout(timer);
-    };
-  }, []);
 
   useEffect(() => {
     if (!isHydrated) return;
