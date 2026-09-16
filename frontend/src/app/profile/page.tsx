@@ -116,10 +116,27 @@ export default function ProfilePage() {
     setSaving(false);
   };
 
-  if (!isHydrated || !user) {
+  if (!isHydrated) {
     return (
       <div className="min-h-[50vh] flex items-center justify-center text-sm font-semibold text-slate-700 dark:text-slate-300">
-        Đang tải thông tin tài khoản...
+        <div className="flex items-center gap-3">
+          <div className="w-5 h-5 border-2 border-slate-900 dark:border-white border-t-transparent rounded-full animate-spin" />
+          <span>Đang tải thông tin tài khoản...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user || !token) {
+    return (
+      <div className="min-h-[50vh] flex flex-col items-center justify-center text-sm font-semibold text-slate-700 dark:text-slate-300 gap-3">
+        <p>Đang chuyển hướng tới trang đăng nhập...</p>
+        <Link
+          href="/auth/login"
+          className="text-xs font-mono font-bold text-sky-600 dark:text-signal-cyan underline underline-offset-4 hover:opacity-80"
+        >
+          Nhấn vào đây nếu không tự động chuyển hướng →
+        </Link>
       </div>
     );
   }

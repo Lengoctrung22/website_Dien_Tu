@@ -259,10 +259,31 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   }, [isHydrated, user, isStaff, router]);
 
-  if (!isHydrated || !user || !isStaff()) {
+  if (!isHydrated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-surface-canvas text-sm font-semibold text-slate-700 dark:text-slate-300">
-        Đang kiểm tra quyền hạn quản trị...
+        <div className="flex items-center gap-3">
+          <div className="w-5 h-5 border-2 border-slate-900 dark:border-white border-t-transparent rounded-full animate-spin" />
+          <span>Đang đồng bộ quyền hạn quản trị...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user || !isStaff()) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-surface-canvas text-sm font-semibold text-slate-700 dark:text-slate-300 gap-3 p-4 text-center">
+        <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-amber-400">
+          <ShieldCheck className="w-5 h-5" />
+        </div>
+        <p className="text-slate-900 dark:text-white font-bold">Chưa xác thực quyền hạn quản trị</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400">Đang chuyển hướng tới trang đăng nhập...</p>
+        <Link
+          href="/auth/login"
+          className="mt-2 text-xs font-mono font-bold text-sky-600 dark:text-signal-cyan underline underline-offset-4 hover:opacity-80"
+        >
+          Nhấn vào đây nếu không tự động chuyển hướng →
+        </Link>
       </div>
     );
   }
