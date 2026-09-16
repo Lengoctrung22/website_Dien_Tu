@@ -23,7 +23,7 @@ export const seedDatabase = async () => {
   const salt = await bcrypt.genSalt(10);
   const adminPassword = await bcrypt.hash('admin123', salt);
   const staffPassword = await bcrypt.hash('staff123', salt);
-  const customerPassword = await bcrypt.hash('customer123', salt);
+  const customerPassword = await bcrypt.hash('123456', salt);
 
   const [adminUser, warehouseStaff, orderStaff, customerUser] = await User.create([
     {
@@ -54,8 +54,8 @@ export const seedDatabase = async () => {
       isActive: true,
     },
     {
-      fullName: 'Hoàng Minh Khang',
-      email: 'customer@gmail.com',
+      fullName: 'Lê Ngọc Trung',
+      email: 'trunglengoc220324@gmail.com',
       phone: '0987654321',
       passwordHash: customerPassword,
       role: 'customer',
@@ -64,7 +64,7 @@ export const seedDatabase = async () => {
     },
   ]);
 
-  console.log('[Seed] Created 4 users (Admin, 2 Staff, 1 Customer).');
+  console.log('[Seed] Created 4 users (Admin, 2 Staff, Customer: trunglengoc220324@gmail.com).');
 
   // 2. Create Products (24 high-end items across 4 categories)
   const productData = [
@@ -646,138 +646,9 @@ export const seedDatabase = async () => {
   }));
   await InventoryLog.create(logs);
 
-  // 3. Create realistic orders across Q1, Q2, Q3, Q4 and TODAY for Orders Staff & Analytics
-  const customers = [
-    { name: 'Hoàng Minh Khách Hàng', phone: '0987654321', address: 'Số 12 ngõ 89 Thái Hà, Đống Đa, Hà Nội' },
-    { name: 'Nguyễn Tiến Dũng', phone: '0978112233', address: '45 Lê Duẩn, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh' },
-    { name: 'Trần Thị Thùy Linh', phone: '0966445566', address: '120 Nguyễn Thị Minh Khai, Quận 3, TP. Hồ Chí Minh' },
-    { name: 'Phạm Đức Anh', phone: '0933778899', address: '68 Cầu Giấy, Phường Quan Hoa, Cầu Giấy, Hà Nội' },
-    { name: 'Vũ Quốc Huy', phone: '0919223344', address: '15 Trần Phú, Phường Lộc Thọ, Nha Trang, Khánh Hòa' },
-    { name: 'Đặng Mai Phương', phone: '0944556677', address: '88 Nguyễn Văn Linh, Hải Châu, Đà Nẵng' },
-    { name: 'Bùi Tuấn Khang', phone: '0908123456', address: '22 Quang Trung, Hồng Bàng, Hải Phòng' },
-  ];
-
-  const ordersToInsert: any[] = [];
-  const now = new Date();
-  const currentYear = now.getFullYear();
-
-  const getRandomDateInMonth = (year: number, month: number) => {
-    const day = Math.floor(Math.random() * 26) + 1;
-    const hour = Math.floor(Math.random() * 14) + 8;
-    const min = Math.floor(Math.random() * 59);
-    return new Date(year, month, day, hour, min);
-  };
-
-  // Historical orders for quarters
-  const quarterConfigs = [
-    { months: [0, 1, 2], count: 12 },
-    { months: [3, 4, 5], count: 14 },
-    { months: [6, 7, 8], count: 18 },
-  ];
-
-  let orderIndex = 100;
-
-  for (const q of quarterConfigs) {
-    for (let i = 0; i < q.count; i++) {
-      const randomMonth = q.months[Math.floor(Math.random() * q.months.length)];
-      const orderDate = getRandomDateInMonth(currentYear, randomMonth);
-      const cust = customers[Math.floor(Math.random() * customers.length)];
-
-      const p1 = createdProducts[Math.floor(Math.random() * createdProducts.length)];
-      const p2 = Math.random() > 0.6 ? createdProducts[Math.floor(Math.random() * createdProducts.length)] : null;
-
-      const p1Price = p1.discountPrice && p1.discountPrice > 0 ? p1.discountPrice : p1.price;
-      const items = [
-        {
-          productId: p1._id,
-          name: p1.name,
-          image: p1.images[0] || '',
-          quantity: 1,
-          price: p1Price,
-          category: p1.category,
-        },
-      ];
-
-      let total = p1Price;
-      if (p2 && p2._id.toString() !== p1._id.toString()) {
-        const p2Price = p2.discountPrice && p2.discountPrice > 0 ? p2.discountPrice : p2.price;
-        items.push({
-          productId: p2._id,
-          name: p2.name,
-          image: p2.images[0] || '',
-          quantity: 1,
-          price: p2Price,
-          category: p2.category,
-        });
-        total += p2Price;
-      }
-
-      orderIndex++;
-      ordersToInsert.push({
-        orderCode: `TG${orderDate.toISOString().slice(2, 10).replace(/-/g, '')}-${orderIndex}`,
-        userId: cust.phone === '0987654321' ? customerUser._id : null,
-        customerInfo: cust,
-        items,
-        totalAmount: total,
-        paymentMethod: Math.random() > 0.4 ? 'ONLINE' : 'COD',
-        paymentStatus: 'paid',
-        orderStatus: 'delivered',
-        createdAt: orderDate,
-        updatedAt: orderDate,
-      });
-    }
-  }
-
-  // Active orders for TODAY: pending, processing, shipping, delivered across all 4 categories
-  const todayOrdersConfig = [
-    { pIndex: 0, qty: 1, status: 'pending', payStatus: 'pending', payMethod: 'COD' }, // monitor
-    { pIndex: 1, qty: 2, status: 'pending', payStatus: 'pending', payMethod: 'ONLINE' }, // monitor
-    { pIndex: 6, qty: 1, status: 'processing', payStatus: 'paid', payMethod: 'ONLINE' }, // keyboard
-    { pIndex: 7, qty: 1, status: 'processing', payStatus: 'paid', payMethod: 'ONLINE' }, // keyboard
-    { pIndex: 8, qty: 2, status: 'shipping', payStatus: 'paid', payMethod: 'ONLINE' }, // keyboard
-    { pIndex: 12, qty: 2, status: 'shipping', payStatus: 'pending', payMethod: 'COD' }, // mouse
-    { pIndex: 13, qty: 1, status: 'delivered', payStatus: 'paid', payMethod: 'ONLINE' }, // mouse
-    { pIndex: 18, qty: 1, status: 'delivered', payStatus: 'paid', payMethod: 'COD' }, // headphone
-    { pIndex: 19, qty: 2, status: 'delivered', payStatus: 'paid', payMethod: 'ONLINE' }, // headphone
-  ];
-
-  for (let i = 0; i < todayOrdersConfig.length; i++) {
-    const cfg = todayOrdersConfig[i];
-    const prod = createdProducts[cfg.pIndex];
-    const cust = customers[i % customers.length];
-    const price = prod.discountPrice && prod.discountPrice > 0 ? prod.discountPrice : prod.price;
-
-    const todayDate = new Date();
-    todayDate.setHours(8 + i, Math.floor(Math.random() * 50), 0, 0);
-
-    orderIndex++;
-    ordersToInsert.push({
-      orderCode: `TG${todayDate.toISOString().slice(2, 10).replace(/-/g, '')}-${orderIndex}`,
-      userId: i % 2 === 0 ? customerUser._id : null,
-      customerInfo: cust,
-      items: [
-        {
-          productId: prod._id,
-          name: prod.name,
-          image: prod.images[0] || '',
-          quantity: cfg.qty,
-          price,
-          category: prod.category,
-        },
-      ],
-      totalAmount: price * cfg.qty,
-      paymentMethod: cfg.payMethod,
-      paymentStatus: cfg.payStatus,
-      orderStatus: cfg.status,
-      createdAt: todayDate,
-      updatedAt: todayDate,
-    });
-  }
-
-  await Order.insertMany(ordersToInsert);
-  console.log(`[Seed] Successfully inserted ${ordersToInsert.length} orders across Q1-Q4 and Today.`);
-
-  console.log('[Seed] Database seeding completed successfully! All requirements satisfied.');
+  // 3. Clean Orders setup (0 demo orders - ready for real transactions)
+  console.log('[Seed] Database initialized with clean 0 orders, ready for real customer orders.');
+  console.log('[Seed] Database seeding completed successfully! All data is clean and real.');
 };
 
 // If run directly via command line

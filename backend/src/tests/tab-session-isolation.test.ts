@@ -39,8 +39,8 @@ async function runSessionIsolationTests() {
 
   const customerUser = {
     id: 'user_cust_001',
-    fullName: 'Nguyen Khach Hang',
-    email: 'customer@gmail.com',
+    fullName: 'Lê Ngọc Trung',
+    email: 'trunglengoc220324@gmail.com',
     role: 'customer' as const,
   };
   const customerToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.customer_token';
@@ -89,7 +89,7 @@ async function runSessionIsolationTests() {
   const tab1Raw = tab1SessionStorage.getItem('techgear_auth_storage');
   assert.notStrictEqual(tab1Raw, null, 'Tab 1 must still have session data');
   const tab1Parsed = JSON.parse(tab1Raw!);
-  assert.strictEqual(tab1Parsed.state.user.email, 'customer@gmail.com');
+  assert.strictEqual(tab1Parsed.state.user.email, 'trunglengoc220324@gmail.com');
   assert.strictEqual(tab1Parsed.state.user.role, 'customer');
   assert.strictEqual(tab1Parsed.state.token, customerToken);
 
@@ -112,8 +112,8 @@ async function runSessionIsolationTests() {
   );
   assert.strictEqual(
     tab1Rehydrated.state.user.email,
-    'customer@gmail.com',
-    'Tab 1 email must remain customer@gmail.com'
+    'trunglengoc220324@gmail.com',
+    'Tab 1 email must remain trunglengoc220324@gmail.com'
   );
   assert.strictEqual(tab1Rehydrated.state.token, customerToken, 'Tab 1 token must remain customerToken');
   console.log('  ✅ PASS: Tab 1 F5 refresh successfully rehydrates Customer session (Bug Resolved!)\n');

@@ -3,48 +3,9 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { LogIn, Key, Mail, ShieldAlert, ShieldCheck, Boxes, ShoppingCart, User } from 'lucide-react';
+import { LogIn, Key, Mail, ShieldAlert } from 'lucide-react';
 import { fetchApi } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
-
-const DEMO_ACCOUNTS = [
-  {
-    roleName: 'Super Admin',
-    email: 'admin@techgear.vn',
-    password: 'admin123',
-    permissions: 'Toàn quyền quản trị (all)',
-    icon: ShieldCheck,
-    color: 'hover:border-rose-500/50 hover:bg-rose-500/5 text-rose-700 dark:text-rose-300',
-    tag: 'bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/25',
-  },
-  {
-    roleName: 'Nhân viên Kho',
-    email: 'warehouse@techgear.vn',
-    password: 'staff123',
-    permissions: 'Quản lý kho, nhập hàng (inventory)',
-    icon: Boxes,
-    color: 'hover:border-amber-500/50 hover:bg-amber-500/5 text-amber-700 dark:text-amber-300',
-    tag: 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/25',
-  },
-  {
-    roleName: 'Nhân viên Đơn hàng',
-    email: 'orders@techgear.vn',
-    password: 'staff123',
-    permissions: 'Xử lý tiến trình đơn hàng (orders)',
-    icon: ShoppingCart,
-    color: 'hover:border-cyan-500/50 hover:bg-cyan-500/5 text-cyan-700 dark:text-cyan-300',
-    tag: 'bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border-cyan-500/25',
-  },
-  {
-    roleName: 'Khách hàng',
-    email: 'customer@gmail.com',
-    password: 'customer123',
-    permissions: 'Mua sắm & Quản lý profile',
-    icon: User,
-    color: 'hover:border-slate-500/50 hover:bg-slate-500/5 text-slate-700 dark:text-slate-300',
-    tag: 'bg-slate-100 dark:bg-surface-elevated text-slate-700 dark:text-slate-300 border-slate-300 dark:border-white/10',
-  },
-];
 
 export default function LoginPage() {
   const router = useRouter();
@@ -91,12 +52,6 @@ export default function LoginPage() {
     submitCredentials(email, password);
   };
 
-  const handleQuickFill = (acc: typeof DEMO_ACCOUNTS[0]) => {
-    setEmail(acc.email);
-    setPassword(acc.password);
-    submitCredentials(acc.email, acc.password);
-  };
-
   return (
     <div className="max-w-md mx-auto px-4 py-12 space-y-6">
       <div className="text-center space-y-2">
@@ -104,7 +59,9 @@ export default function LoginPage() {
           <LogIn className="w-6 h-6" />
         </div>
         <h1 className="text-2xl font-black text-slate-900 dark:text-white">Đăng Nhập Tài Khoản</h1>
-        <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Truy cập hệ thống quản trị phân quyền RBAC TECHGEAR PRO</p>
+        <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+          Hệ thống thương mại điện tử TechGear Pro
+        </p>
       </div>
 
       {errorMsg && (
@@ -165,46 +122,6 @@ export default function LoginPage() {
           </Link>
         </div>
       </form>
-
-      {/* Quick Demo Login Buttons for RBAC Testing */}
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-surface-card p-4 space-y-2.5 shadow-sm">
-        <div className="flex items-center justify-between pb-1 border-b hairline-border">
-          <span className="text-[11px] font-mono font-bold uppercase text-slate-500">
-            Tài khoản mẫu thử nghiệm phân quyền (RBAC):
-          </span>
-        </div>
-        <div className="space-y-1.5">
-          {DEMO_ACCOUNTS.map((acc) => {
-            const Icon = acc.icon;
-            return (
-              <button
-                key={acc.email}
-                type="button"
-                onClick={() => handleQuickFill(acc)}
-                className={`w-full text-left p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 transition-all flex items-center justify-between group ${acc.color}`}
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="p-1.5 rounded-lg bg-surface-elevated hairline-border flex-shrink-0">
-                    <Icon className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-bold text-xs text-slate-900 dark:text-white">{acc.roleName}</span>
-                      <span className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border ${acc.tag}`}>
-                        {acc.email.split('@')[0]}
-                      </span>
-                    </div>
-                    <p className="text-[10px] text-slate-500 font-mono truncate">{acc.permissions}</p>
-                  </div>
-                </div>
-                <span className="text-[10px] font-mono font-bold text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
-                  Vào ngay →
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
     </div>
   );
 }

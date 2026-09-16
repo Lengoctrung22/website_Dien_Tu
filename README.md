@@ -24,7 +24,7 @@ Hệ thống cung cấp sẵn các tài khoản khởi tạo để truy cập v�
 | **Super Admin** | `admin@techgear.vn` | `admin123` | Toàn quyền quản trị hệ thống (`all`) |
 | **Nhân viên Kho (Warehouse)** | `warehouse@techgear.vn` | `staff123` | Quản lý kho, nhập hàng (`inventory`) |
 | **Nhân viên Đơn hàng (Orders)** | `orders@techgear.vn` | `staff123` | Xử lý tiến trình đơn hàng (`orders`) |
-| **Khách Hàng (Customer)** | `customer@gmail.com` | `customer123` | Mua hàng, tra cứu đơn, quản lý profile |
+| **Khách Hàng (Customer)** | `trunglengoc220324@gmail.com` | `123456` | Mua hàng, tra cứu đơn, quản lý profile |
 
 ---
 
