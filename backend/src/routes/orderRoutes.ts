@@ -11,6 +11,7 @@ import {
   handleVnpayIpn,
   handlePaymentWebhook,
   verifyOrderPayment,
+  notifyPaid,
 } from '../controllers/orderController';
 import { authenticateToken, optionalAuthenticateToken, requireRole, requirePermission } from '../middlewares/auth';
 import { orderRateLimiter } from '../middlewares/rateLimiter';
@@ -35,6 +36,9 @@ router.get('/:id', optionalAuthenticateToken, getOrderById);
 // Update status (admin/staff) — requires 'orders' permission
 router.patch('/:id/status', authenticateToken, requireRole(['admin', 'staff']), requirePermission('orders'), updateOrderStatus);
 router.post('/:id/verify-payment', authenticateToken, requireRole(['admin', 'staff']), requirePermission('orders'), verifyOrderPayment);
+
+// Customer notifies online transfer completed
+router.post('/:id/notify-paid', optionalAuthenticateToken, notifyPaid);
 
 // Customer / Guest confirm receipt
 router.post('/:id/confirm-receipt', optionalAuthenticateToken, confirmOrderReceipt);

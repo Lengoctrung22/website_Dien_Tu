@@ -12,6 +12,7 @@ import {
   AlertCircle,
   ArrowRight,
   ChevronLeft,
+  QrCode,
 } from 'lucide-react';
 import { useCartStore } from '@/store/cartStore';
 import { useAuthStore } from '@/store/authStore';
@@ -113,11 +114,8 @@ export default function CheckoutPage() {
       clearCart();
 
       if (paymentMethod === 'ONLINE') {
-        if (paymentUrl) {
-          window.location.href = paymentUrl;
-        } else {
-          router.push(`/payment-result?orderCode=${order.orderCode}`);
-        }
+        const targetUrl = paymentUrl || `/payment-qr?orderCode=${order.orderCode}`;
+        router.push(targetUrl);
       } else {
         // COD order confirmed directly
         router.push(`/order-tracking?orderCode=${order.orderCode}&phone=${encodeURIComponent(formData.phone.trim())}&newOrder=true`);
@@ -271,7 +269,7 @@ export default function CheckoutPage() {
                 </div>
               </label>
 
-              {/* Option ONLINE / VNPAY Card */}
+              {/* Option ONLINE / VietQR MB Bank Card */}
               <label
                 className={`flex items-start gap-3.5 p-4 rounded-xl border transition-all cursor-pointer ${
                   paymentMethod === 'ONLINE'
@@ -290,17 +288,17 @@ export default function CheckoutPage() {
                 <div className="flex-1">
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <CreditCard className="w-4 h-4 text-slate-900 dark:text-black" />
+                      <QrCode className="w-4 h-4 text-cyan-600 dark:text-signal-cyan" />
                       <span className="font-bold text-xs text-slate-900 dark:text-white">
-                        Thanh toán trực tuyến qua cổng VNPAY
+                        Thanh toán trực tuyến (ONLINE / QR)
                       </span>
                     </div>
-                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-surface-card border hairline-border text-slate-950 dark:text-white">
-                      QR / ATM / VISA
+                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-700 dark:text-cyan-300 border border-cyan-500/20">
+                      VIETQR / MB BANK
                     </span>
                   </div>
                   <p className="text-[11px] font-mono text-slate-600 dark:text-slate-400 mt-1 font-medium">
-                    Cổng thanh toán an toàn VNPAY hỗ trợ quét mã QR qua ứng dụng ngân hàng, thẻ ATM nội địa &amp; thẻ Visa/Mastercard.
+                    Quét mã VietQR chuyển khoản nhanh 24/7 qua MB Bank (Ngân hàng Quân Đội), tự động điền số tiền và mã đơn hàng.
                   </p>
                 </div>
               </label>

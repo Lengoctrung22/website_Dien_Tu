@@ -193,7 +193,15 @@ function OrdersContent({ initialStatus }: { initialStatus: string }) {
     }
   };
 
-  const getPaymentStatusBadge = (status: string) => {
+  const getPaymentStatusBadge = (status: string, paymentMethod?: string) => {
+    if ((paymentMethod === 'ONLINE' || paymentMethod === 'QR') && status === 'pending') {
+      return (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/40 animate-pulse">
+          <Clock className="w-3 h-3" />
+          Chờ đối soát chuyển khoản
+        </span>
+      );
+    }
     switch (status) {
       case 'paid':
         return (
@@ -531,7 +539,7 @@ function OrdersContent({ initialStatus }: { initialStatus: string }) {
                               <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-surface-subtle text-slate-700 dark:text-slate-300">
                                 {o.paymentMethod || 'COD'}
                               </span>
-                              {getPaymentStatusBadge(o.paymentStatus)}
+                              {getPaymentStatusBadge(o.paymentStatus, o.paymentMethod)}
                             </div>
 
                             {/* Auto Verify Payment Action Button if pending */}
@@ -539,11 +547,11 @@ function OrdersContent({ initialStatus }: { initialStatus: string }) {
                               <button
                                 onClick={() => handleAutoVerifyPayment(o._id)}
                                 disabled={isOrderActionLoading}
-                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-mono text-[10px] font-bold shadow-sm transition-all active:scale-95 disabled:opacity-50"
-                                title="Tự động xác nhận khách đã thanh toán và chuyển đơn sang Đang xử lý"
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-mono text-[10px] font-bold shadow-sm transition-all active:scale-95 disabled:opacity-50"
+                                title="Xác nhận đã nhận tiền chuyển khoản MB Bank và chuyển trạng thái sang Paid"
                               >
-                                <Zap className="w-3 h-3" />
-                                <span>Xác nhận TT tự động</span>
+                                <CheckCircle2 className="w-3 h-3" />
+                                <span>Xác nhận đã nhận tiền (Duyệt Paid)</span>
                               </button>
                             )}
 
@@ -661,7 +669,7 @@ function OrdersContent({ initialStatus }: { initialStatus: string }) {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-slate-500 font-mono">Thanh toán:</span>
-                <div>{getPaymentStatusBadge(selectedOrder.paymentStatus)}</div>
+                <div>{getPaymentStatusBadge(selectedOrder.paymentStatus, selectedOrder.paymentMethod)}</div>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-slate-500 font-mono">Trạng thái:</span>

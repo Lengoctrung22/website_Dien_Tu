@@ -9,3 +9,4 @@ Thumbs.db
 uploads/
 backend/uploads/
 *.tsbuildinfo
+.agents/

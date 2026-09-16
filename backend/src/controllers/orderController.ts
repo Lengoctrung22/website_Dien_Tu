@@ -155,13 +155,7 @@ export const createOrder = async (req: Request, res: Response) => {
 
     let paymentUrl = null;
     if (paymentMethod === 'ONLINE') {
-      const ipAddr = (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || '127.0.0.1';
-      paymentUrl = createVnpayPaymentUrl({
-        orderId: orderCode,
-        amount: finalTotal,
-        orderInfo: `Thanh toan don hang TechGear ${orderCode}`,
-        ipAddr: ipAddr.split(',')[0].trim(),
-      });
+      paymentUrl = `/payment-qr?orderCode=${orderCode}`;
     }
 
     return res.status(201).json({
@@ -267,7 +261,15 @@ export const getAllOrders = async (req: Request, res: Response) => {
 export const getOrderById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const order = await Order.findById(id);
+    const cleanId = String(id).trim().toUpperCase().replace(/^#/, '');
+
+    let order = null;
+    if (Types.ObjectId.isValid(id)) {
+      order = await Order.findById(id);
+    }
+    if (!order) {
+      order = await Order.findOne({ orderCode: cleanId });
+    }
 
     if (!order) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' });
@@ -544,7 +546,16 @@ export const handlePaymentWebhook = async (req: Request, res: Response) => {
 export const verifyOrderPayment = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const order = await Order.findById(id);
+    const cleanId = String(id).trim().toUpperCase().replace(/^#/, '');
+
+    let order = null;
+    if (Types.ObjectId.isValid(id)) {
+      order = await Order.findById(id);
+    }
+    if (!order) {
+      order = await Order.findOne({ orderCode: cleanId });
+    }
+
     if (!order) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' });
     }
@@ -571,6 +582,60 @@ export const verifyOrderPayment = async (req: Request, res: Response) => {
     return res.json({
       success: true,
       message: `Đã tự động xác nhận thanh toán thành công! Đơn hàng đã chuyển sang trạng thái "Đang xử lý".`,
+      data: order,
+    });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * Customer notifies online transfer completed
+ * Endpoint: POST /api/orders/:id/notify-paid
+ */
+export const notifyPaid = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const cleanId = String(id).trim().toUpperCase().replace(/^#/, '');
+
+    let order = null;
+    if (Types.ObjectId.isValid(id)) {
+      order = await Order.findById(id);
+    }
+    if (!order) {
+      order = await Order.findOne({ orderCode: cleanId });
+    }
+
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' });
+    }
+
+    // Terminal states check
+    if (order.orderStatus === 'cancelled') {
+      return res.status(400).json({
+        success: false,
+        message: 'Đơn hàng đã bị hủy, không thể thông báo chuyển khoản.',
+      });
+    }
+
+    if (order.orderStatus === 'delivered') {
+      return res.status(400).json({
+        success: false,
+        message: 'Đơn hàng đã được hoàn tất trước đó.',
+      });
+    }
+
+    // Update status to processing and paymentStatus to pending (if not already paid)
+    order.orderStatus = 'processing';
+    if (order.paymentStatus !== 'paid') {
+      order.paymentStatus = 'pending';
+    }
+
+    await order.save();
+
+    return res.json({
+      success: true,
+      message: 'Thông báo chuyển khoản thành công! Đơn hàng đã được chuyển sang trạng thái "Đang xử lý" để nhân viên đối soát.',
       data: order,
     });
   } catch (error: any) {

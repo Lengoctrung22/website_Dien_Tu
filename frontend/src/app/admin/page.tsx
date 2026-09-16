@@ -908,15 +908,22 @@ function OrdersDashboard({ user }: { user: any }) {
                     </td>
                     <td className="py-3 px-3 font-mono font-bold">{formatVND(order.totalAmount)}</td>
                     <td className="py-3 px-3">
-                      <span
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase ${
-                          order.paymentStatus === 'paid'
-                            ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30'
-                            : 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30'
-                        }`}
-                      >
-                        {order.paymentStatus === 'paid' ? 'Đã TT' : 'Chưa TT'} ({order.paymentMethod})
-                      </span>
+                      {order.paymentMethod === 'ONLINE' && order.paymentStatus === 'pending' ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/40 animate-pulse">
+                          <Clock className="w-3 h-3" />
+                          Chờ đối soát chuyển khoản
+                        </span>
+                      ) : (
+                        <span
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase ${
+                            order.paymentStatus === 'paid'
+                              ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30'
+                              : 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30'
+                          }`}
+                        >
+                          {order.paymentStatus === 'paid' ? 'Đã TT' : 'Chưa TT'} ({order.paymentMethod})
+                        </span>
+                      )}
                     </td>
                     <td className="py-3 px-3">
                       {order.orderStatus === 'pending' && (
@@ -946,10 +953,11 @@ function OrdersDashboard({ user }: { user: any }) {
                           <button
                             disabled={actionLoadingId === order._id}
                             onClick={() => handleAutoVerifyPayment(order._id)}
-                            className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-mono font-bold text-[10px] transition-all disabled:opacity-50"
-                            title="Xác nhận thanh toán thủ công/tự động"
+                            className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-mono font-bold text-[10px] transition-all disabled:opacity-50 flex items-center gap-1 shadow-sm active:scale-95"
+                            title="Xác nhận đã nhận tiền qua chuyển khoản MB Bank và chuyển trạng thái sang Paid"
                           >
-                            Xác Nhận TT
+                            <CheckCircle2 className="w-3 h-3" />
+                            <span>Xác nhận đã nhận tiền (Duyệt Paid)</span>
                           </button>
                         )}
                         {order.orderStatus === 'pending' && (
