@@ -58,7 +58,7 @@ export const createRateLimiter = (options: RateLimitOptions) => {
 
 export const orderRateLimiter = createRateLimiter({
   windowMs: 60 * 1000, // 1 minute
-  max: 30, // max 30 orders per minute per IP
+  max: 120, // max 120 orders per minute per IP
   message: 'Bạn đã tạo quá nhiều đơn hàng liên tiếp. Vui lòng chờ 1 phút trước khi thử lại.',
 });
 

@@ -18,8 +18,11 @@ import {
 import { fetchApi } from '@/lib/api';
 import { formatVND } from '@/lib/utils';
 import { SingleImageUpload, GalleryUpload } from '@/components/admin/ImageUpload';
+import { useAuthStore } from '@/store/authStore';
+import AccessDenied from '@/components/admin/AccessDenied';
 
 export default function AdminProductsPage() {
+  const { hasPermission, isAdmin } = useAuthStore();
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -74,6 +77,7 @@ export default function AdminProductsPage() {
   });
 
   const loadProducts = async () => {
+    if (!isAdmin() && !hasPermission('products')) return;
     setLoading(true);
     const params = new URLSearchParams();
     if (search.trim()) params.set('search', search.trim());
@@ -288,6 +292,10 @@ export default function AdminProductsPage() {
     setModalLoading(false);
     setTimeout(() => setFeedback(null), 3000);
   };
+
+  if (!isAdmin() && !hasPermission('products')) {
+    return <AccessDenied requiredPermission="products" />;
+  }
 
   return (
     <div className="space-y-6 pb-10">

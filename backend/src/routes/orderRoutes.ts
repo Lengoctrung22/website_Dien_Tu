@@ -11,7 +11,7 @@ import {
   handlePaymentWebhook,
   verifyOrderPayment,
 } from '../controllers/orderController';
-import { authenticateToken, optionalAuthenticateToken, requireRole } from '../middlewares/auth';
+import { authenticateToken, optionalAuthenticateToken, requireRole, requirePermission } from '../middlewares/auth';
 import { orderRateLimiter } from '../middlewares/rateLimiter';
 
 const router = Router();
@@ -25,15 +25,15 @@ router.post('/', orderRateLimiter, optionalAuthenticateToken, createOrder);
 // Customer order history
 router.get('/my-orders', authenticateToken, getMyOrders);
 
-// Admin & Staff list orders
-router.get('/', authenticateToken, requireRole(['admin', 'staff']), getAllOrders);
+// Admin & Staff list orders — requires 'orders' permission
+router.get('/', authenticateToken, requireRole(['admin', 'staff']), requirePermission('orders'), getAllOrders);
 
 // Order details
 router.get('/:id', optionalAuthenticateToken, getOrderById);
 
-// Update status (admin/staff)
-router.patch('/:id/status', authenticateToken, requireRole(['admin', 'staff']), updateOrderStatus);
-router.post('/:id/verify-payment', authenticateToken, requireRole(['admin', 'staff']), verifyOrderPayment);
+// Update status (admin/staff) — requires 'orders' permission
+router.patch('/:id/status', authenticateToken, requireRole(['admin', 'staff']), requirePermission('orders'), updateOrderStatus);
+router.post('/:id/verify-payment', authenticateToken, requireRole(['admin', 'staff']), requirePermission('orders'), verifyOrderPayment);
 
 // VNPAY & Online Payment Callbacks / Webhooks
 router.get('/payment/vnpay-return', handleVnpayReturn);

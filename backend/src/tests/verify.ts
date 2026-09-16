@@ -700,8 +700,9 @@ async function runTests() {
       headers: { Authorization: `Bearer ${adminToken}` },
     });
     const usersJson: any = await usersRes.json();
-    const staffUser = usersJson.data.find((u: any) => u.role === 'staff');
+    const staffUser = usersJson.data.find((u: any) => u.email === 'warehouse@techgear.vn');
     if (staffUser) {
+      const originalPermissions = staffUser.permissions ? [...staffUser.permissions] : ['inventory'];
       const updateRes = await fetch(`${BASE_URL}/admin/users/${staffUser._id}`, {
         method: 'PATCH',
         headers: {
@@ -717,6 +718,19 @@ async function runTests() {
       if (!updateJson.success || !updateJson.data.permissions.includes('inventory')) {
         throw new Error('Failed to update staff permissions');
       }
+
+      // Restore clean original permissions
+      await fetch(`${BASE_URL}/admin/users/${staffUser._id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${adminToken}`,
+        },
+        body: JSON.stringify({
+          role: 'staff',
+          permissions: originalPermissions,
+        }),
+      });
     }
   });
 
@@ -917,6 +931,173 @@ async function runTests() {
     if (uploadedUpperFilename.toLowerCase().includes('_png-')) {
       throw new Error(`Filename duplicated extension into basename: ${uploadedUpperFilename}`);
     }
+  });
+
+  // 21. RBAC Multi-Role Verification (Super Admin, Warehouse Staff, Orders Staff)
+  let warehouseToken = '';
+  let ordersToken = '';
+
+  await test('RBAC Role Logins & Permissions Alignment', async () => {
+    // Warehouse Staff Login
+    const wRes = await fetch(`${BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'warehouse@techgear.vn', password: 'staff123' }),
+    });
+    const wJson: any = await wRes.json();
+    if (!wJson.success || wJson.data.user.role !== 'staff' || !wJson.data.user.permissions?.includes('inventory')) {
+      throw new Error('Warehouse staff login or permissions incorrect');
+    }
+    warehouseToken = wJson.data.token;
+
+    // Orders Staff Login
+    const oRes = await fetch(`${BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'orders@techgear.vn', password: 'staff123' }),
+    });
+    const oJson: any = await oRes.json();
+    if (!oJson.success || oJson.data.user.role !== 'staff' || !oJson.data.user.permissions?.includes('orders')) {
+      throw new Error('Orders staff login or permissions incorrect');
+    }
+    ordersToken = oJson.data.token;
+  });
+
+  await test('RBAC Super Admin Universal Access Rights', async () => {
+    // Financial Reports
+    const repRes = await fetch(`${BASE_URL}/admin/summary`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    if (repRes.status !== 200) throw new Error('Super Admin denied on /admin/summary');
+
+    // Inventory
+    const invRes = await fetch(`${BASE_URL}/admin/inventory`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    if (invRes.status !== 200) throw new Error('Super Admin denied on /admin/inventory');
+
+    // Users
+    const usrRes = await fetch(`${BASE_URL}/admin/users`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    if (usrRes.status !== 200) throw new Error('Super Admin denied on /admin/users');
+
+    // Orders
+    const ordRes = await fetch(`${BASE_URL}/orders`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    if (ordRes.status !== 200) throw new Error('Super Admin denied on /orders');
+  });
+
+  await test('RBAC Warehouse Staff Boundary Enforcement', async () => {
+    // 1. CAN access inventory
+    const invRes = await fetch(`${BASE_URL}/admin/inventory`, {
+      headers: { Authorization: `Bearer ${warehouseToken}` },
+    });
+    if (invRes.status !== 200) throw new Error('Warehouse staff should have access to inventory');
+
+    // 2. CAN update stock
+    const pRes = await fetch(`${BASE_URL}/products?limit=1`);
+    const pJson: any = await pRes.json();
+    const prodId = pJson.data.products[0]._id;
+
+    const stockRes = await fetch(`${BASE_URL}/products/${prodId}/stock`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${warehouseToken}`,
+      },
+      body: JSON.stringify({
+        changeAmount: 5,
+        reason: 'restock',
+        note: 'Warehouse staff test restock',
+      }),
+    });
+    if (stockRes.status !== 200) throw new Error('Warehouse staff should be able to update stock');
+
+    // 3. CANNOT access financial reports (HTTP 403)
+    const repRes = await fetch(`${BASE_URL}/admin/summary`, {
+      headers: { Authorization: `Bearer ${warehouseToken}` },
+    });
+    if (repRes.status !== 403) throw new Error(`Warehouse staff must be blocked from /admin/summary, got ${repRes.status}`);
+
+    // 4. CANNOT access user management (HTTP 403)
+    const usrRes = await fetch(`${BASE_URL}/admin/users`, {
+      headers: { Authorization: `Bearer ${warehouseToken}` },
+    });
+    if (usrRes.status !== 403) throw new Error(`Warehouse staff must be blocked from /admin/users, got ${usrRes.status}`);
+
+    // 5. CANNOT modify orders (HTTP 403)
+    const ordRes = await fetch(`${BASE_URL}/orders`, {
+      headers: { Authorization: `Bearer ${warehouseToken}` },
+    });
+    if (ordRes.status !== 403) throw new Error(`Warehouse staff must be blocked from /orders, got ${ordRes.status}`);
+
+    // 6. CANNOT create products directly (HTTP 403)
+    const createProdRes = await fetch(`${BASE_URL}/products`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${warehouseToken}`,
+      },
+      body: JSON.stringify({ name: 'Unauthorized Gear', price: 1000000, category: 'mouse', brand: 'Test' }),
+    });
+    if (createProdRes.status !== 403) throw new Error(`Warehouse staff must be blocked from creating products, got ${createProdRes.status}`);
+  });
+
+  await test('RBAC Orders Staff Boundary Enforcement', async () => {
+    // 1. CAN access orders
+    const ordRes = await fetch(`${BASE_URL}/orders`, {
+      headers: { Authorization: `Bearer ${ordersToken}` },
+    });
+    if (ordRes.status !== 200) throw new Error('Orders staff should have access to /orders');
+
+    // 2. CANNOT access financial reports (HTTP 403)
+    const repRes = await fetch(`${BASE_URL}/admin/summary`, {
+      headers: { Authorization: `Bearer ${ordersToken}` },
+    });
+    if (repRes.status !== 403) throw new Error(`Orders staff must be blocked from /admin/summary, got ${repRes.status}`);
+
+    // 3. CANNOT access user management (HTTP 403)
+    const usrRes = await fetch(`${BASE_URL}/admin/users`, {
+      headers: { Authorization: `Bearer ${ordersToken}` },
+    });
+    if (usrRes.status !== 403) throw new Error(`Orders staff must be blocked from /admin/users, got ${usrRes.status}`);
+
+    // 4. CANNOT access inventory management (HTTP 403)
+    const invRes = await fetch(`${BASE_URL}/admin/inventory`, {
+      headers: { Authorization: `Bearer ${ordersToken}` },
+    });
+    if (invRes.status !== 403) throw new Error(`Orders staff must be blocked from /admin/inventory, got ${invRes.status}`);
+
+    // 5. CANNOT adjust inventory stock (HTTP 403)
+    const pRes = await fetch(`${BASE_URL}/products?limit=1`);
+    const pJson: any = await pRes.json();
+    const prodId = pJson.data.products[0]._id;
+
+    const stockRes = await fetch(`${BASE_URL}/products/${prodId}/stock`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${ordersToken}`,
+      },
+      body: JSON.stringify({
+        changeAmount: 10,
+        reason: 'restock',
+      }),
+    });
+    if (stockRes.status !== 403) throw new Error(`Orders staff must be blocked from stock adjustment, got ${stockRes.status}`);
+
+    // 6. CANNOT create products directly (HTTP 403)
+    const createProdRes = await fetch(`${BASE_URL}/products`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${ordersToken}`,
+      },
+      body: JSON.stringify({ name: 'Unauthorized Gear', price: 1000000, category: 'mouse', brand: 'Test' }),
+    });
+    if (createProdRes.status !== 403) throw new Error(`Orders staff must be blocked from creating products, got ${createProdRes.status}`);
   });
 
   // Clean up test images

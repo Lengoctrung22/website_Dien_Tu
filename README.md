@@ -8,7 +8,7 @@ Hệ thống website thương mại điện tử chuyên nghiệp cung cấp thi
 
 - **Kiến trúc Monorepo:**
   - `backend/`: Node.js + Express.js + TypeScript RESTful API, Mongoose ODM.
-  - `frontend/`: Next.js 14+ (App Router) + Tailwind CSS + Framer Motion + Lucide React + Recharts + Embla Carousel.
+  - `frontend/`: Next.js 16+ (App Router) + Tailwind CSS + Framer Motion + Lucide React + Recharts + Embla Carousel.
 - **Cơ sở dữ liệu:** MongoDB (hỗ trợ MongoDB Local, MongoDB Atlas và **tự động fallback In-Memory MongoDB `mongodb-memory-server`** giúp khởi chạy ngay lập tức mà không cần cài đặt MongoDB daemon).
 - **Quản lý trạng thái:** Zustand (persist localStorage) & TanStack React Query.
 - **Cổng thanh toán:** Cổng thanh toán trực tuyến VNPAY (chữ ký bảo mật HMAC SHA512) kết hợp COD và Payment Webhook xác thực chữ ký số.

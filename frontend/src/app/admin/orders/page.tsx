@@ -1,6 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import {
   ShoppingCart,
   Search,
@@ -15,22 +17,28 @@ import {
   RotateCcw,
   Check,
   AlertTriangle,
+  Package,
+  ArrowUpRight,
 } from 'lucide-react';
 import { fetchApi } from '@/lib/api';
 import { formatVND, formatDate, ORDER_STATUS_MAP } from '@/lib/utils';
+import { useAuthStore } from '@/store/authStore';
+import AccessDenied from '@/components/admin/AccessDenied';
 
-export default function AdminOrdersPage() {
+function OrdersContent({ initialStatus }: { initialStatus: string }) {
+  const { user, hasPermission } = useAuthStore();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [autoSync, setAutoSync] = useState(true);
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState(initialStatus);
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
   const loadOrders = useCallback(async (silent = false) => {
+    if (!hasPermission('orders')) return;
     if (!silent) setLoading(true);
     else setIsRefreshing(true);
 
@@ -50,10 +58,13 @@ export default function AdminOrdersPage() {
       setLoading(false);
       setIsRefreshing(false);
     }
-  }, [search, statusFilter]);
+  }, [search, statusFilter, hasPermission]);
 
   useEffect(() => {
-    loadOrders();
+    const timer = setTimeout(() => {
+      loadOrders();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [loadOrders]);
 
   // Auto-sync polling every 10 seconds
@@ -115,8 +126,9 @@ export default function AdminOrdersPage() {
     }
   };
 
-  // 3. Manual status change fallback
+  // 3. Manual Specific Status Transition
   const handleStatusChange = async (orderId: string, orderStatus: string) => {
+    setActionLoadingId(orderId);
     try {
       const res = await fetchApi(`/orders/${orderId}/status`, {
         method: 'PATCH',
@@ -134,6 +146,8 @@ export default function AdminOrdersPage() {
     } catch {
       showToast('Lỗi kết nối khi cập nhật trạng thái', 'error');
       loadOrders();
+    } finally {
+      setActionLoadingId(null);
     }
   };
 
@@ -183,31 +197,25 @@ export default function AdminOrdersPage() {
     switch (status) {
       case 'paid':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
-            <CheckCircle2 className="w-3 h-3" />
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-emerald-500/15 text-emerald-700 dark:text-signal-emerald border border-emerald-500/25">
             Đã thanh toán
           </span>
         );
+      case 'unpaid':
       case 'pending':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold uppercase tracking-wider bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/25">
             Chưa thanh toán
-          </span>
-        );
-      case 'failed':
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold uppercase tracking-wider bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/30">
-            Thất bại
           </span>
         );
       case 'refunded':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold uppercase tracking-wider bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-rose-500/15 text-rose-700 dark:text-signal-rose border border-rose-500/25">
             Đã hoàn tiền
           </span>
         );
       default:
-        return <span>{status}</span>;
+        return <span className="font-mono text-xs">{status}</span>;
     }
   };
 
@@ -219,17 +227,121 @@ export default function AdminOrdersPage() {
     .filter((o) => o.paymentStatus === 'paid')
     .reduce((sum, o) => sum + (o.totalAmount || 0), 0);
 
+  if (!hasPermission('orders')) {
+    return <AccessDenied requiredPermission="orders" />;
+  }
+
   return (
     <div className="space-y-6 pb-12">
-      {/* Top Header & Real-time Auto-Sync Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* 1. TOP HEADER BANNER */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-cyan-500/10 border border-cyan-500/25 surface-bevel">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-            <ShoppingCart className="w-7 h-7 text-cyan-600 dark:text-signal-cyan" />
+          <div className="flex items-center gap-2">
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-cyan-500/20 text-cyan-800 dark:text-cyan-200 border border-cyan-500/30">
+              Nhân Viên Đơn Hàng (Orders)
+            </span>
+            <span className="text-xs text-cyan-700 dark:text-cyan-300 font-medium">Quyền: Xử lý tiến trình đơn hàng (`orders`)</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight mt-1 flex items-center gap-2">
+            <ShoppingCart className="w-7 h-7 text-cyan-600 dark:text-cyan-400" />
             <span>Quản Lý Tiến Trình Đơn Hàng Tự Động</span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium mt-1">
-            Tự động xác nhận giao dịch thanh toán & tự động cập nhật tiến trình đơn hàng (Chờ xác nhận → Xử lý → Giao hàng → Đã giao).
+            Xin chào <strong className="text-slate-900 dark:text-white">{user?.fullName || 'Nhân viên Đơn hàng'}</strong>. Tiếp nhận đơn mới, xác thực thanh toán và đẩy đơn vận chuyển.
+          </p>
+        </div>
+      </div>
+
+      {/* 2. CÁC CHỨC NĂNG CHÍNH DÀNH CHO NHÂN VIÊN ĐƠN HÀNG */}
+      <div className="p-4 rounded-2xl bg-surface-card hairline-border surface-bevel shadow-sm space-y-3">
+        <div className="flex items-center justify-between border-b hairline-border pb-2.5">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse" />
+            <h2 className="text-xs font-mono uppercase font-bold text-slate-700 dark:text-slate-300 tracking-wider">
+              Chức Năng Chính - Nhân Viên Đơn Hàng
+            </h2>
+          </div>
+          <span className="text-[11px] font-mono text-slate-500">Phân hệ xử lý đơn hàng</span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {/* Chức năng 1: Tổng quan đơn hàng */}
+          <Link
+            href="/admin"
+            className="flex items-center justify-between p-3.5 rounded-xl border hairline-border bg-surface-subtle/30 dark:bg-surface-elevated/40 hover:bg-cyan-500/10 hover:border-cyan-500/30 transition-all group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-600 dark:text-cyan-400 group-hover:scale-105 transition-transform">
+                <ShoppingCart className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
+                  Tổng Quan Đơn Hàng (KPI)
+                </p>
+                <p className="text-[11px] text-slate-500 font-mono">Bảng điều khiển &amp; KPI</p>
+              </div>
+            </div>
+            <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-cyan-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+          </Link>
+
+          {/* Chức năng 2: Danh sách & quản lý đơn */}
+          <div className="flex items-center justify-between p-3.5 rounded-xl border border-cyan-500/40 bg-cyan-500/10 shadow-xs">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-700 dark:text-cyan-300">
+                <Package className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-900 dark:text-white">
+                  Danh Sách &amp; Quản Lý Đơn
+                </p>
+                <p className="text-[11px] text-cyan-700 dark:text-cyan-300 font-mono font-bold">
+                  {orders.length} đơn hàng trong danh sách
+                </p>
+              </div>
+            </div>
+            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-800 dark:text-cyan-200">
+              Đang xem
+            </span>
+          </div>
+
+          {/* Chức năng 3: Hàng chờ cần xử lý ngay */}
+          <button
+            type="button"
+            onClick={() => setStatusFilter(statusFilter === 'pending' ? '' : 'pending')}
+            className={`flex items-center justify-between p-3.5 rounded-xl border hairline-border transition-all text-left ${
+              statusFilter === 'pending'
+                ? 'border-amber-500/40 bg-amber-500/15'
+                : 'bg-surface-subtle/30 dark:bg-surface-elevated/40 hover:bg-cyan-500/10 hover:border-cyan-500/30'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-amber-400">
+                <Clock className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-900 dark:text-white">
+                  Hàng Chờ Cần Xử Lý Ngay
+                </p>
+                <p className="text-[11px] text-amber-600 dark:text-amber-400 font-mono font-bold">
+                  {pendingOrders} đơn chờ duyệt
+                </p>
+              </div>
+            </div>
+            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-300">
+              {statusFilter === 'pending' ? 'Đang lọc' : 'Lọc ngay'}
+            </span>
+          </button>
+        </div>
+      </div>
+
+      {/* Top Header & Real-time Auto-Sync Bar */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+            <span>Danh Sách Đơn Hàng &amp; Điều Khiển Đồng Bộ</span>
+          </h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Tự động đồng bộ mỗi 10 giây hoặc bấm &ldquo;Làm mới&rdquo; để cập nhật dữ liệu tức thì.
           </p>
         </div>
 
@@ -607,5 +719,31 @@ export default function AdminOrdersPage() {
         </div>
       )}
     </div>
+  );
+}
+
+function OrdersContainer() {
+  const searchParams = useSearchParams();
+  const statusParam = searchParams.get('status') || '';
+  return <OrdersContent key={statusParam} initialStatus={statusParam} />;
+}
+
+export default function AdminOrdersPage() {
+  const { hasPermission } = useAuthStore();
+
+  if (!hasPermission('orders')) {
+    return <AccessDenied requiredPermission="orders" />;
+  }
+
+  return (
+    <Suspense
+      fallback={
+        <div className="p-8 text-center text-xs font-mono font-medium text-slate-600 dark:text-slate-400">
+          Đang tải danh sách đơn hàng...
+        </div>
+      }
+    >
+      <OrdersContainer />
+    </Suspense>
   );
 }

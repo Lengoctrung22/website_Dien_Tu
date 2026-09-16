@@ -2,27 +2,30 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import {
   Boxes,
+  Package,
   AlertTriangle,
   Search,
   PlusCircle,
   History,
   CheckCircle2,
   X,
+  ArrowUpRight,
 } from 'lucide-react';
 import { fetchApi } from '@/lib/api';
 import { formatDate } from '@/lib/utils';
+import { useAuthStore } from '@/store/authStore';
+import AccessDenied from '@/components/admin/AccessDenied';
 
-function InventoryContent() {
-  const searchParams = useSearchParams();
-  const lowStockParam = searchParams.get('lowStock') === 'true';
-
+function InventoryContent({ initialLowStock }: { initialLowStock: boolean }) {
+  const { user } = useAuthStore();
   const [products, setProducts] = useState<any[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [filterLowStock, setFilterLowStock] = useState(lowStockParam);
+  const [filterLowStock, setFilterLowStock] = useState(initialLowStock);
 
   // Stock Adjustment Modal
   const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
@@ -90,29 +93,105 @@ function InventoryContent() {
 
   return (
     <div className="space-y-6 pb-10">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* 1. TOP HEADER BANNER */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-amber-500/10 border border-amber-500/25 surface-bevel">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-            <Boxes className="w-6 h-6 text-slate-900 dark:text-black" />
+          <div className="flex items-center gap-2">
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-amber-500/20 text-amber-800 dark:text-amber-200 border border-amber-500/30">
+              Nhân Viên Kho (Warehouse)
+            </span>
+            <span className="text-xs text-amber-700 dark:text-amber-300 font-medium">Quyền: Quản lý kho, nhập hàng (`inventory`)</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight mt-1 flex items-center gap-2">
+            <Boxes className="w-7 h-7 text-amber-600 dark:text-amber-400" />
             <span>Quản Lý Kho Hàng & Cảnh Báo Tồn Kho</span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium mt-1">
-            Theo dõi tồn kho thời gian thực, tự động cảnh báo khi tồn &lt; 5 chiếc và ghi vết lịch sử điều chỉnh.
+            Xin chào <strong className="text-slate-900 dark:text-white">{user?.fullName || 'Nhân viên Kho'}</strong>. Theo dõi tồn kho thời gian thực, tự động cảnh báo &lt; 5 chiếc và bổ sung hàng hóa.
           </p>
         </div>
+      </div>
 
-        {/* Filter Toggle */}
-        <button
-          onClick={() => setFilterLowStock(!filterLowStock)}
-          className={`px-3.5 py-2 rounded-lg text-xs font-mono font-bold flex items-center gap-2 hairline-border transition-all ${
-            filterLowStock
-              ? 'bg-amber-500/15 text-amber-800 dark:text-signal-amber border border-amber-500/30 shadow-sm'
-              : 'bg-surface-card hover:bg-surface-subtle/50 text-slate-700 dark:text-slate-300'
-          }`}
-        >
-          <AlertTriangle className="w-3.5 h-3.5 text-amber-600 dark:text-signal-amber" />
-          <span>{filterLowStock ? 'Đang lọc: Tồn kho < 5 chiếc' : 'Chỉ xem sắp hết hàng (< 5)'}</span>
-        </button>
+      {/* 2. CÁC CHỨC NĂNG CHÍNH DÀNH CHO NHÂN VIÊN KHO */}
+      <div className="p-4 rounded-2xl bg-surface-card hairline-border surface-bevel shadow-sm space-y-3">
+        <div className="flex items-center justify-between border-b hairline-border pb-2.5">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+            <h2 className="text-xs font-mono uppercase font-bold text-slate-700 dark:text-slate-300 tracking-wider">
+              Chức Năng Chính - Nhân Viên Kho Hàng
+            </h2>
+          </div>
+          <span className="text-[11px] font-mono text-slate-500">Phân hệ nghiệp vụ kho</span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {/* Chức năng 1: Tổng quan kho hàng */}
+          <Link
+            href="/admin"
+            className="flex items-center justify-between p-3.5 rounded-xl border hairline-border bg-surface-subtle/30 dark:bg-surface-elevated/40 hover:bg-amber-500/10 hover:border-amber-500/30 transition-all group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-600 dark:text-amber-400 group-hover:scale-105 transition-transform">
+                <Boxes className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                  Tổng Quan Kho Hàng (KPI)
+                </p>
+                <p className="text-[11px] text-slate-500 font-mono">Bảng điều khiển &amp; KPI</p>
+              </div>
+            </div>
+            <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-amber-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+          </Link>
+
+          {/* Chức năng 2: Quản lý kho & kiểm kê */}
+          <div className="flex items-center justify-between p-3.5 rounded-xl border border-amber-500/40 bg-amber-500/10 shadow-xs">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-700 dark:text-amber-300">
+                <Package className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-900 dark:text-white">
+                  Quản Lý Kho &amp; Kiểm Kê
+                </p>
+                <p className="text-[11px] text-amber-700 dark:text-amber-300 font-mono font-bold">
+                  {products.length} SKU đang hiển thị
+                </p>
+              </div>
+            </div>
+            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-800 dark:text-amber-200">
+              Đang xem
+            </span>
+          </div>
+
+          {/* Chức năng 3: Cảnh báo tồn kho thấp */}
+          <button
+            type="button"
+            onClick={() => setFilterLowStock(!filterLowStock)}
+            className={`flex items-center justify-between p-3.5 rounded-xl border hairline-border transition-all text-left ${
+              filterLowStock
+                ? 'border-amber-500/40 bg-amber-500/15'
+                : 'bg-surface-subtle/30 dark:bg-surface-elevated/40 hover:bg-amber-500/10 hover:border-amber-500/30'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-600 dark:text-rose-400">
+                <AlertTriangle className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-900 dark:text-white">
+                  Cảnh Báo Tồn Kho Thấp
+                </p>
+                <p className="text-[11px] text-rose-600 dark:text-rose-400 font-mono font-bold">
+                  {lowStockCount} SKU cần nhập (&lt; 5)
+                </p>
+              </div>
+            </div>
+            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-rose-500/15 text-rose-700 dark:text-rose-300">
+              {filterLowStock ? 'Đang lọc' : 'Lọc ngay'}
+            </span>
+          </button>
+        </div>
       </div>
 
       {feedback && (
@@ -390,10 +469,22 @@ function InventoryContent() {
   );
 }
 
+function InventoryContainer() {
+  const searchParams = useSearchParams();
+  const lowStockParam = searchParams.get('lowStock') === 'true';
+  return <InventoryContent key={String(lowStockParam)} initialLowStock={lowStockParam} />;
+}
+
 export default function InventoryPage() {
+  const { hasPermission } = useAuthStore();
+
+  if (!hasPermission('inventory')) {
+    return <AccessDenied requiredPermission="inventory" />;
+  }
+
   return (
     <Suspense fallback={<div className="p-8 text-center text-xs font-mono font-medium text-slate-600 dark:text-slate-400">Đang tải kho hàng...</div>}>
-      <InventoryContent />
+      <InventoryContainer />
     </Suspense>
   );
 }

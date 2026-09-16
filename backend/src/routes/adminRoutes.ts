@@ -9,21 +9,24 @@ import {
   createStaff,
   updateUserStatus,
 } from '../controllers/adminController';
-import { authenticateToken, requireRole } from '../middlewares/auth';
+import { authenticateToken, requireRole, requirePermission } from '../middlewares/auth';
 
 const router = Router();
 
 // All admin routes require authentication and staff or admin role
 router.use(authenticateToken, requireRole(['admin', 'staff']));
 
-router.get('/summary', getDashboardSummary);
-router.get('/periodic-revenue', getPeriodicRevenue);
-router.get('/quarterly-revenue', getQuarterlyRevenue);
-router.get('/daily-categories', getDailyStatsByCategory);
-router.get('/inventory', getInventory);
+// Dashboard & Revenue reports — admin only (requirePermission('all') blocks staff without 'all')
+router.get('/summary', requirePermission('reports'), getDashboardSummary);
+router.get('/periodic-revenue', requirePermission('reports'), getPeriodicRevenue);
+router.get('/quarterly-revenue', requirePermission('reports'), getQuarterlyRevenue);
+router.get('/daily-categories', requirePermission('reports'), getDailyStatsByCategory);
 
-// User & staff management
-router.get('/users', getUsers);
+// Inventory management — requires 'inventory' permission
+router.get('/inventory', requirePermission('inventory'), getInventory);
+
+// User & staff management — admin only
+router.get('/users', requireRole(['admin']), getUsers);
 router.post('/users/staff', requireRole(['admin']), createStaff);
 router.patch('/users/:id', requireRole(['admin']), updateUserStatus);
 
