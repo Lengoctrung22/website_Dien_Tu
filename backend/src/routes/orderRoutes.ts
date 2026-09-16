@@ -6,6 +6,7 @@ import {
   getAllOrders,
   getOrderById,
   updateOrderStatus,
+  confirmOrderReceipt,
   handleVnpayReturn,
   handleVnpayIpn,
   handlePaymentWebhook,
@@ -34,6 +35,9 @@ router.get('/:id', optionalAuthenticateToken, getOrderById);
 // Update status (admin/staff) — requires 'orders' permission
 router.patch('/:id/status', authenticateToken, requireRole(['admin', 'staff']), requirePermission('orders'), updateOrderStatus);
 router.post('/:id/verify-payment', authenticateToken, requireRole(['admin', 'staff']), requirePermission('orders'), verifyOrderPayment);
+
+// Customer / Guest confirm receipt
+router.post('/:id/confirm-receipt', optionalAuthenticateToken, confirmOrderReceipt);
 
 // VNPAY & Online Payment Callbacks / Webhooks
 router.get('/payment/vnpay-return', handleVnpayReturn);

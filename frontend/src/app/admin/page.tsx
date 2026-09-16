@@ -21,6 +21,7 @@ import {
   History,
   ShieldCheck,
   Zap,
+  RefreshCw,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -576,7 +577,13 @@ function OrdersDashboard({ user }: { user: any }) {
     const timer = setTimeout(() => {
       loadOrders();
     }, 0);
-    return () => clearTimeout(timer);
+    const interval = setInterval(() => {
+      loadOrders();
+    }, 10000);
+    return () => {
+      clearTimeout(timer);
+      clearInterval(interval);
+    };
   }, [loadOrders]);
 
   const showToast = (message: string) => {
@@ -636,8 +643,17 @@ function OrdersDashboard({ user }: { user: any }) {
   const shippingCount = orders.filter((o) => o.orderStatus === 'shipping').length;
   const deliveredCount = orders.filter((o) => o.orderStatus === 'delivered').length;
 
+  const [filterTab, setFilterTab] = useState<'all' | 'urgent' | 'shipping' | 'delivered'>('all');
+
+  const displayedOrders = orders.filter((o) => {
+    if (filterTab === 'urgent') return o.orderStatus === 'pending' || o.orderStatus === 'processing';
+    if (filterTab === 'shipping') return o.orderStatus === 'shipping';
+    if (filterTab === 'delivered') return o.orderStatus === 'delivered';
+    return true;
+  });
+
   const urgentQueue = orders.filter(
-    (o) => o.orderStatus === 'pending' || o.orderStatus === 'processing'
+    (o) => o.orderStatus === 'pending' || o.orderStatus === 'processing' || o.orderStatus === 'shipping'
   );
 
   return (
@@ -765,7 +781,7 @@ function OrdersDashboard({ user }: { user: any }) {
         <div className="p-5 rounded-2xl bg-surface-card hairline-border surface-bevel shadow-sm border-l-4 border-l-indigo-500">
           <span className="text-xs font-mono font-bold text-indigo-700 dark:text-indigo-400 uppercase flex items-center gap-1.5">
             <Truck className="w-3.5 h-3.5" />
-            <span>Đang Giao Hàng</span>
+            <span>Đang Giao Hàng (Chờ Khách Nhận)</span>
           </span>
           <p className="text-3xl font-black font-mono mt-1 text-indigo-600 dark:text-indigo-400">{shippingCount}</p>
           <span className="text-[11px] text-indigo-700/80 dark:text-indigo-400/80 mt-1 block">Đang trên đường giao</span>
@@ -774,38 +790,98 @@ function OrdersDashboard({ user }: { user: any }) {
         <div className="p-5 rounded-2xl bg-surface-card hairline-border surface-bevel shadow-sm border-l-4 border-l-emerald-500">
           <span className="text-xs font-mono font-bold text-emerald-700 dark:text-emerald-400 uppercase flex items-center gap-1.5">
             <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>Đã Giao Thành Công</span>
+            <span>✓ ĐÃ GIAO (HOÀN TẤT)</span>
           </span>
           <p className="text-3xl font-black font-mono mt-1 text-emerald-600 dark:text-emerald-400">{deliveredCount}</p>
           <span className="text-[11px] text-emerald-700/80 dark:text-emerald-400/80 mt-1 block">Hoàn tất quy trình</span>
         </div>
       </div>
 
-      {/* Urgent Processing Queue */}
+      {/* Realtime Order Progression Queue & Controls */}
       <div className="rounded-2xl hairline-border surface-bevel bg-surface-card p-6 shadow-sm space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b hairline-border">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b hairline-border">
           <div className="flex items-center gap-2">
             <Zap className="w-5 h-5 text-cyan-500" />
             <div>
               <h2 className="font-black text-base text-slate-900 dark:text-white">
-                Hàng Chờ Đơn Hàng Cần Xử Lý Ngay
+                Danh Sách Tiến Trình Đơn Hàng (Real-time Sync)
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Các đơn hàng ở trạng thái Chờ xác nhận hoặc Đang xử lý cần được xác thực và chuyển tiếp.
+                Tự động đồng bộ mỗi 10 giây. Khi khách hàng xác nhận nhận hàng, trạng thái sẽ tự động cập nhật sang &ldquo;✓ ĐÃ GIAO (HOÀN TẤT)&rdquo;.
               </p>
             </div>
           </div>
-          <span className="px-2.5 py-1 rounded-full text-xs font-mono font-bold bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30">
-            {urgentQueue.length} đơn chờ
-          </span>
+          <div className="flex items-center gap-2.5 self-start sm:self-auto">
+            <button
+              type="button"
+              onClick={() => loadOrders()}
+              disabled={loading}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 text-white hover:bg-slate-800 text-xs font-mono font-bold transition-all shadow-sm active:translate-y-0.5 disabled:opacity-50"
+              title="Làm mới danh sách đơn hàng tức thì"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+              <span>Làm mới</span>
+            </button>
+            <span className="px-2.5 py-1 rounded-full text-xs font-mono font-bold bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30">
+              {displayedOrders.length} đơn hiển thị
+            </span>
+          </div>
+        </div>
+
+        {/* Filter Tabs */}
+        <div className="flex flex-wrap items-center gap-2 pt-1">
+          <button
+            type="button"
+            onClick={() => setFilterTab('all')}
+            className={`px-3 py-1 rounded-lg text-xs font-mono font-bold transition-all ${
+              filterTab === 'all'
+                ? 'bg-cyan-600 text-white shadow-xs'
+                : 'bg-surface-subtle/50 dark:bg-surface-elevated text-slate-600 dark:text-slate-300 hover:bg-surface-subtle'
+            }`}
+          >
+            Tất cả ({orders.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setFilterTab('urgent')}
+            className={`px-3 py-1 rounded-lg text-xs font-mono font-bold transition-all ${
+              filterTab === 'urgent'
+                ? 'bg-amber-600 text-white shadow-xs'
+                : 'bg-surface-subtle/50 dark:bg-surface-elevated text-slate-600 dark:text-slate-300 hover:bg-surface-subtle'
+            }`}
+          >
+            Cần xử lý ({pendingCount + processingCount})
+          </button>
+          <button
+            type="button"
+            onClick={() => setFilterTab('shipping')}
+            className={`px-3 py-1 rounded-lg text-xs font-mono font-bold transition-all ${
+              filterTab === 'shipping'
+                ? 'bg-purple-600 text-white shadow-xs'
+                : 'bg-surface-subtle/50 dark:bg-surface-elevated text-slate-600 dark:text-slate-300 hover:bg-surface-subtle'
+            }`}
+          >
+            Đang giao hàng (Chờ khách nhận) ({shippingCount})
+          </button>
+          <button
+            type="button"
+            onClick={() => setFilterTab('delivered')}
+            className={`px-3 py-1 rounded-lg text-xs font-mono font-bold transition-all ${
+              filterTab === 'delivered'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'bg-surface-subtle/50 dark:bg-surface-elevated text-slate-600 dark:text-slate-300 hover:bg-surface-subtle'
+            }`}
+          >
+            ✓ ĐÃ GIAO (HOÀN TẤT) ({deliveredCount})
+          </button>
         </div>
 
         {loading ? (
           <div className="py-10 text-center text-xs font-mono text-slate-500">Đang tải đơn hàng...</div>
-        ) : urgentQueue.length === 0 ? (
-          <div className="py-8 text-center text-xs text-emerald-600 font-semibold flex flex-col items-center gap-2">
-            <CheckCircle2 className="w-8 h-8" />
-            <span>Tuyệt vời! Không có đơn hàng nào tồn đọng cần xử lý.</span>
+        ) : displayedOrders.length === 0 ? (
+          <div className="py-8 text-center text-xs text-slate-500 font-semibold flex flex-col items-center gap-2">
+            <CheckCircle2 className="w-8 h-8 text-emerald-500" />
+            <span>Không có đơn hàng nào trong phân loại này.</span>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -821,7 +897,7 @@ function OrdersDashboard({ user }: { user: any }) {
                 </tr>
               </thead>
               <tbody className="divide-y hairline-border">
-                {urgentQueue.map((order) => (
+                {displayedOrders.map((order) => (
                   <tr key={order._id} className="hover:bg-surface-subtle/40 transition-colors">
                     <td className="py-3 px-3 font-mono font-bold text-slate-900 dark:text-white">
                       {order.orderCode}
@@ -843,15 +919,26 @@ function OrdersDashboard({ user }: { user: any }) {
                       </span>
                     </td>
                     <td className="py-3 px-3">
-                      <span
-                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-mono font-bold uppercase ${
-                          order.orderStatus === 'pending'
-                            ? 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30'
-                            : 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30'
-                        }`}
-                      >
-                        {order.orderStatus === 'pending' ? 'Chờ xác nhận' : 'Đang xử lý'}
-                      </span>
+                      {order.orderStatus === 'pending' && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-mono font-bold uppercase bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                          Chờ xác nhận
+                        </span>
+                      )}
+                      {order.orderStatus === 'processing' && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-mono font-bold uppercase bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30">
+                          Đang xử lý
+                        </span>
+                      )}
+                      {order.orderStatus === 'shipping' && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-mono font-bold uppercase bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30">
+                          Đang giao hàng (Chờ khách nhận)
+                        </span>
+                      )}
+                      {order.orderStatus === 'delivered' && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-mono font-bold uppercase bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+                          ✓ ĐÃ GIAO (HOÀN TẤT)
+                        </span>
+                      )}
                     </td>
                     <td className="py-3 px-3 text-right">
                       <div className="flex items-center justify-end gap-1.5">
@@ -865,14 +952,37 @@ function OrdersDashboard({ user }: { user: any }) {
                             Xác Nhận TT
                           </button>
                         )}
-                        <button
-                          disabled={actionLoadingId === order._id}
-                          onClick={() => handleAutoAdvance(order)}
-                          className="px-2.5 py-1 rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white font-mono font-bold text-[10px] transition-all disabled:opacity-50 flex items-center gap-1"
-                        >
-                          <Zap className="w-3 h-3" />
-                          <span>{order.orderStatus === 'pending' ? 'Duyệt Đơn' : 'Giao Hàng'}</span>
-                        </button>
+                        {order.orderStatus === 'pending' && (
+                          <button
+                            disabled={actionLoadingId === order._id}
+                            onClick={() => handleAutoAdvance(order)}
+                            className="px-2.5 py-1 rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white font-mono font-bold text-[10px] transition-all disabled:opacity-50 flex items-center gap-1"
+                          >
+                            <Zap className="w-3 h-3" />
+                            <span>Duyệt Đơn</span>
+                          </button>
+                        )}
+                        {order.orderStatus === 'processing' && (
+                          <button
+                            disabled={actionLoadingId === order._id}
+                            onClick={() => handleAutoAdvance(order)}
+                            className="px-2.5 py-1 rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white font-mono font-bold text-[10px] transition-all disabled:opacity-50 flex items-center gap-1"
+                          >
+                            <Zap className="w-3 h-3" />
+                            <span>Giao Hàng</span>
+                          </button>
+                        )}
+                        {order.orderStatus === 'shipping' && (
+                          <button
+                            disabled={actionLoadingId === order._id}
+                            onClick={() => handleAutoAdvance(order)}
+                            className="px-2.5 py-1 rounded-lg bg-emerald-600/90 hover:bg-emerald-700 text-white font-mono font-bold text-[10px] transition-all disabled:opacity-50 flex items-center gap-1"
+                            title="Nhân viên xác nhận thay thế khi khách nhận hàng trực tiếp"
+                          >
+                            <CheckCircle2 className="w-3 h-3" />
+                            <span>Ghi đè: Đã giao</span>
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -894,10 +1004,10 @@ function OrdersDashboard({ user }: { user: any }) {
             2. Đang xử lý
           </div>
           <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-700 dark:text-indigo-300">
-            3. Đang giao hàng
+            3. Đang giao hàng (Chờ khách nhận)
           </div>
           <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300">
-            4. Đã giao (Hoàn tất)
+            4. ✓ ĐÃ GIAO (HOÀN TẤT)
           </div>
           <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-700 dark:text-rose-300">
             5. Đã hủy (Hoàn kho)

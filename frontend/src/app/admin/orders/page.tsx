@@ -171,14 +171,14 @@ function OrdersContent({ initialStatus }: { initialStatus: string }) {
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-mono font-bold uppercase tracking-wider bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30">
             <Truck className="w-3 h-3" />
-            Đang giao hàng
+            Đang giao hàng (Chờ khách nhận)
           </span>
         );
       case 'delivered':
         return (
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-mono font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
             <Check className="w-3 h-3" />
-            Đã giao (Hoàn tất)
+            ✓ ĐÃ GIAO (HOÀN TẤT)
           </span>
         );
       case 'cancelled':
@@ -454,8 +454,8 @@ function OrdersContent({ initialStatus }: { initialStatus: string }) {
               <option value="" className="bg-surface-card text-slate-900 dark:text-white">Tất cả trạng thái</option>
               <option value="pending" className="bg-surface-card text-slate-900 dark:text-white">Chờ xác nhận</option>
               <option value="processing" className="bg-surface-card text-slate-900 dark:text-white">Đang xử lý</option>
-              <option value="shipping" className="bg-surface-card text-slate-900 dark:text-white">Đang giao hàng</option>
-              <option value="delivered" className="bg-surface-card text-slate-900 dark:text-white">Đã giao</option>
+              <option value="shipping" className="bg-surface-card text-slate-900 dark:text-white">Đang giao hàng (Chờ khách nhận)</option>
+              <option value="delivered" className="bg-surface-card text-slate-900 dark:text-white">✓ ĐÃ GIAO (HOÀN TẤT)</option>
               <option value="cancelled" className="bg-surface-card text-slate-900 dark:text-white">Đã hủy</option>
             </select>
           </div>
@@ -592,10 +592,11 @@ function OrdersContent({ initialStatus }: { initialStatus: string }) {
                                   <button
                                     onClick={() => handleAutoAdvance(o)}
                                     disabled={isOrderActionLoading}
-                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-mono text-[10px] font-bold shadow-sm transition-all active:scale-95 disabled:opacity-50"
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600/90 hover:bg-emerald-700 text-white font-mono text-[10px] font-bold shadow-sm transition-all active:scale-95 disabled:opacity-50"
+                                    title="Nhân viên xác nhận thay thế khi khách nhận hàng trực tiếp"
                                   >
                                     <PackageCheck className="w-3 h-3" />
-                                    <span>Xác nhận đã giao (Auto Paid)</span>
+                                    <span>Ghi đè: Đã giao</span>
                                   </button>
                                 )}
 

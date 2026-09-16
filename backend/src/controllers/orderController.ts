@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { Types } from 'mongoose';
 import { Order, IOrderItem } from '../models/Order';
 import { Product } from '../models/Product';
 import { InventoryLog } from '../models/InventoryLog';
@@ -576,3 +577,104 @@ export const verifyOrderPayment = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+/**
+ * Customer / Guest confirm receipt of goods
+ * Endpoint: POST /api/orders/:id/confirm-receipt
+ * When confirmed: order transitions from `shipping` to `delivered`.
+ * If payment is COD and paymentStatus === 'pending', automatically mark paymentStatus = 'paid'.
+ */
+export const confirmOrderReceipt = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { phone } = req.body || {};
+
+    const cleanId = String(id).trim().toUpperCase().replace(/^#/, '');
+
+    let order = null;
+    if (Types.ObjectId.isValid(id)) {
+      order = await Order.findById(id);
+    }
+    if (!order) {
+      order = await Order.findOne({ orderCode: cleanId });
+    }
+
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' });
+    }
+
+    // Authorization verification:
+    // 1. Staff or Admin: authorized
+    // 2. Logged-in customer matching order.userId: authorized
+    // 3. Guest or Customer providing matching order phone: authorized
+    const isStaffOrAdmin = req.user && (req.user.role === 'admin' || req.user.role === 'staff');
+    const isOwnerUser = Boolean(req.user && order.userId && req.user.id === order.userId.toString());
+
+    const normalizePhone = (p: string | undefined | null) => {
+      if (!p) return '';
+      let cleaned = String(p).replace(/\D/g, '');
+      if (cleaned.startsWith('0084')) {
+        cleaned = '0' + cleaned.slice(4);
+      } else if (cleaned.startsWith('84')) {
+        cleaned = '0' + cleaned.slice(2);
+      }
+      if (cleaned.length === 9 && !cleaned.startsWith('0')) {
+        cleaned = '0' + cleaned;
+      }
+      return cleaned;
+    };
+    const orderPhone = normalizePhone(order.customerInfo?.phone);
+    const bodyPhone = normalizePhone(phone);
+    const isMatchingPhone = Boolean(bodyPhone && orderPhone && bodyPhone === orderPhone);
+
+    if (!isStaffOrAdmin && !isOwnerUser && !isMatchingPhone) {
+      return res.status(403).json({
+        success: false,
+        message: 'Bạn không có quyền xác nhận đơn hàng này. Vui lòng xác thực số điện thoại đặt hàng.',
+      });
+    }
+
+    // Terminal states check
+    if (order.orderStatus === 'delivered') {
+      return res.status(400).json({
+        success: false,
+        message: 'Đơn hàng đã được xác nhận nhận hàng trước đó.',
+        data: order,
+      });
+    }
+
+    if (order.orderStatus === 'cancelled') {
+      return res.status(400).json({
+        success: false,
+        message: 'Đơn hàng đã bị hủy, không thể xác nhận nhận hàng.',
+      });
+    }
+
+    // Order must be in shipping state to be confirmed as received
+    if (order.orderStatus !== 'shipping') {
+      return res.status(400).json({
+        success: false,
+        message: `Đơn hàng đang ở trạng thái "${order.orderStatus}". Chỉ có thể xác nhận khi đơn đang được giao hàng (shipping).`,
+      });
+    }
+
+    // Transition order to delivered
+    order.orderStatus = 'delivered';
+
+    // If payment is COD and paymentStatus is pending, automatically mark as paid
+    if (order.paymentMethod?.toUpperCase() === 'COD' && order.paymentStatus === 'pending') {
+      order.paymentStatus = 'paid';
+    }
+
+    await order.save();
+
+    return res.json({
+      success: true,
+      message: 'Xác nhận đã nhận hàng thành công! Cảm ơn bạn đã mua sắm tại TechGear.',
+      data: order,
+    });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+

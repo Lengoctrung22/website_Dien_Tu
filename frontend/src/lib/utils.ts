@@ -59,8 +59,8 @@ export const CATEGORIES_CONFIG = {
 export const ORDER_STATUS_MAP: Record<string, { label: string; color: string; step: number }> = {
   pending: { label: 'Chờ xác nhận', color: 'bg-amber-500/10 text-amber-500 border-amber-500/20', step: 1 },
   processing: { label: 'Đang xử lý', color: 'bg-slate-100 text-slate-950 dark:bg-surface-elevated dark:text-white border border-slate-300 dark:border-white/10', step: 2 },
-  shipping: { label: 'Đang giao hàng', color: 'bg-purple-500/10 text-purple-500 border-purple-500/20', step: 3 },
-  delivered: { label: 'Đã giao', color: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20', step: 4 },
+  shipping: { label: 'Đang giao hàng (Chờ khách nhận)', color: 'bg-purple-500/10 text-purple-500 border-purple-500/20', step: 3 },
+  delivered: { label: '✓ ĐÃ GIAO (HOÀN TẤT)', color: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20', step: 4 },
   cancelled: { label: 'Đã hủy', color: 'bg-rose-500/10 text-rose-500 border-rose-500/20', step: 0 },
 };
 

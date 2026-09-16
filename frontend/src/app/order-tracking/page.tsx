@@ -16,6 +16,7 @@ import {
   CreditCard,
   User,
   Phone,
+  PackageCheck,
 } from 'lucide-react';
 import { fetchApi } from '@/lib/api';
 import { formatVND, formatDate } from '@/lib/utils';
@@ -31,10 +32,13 @@ function OrderTrackingContent() {
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [confirmingReceipt, setConfirmingReceipt] = useState(false);
+  const [confirmSuccessMsg, setConfirmSuccessMsg] = useState<string | null>(null);
 
   const handleLookup = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setErrorMsg(null);
+    setConfirmSuccessMsg(null);
 
     if (!orderCode.trim() || !phone.trim()) {
       setErrorMsg('Vui lòng nhập cả Mã đơn hàng và Số điện thoại đặt hàng');
@@ -61,6 +65,38 @@ function OrderTrackingContent() {
     setLoading(false);
   };
 
+  const handleConfirmReceipt = async () => {
+    if (!order) return;
+    if (!window.confirm('Bạn xác nhận đã nhận được kiện hàng này và muốn hoàn tất đơn hàng?')) {
+      return;
+    }
+
+    setConfirmingReceipt(true);
+    setErrorMsg(null);
+    try {
+      const res = await fetchApi(`/orders/${order._id}/confirm-receipt`, {
+        method: 'POST',
+        body: JSON.stringify({ phone: order.customerInfo?.phone || phone.trim() }),
+      });
+
+      if (res.success && res.data) {
+        setOrder(res.data);
+        setConfirmSuccessMsg(res.message || 'Xác nhận nhận hàng thành công! Đơn hàng đã hoàn tất.');
+        setTimeout(() => setConfirmSuccessMsg(null), 6000);
+      } else if (res.data && res.data.orderStatus === 'delivered') {
+        setOrder(res.data);
+        setConfirmSuccessMsg('Đơn hàng đã được xác nhận hoàn tất thành công!');
+        setTimeout(() => setConfirmSuccessMsg(null), 6000);
+      } else {
+        setErrorMsg(res.message || 'Không thể xác nhận nhận hàng.');
+      }
+    } catch {
+      setErrorMsg('Lỗi kết nối khi xác nhận nhận hàng.');
+    } finally {
+      setConfirmingReceipt(false);
+    }
+  };
+
   useEffect(() => {
     if (initialOrderCode && initialPhone) {
       setTimeout(() => handleLookup(), 0);
@@ -73,8 +109,8 @@ function OrderTrackingContent() {
     { key: 'pending', stepNum: '01', label: 'Tiếp nhận đơn', icon: Clock, desc: 'Đã ghi nhận đơn hàng' },
     { key: 'processing', stepNum: '02', label: 'Đóng gói & QC', icon: Package, desc: 'Kiểm tra kỹ thuật & đóng hộp' },
     { key: 'dispatched', stepNum: '03', label: 'Xuất kho', icon: Truck, desc: 'Bàn giao đơn vị vận chuyển' },
-    { key: 'shipping', stepNum: '04', label: 'Đang giao hàng', icon: MapPin, desc: 'Shipper đang giao hàng' },
-    { key: 'delivered', stepNum: '05', label: 'Đã nhận hàng', icon: CheckCircle2, desc: 'Giao hàng thành công' },
+    { key: 'shipping', stepNum: '04', label: 'Đang giao hàng (Chờ nhận)', icon: MapPin, desc: 'Shipper đang giao hàng' },
+    { key: 'delivered', stepNum: '05', label: '✓ Đã nhận hàng (Hoàn tất)', icon: CheckCircle2, desc: 'Giao hàng thành công' },
   ];
 
   const getStepIndex = (status: string) => {
@@ -188,8 +224,16 @@ function OrderTrackingContent() {
                   <span className="px-3 py-1 rounded-md text-xs font-mono font-bold uppercase bg-rose-500/10 text-rose-700 dark:text-signal-rose border border-rose-500/25">
                     Đã Hủy Đơn
                   </span>
+                ) : order.orderStatus === 'shipping' ? (
+                  <span className="px-3 py-1 rounded-md text-xs font-mono font-bold uppercase bg-purple-500/15 text-purple-700 dark:text-purple-300 border border-purple-500/30">
+                    {steps[currentStep]?.label || 'Đang giao hàng (Chờ nhận)'}
+                  </span>
+                ) : order.orderStatus === 'delivered' ? (
+                  <span className="px-3 py-1 rounded-md text-xs font-mono font-bold uppercase bg-emerald-500/15 text-emerald-700 dark:text-signal-emerald border border-emerald-500/30">
+                    {steps[currentStep]?.label || '✓ Đã nhận hàng (Hoàn tất)'}
+                  </span>
                 ) : (
-                  <span className="px-3 py-1 rounded-md text-xs font-mono font-bold uppercase bg-emerald-500/10 text-emerald-700 dark:text-signal-emerald border border-emerald-500/25">
+                  <span className="px-3 py-1 rounded-md text-xs font-mono font-bold uppercase bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30">
                     {steps[currentStep]?.label || order.orderStatus}
                   </span>
                 )}
@@ -207,6 +251,42 @@ function OrderTrackingContent() {
               </span>
             </div>
           </div>
+
+          {/* Customer Confirm Receipt Banner when order is shipping */}
+          {order.orderStatus === 'shipping' && (
+            <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-cyan-500/10 to-transparent border border-emerald-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-signal-emerald flex items-center justify-center flex-shrink-0">
+                  <PackageCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-slate-900 dark:text-white">
+                    Đơn hàng đang trên đường giao đến bạn!
+                  </h3>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 font-mono">
+                    Nếu bạn đã nhận và kiểm tra kiện hàng, vui lòng nhấn xác nhận bên dưới để hoàn tất đơn.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                disabled={confirmingReceipt}
+                onClick={handleConfirmReceipt}
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-mono font-bold text-xs shadow-md transition-all active:scale-95 disabled:opacity-50 flex-shrink-0"
+              >
+                <CheckCircle2 className={`w-4 h-4 ${confirmingReceipt ? 'animate-spin' : ''}`} />
+                <span>{confirmingReceipt ? 'Đang xác nhận...' : 'Đã nhận được hàng'}</span>
+              </button>
+            </div>
+          )}
+
+          {/* Success Banner upon confirming */}
+          {confirmSuccessMsg && (
+            <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-signal-emerald text-xs font-mono flex items-center gap-2 font-bold animate-in fade-in">
+              <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+              <span>{confirmSuccessMsg}</span>
+            </div>
+          )}
 
           {/* 5-Step Visual Progress Timeline with Hairline Connector Tracks */}
           {isCancelled ? (

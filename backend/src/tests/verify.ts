@@ -599,6 +599,234 @@ async function runTests() {
     }
   });
 
+  // 9f. Customer & Guest Confirm Receipt Endpoint (POST /api/orders/:id/confirm-receipt)
+  await test('Customer & Guest Confirm Receipt & Auto-Paid COD', async () => {
+    const pRes = await fetch(`${BASE_URL}/products?limit=20`);
+    const pJson: any = await pRes.json();
+    const targetProduct = pJson.data.products.find((p: any) => p.stock >= 3) || pJson.data.products[0];
+
+    // Case 1: Logged-in Customer flow
+    const custOrderRes = await fetch(`${BASE_URL}/orders`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${customerToken}`,
+      },
+      body: JSON.stringify({
+        customerInfo: { name: 'Customer Receipt Tester', phone: '0966554433', address: '789 Tran Hung Dao, Q5' },
+        items: [{ productId: targetProduct._id, quantity: 1 }],
+        paymentMethod: 'COD',
+      }),
+    });
+    const custOrderJson: any = await custOrderRes.json();
+    if (!custOrderJson.success) throw new Error('Failed to create customer order for receipt test');
+    const custOrderId = custOrderJson.data.order._id;
+
+    // 1a. Cannot confirm when still pending
+    const prematureConfirm = await fetch(`${BASE_URL}/orders/${custOrderId}/confirm-receipt`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${customerToken}` },
+    });
+    const prematureJson: any = await prematureConfirm.json();
+    if (prematureConfirm.status !== 400 || prematureJson.success !== false) {
+      throw new Error('Confirming receipt on pending order must fail with 400');
+    }
+
+    // 1b. Advance to shipping
+    await fetch(`${BASE_URL}/orders/${custOrderId}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${adminToken}` },
+      body: JSON.stringify({ orderStatus: 'processing' }),
+    });
+    await fetch(`${BASE_URL}/orders/${custOrderId}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${adminToken}` },
+      body: JSON.stringify({ orderStatus: 'shipping' }),
+    });
+
+    // 1c. Unauthorized confirmation attempt (no token, wrong phone)
+    const unauthorizedConfirm = await fetch(`${BASE_URL}/orders/${custOrderId}/confirm-receipt`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: '0900000000' }),
+    });
+    if (unauthorizedConfirm.status !== 403) {
+      throw new Error(`Unauthorized receipt confirmation should fail with 403, got ${unauthorizedConfirm.status}`);
+    }
+
+    // 1d. Customer confirms receipt with valid customerToken
+    const validCustConfirm = await fetch(`${BASE_URL}/orders/${custOrderId}/confirm-receipt`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${customerToken}` },
+    });
+    const validCustJson: any = await validCustConfirm.json();
+    if (!validCustJson.success || validCustJson.data.orderStatus !== 'delivered') {
+      throw new Error('Customer receipt confirmation failed to set orderStatus to delivered');
+    }
+    if (validCustJson.data.paymentStatus !== 'paid') {
+      throw new Error('Customer receipt confirmation failed to automatically mark COD payment as paid');
+    }
+
+    // 1e. Re-confirming delivered order fails with 400
+    const duplicateConfirm = await fetch(`${BASE_URL}/orders/${custOrderId}/confirm-receipt`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${customerToken}` },
+    });
+    if (duplicateConfirm.status !== 400) {
+      throw new Error('Re-confirming already delivered order should fail with 400');
+    }
+
+    // Case 2: Guest order tracking flow (phone-based verification without token)
+    const guestOrderRes = await fetch(`${BASE_URL}/orders`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        customerInfo: { name: 'Guest Tracking Tester', phone: '0912987654', address: '123 Hai Ba Trung' },
+        items: [{ productId: targetProduct._id, quantity: 1 }],
+        paymentMethod: 'COD',
+      }),
+    });
+    const guestOrderJson: any = await guestOrderRes.json();
+    if (!guestOrderJson.success) throw new Error('Failed to create guest order');
+    const guestOrderId = guestOrderJson.data.order._id;
+    const guestOrderCode = guestOrderJson.data.order.orderCode;
+
+    // Advance to shipping
+    await fetch(`${BASE_URL}/orders/${guestOrderId}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${adminToken}` },
+      body: JSON.stringify({ orderStatus: 'processing' }),
+    });
+    await fetch(`${BASE_URL}/orders/${guestOrderId}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${adminToken}` },
+      body: JSON.stringify({ orderStatus: 'shipping' }),
+    });
+
+    // Confirm receipt using orderCode and phone verification without login
+    const guestConfirmRes = await fetch(`${BASE_URL}/orders/${guestOrderCode}/confirm-receipt`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: '0912987654' }),
+    });
+    const guestConfirmJson: any = await guestConfirmRes.json();
+    if (!guestConfirmJson.success || guestConfirmJson.data.orderStatus !== 'delivered') {
+      throw new Error('Guest receipt confirmation with matching phone failed');
+    }
+    if (guestConfirmJson.data.paymentStatus !== 'paid') {
+      throw new Error('Guest receipt confirmation failed to auto-mark COD as paid');
+    }
+
+    // Case 3: Phone normalization edge cases (+84, 0084, spaces, dashes) & # prefix in orderCode
+    const guestOrderRes2 = await fetch(`${BASE_URL}/orders`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        customerInfo: { name: 'Phone Format Tester', phone: '0988776655', address: '456 Le Loi, Q1' },
+        items: [{ productId: targetProduct._id, quantity: 1 }],
+        paymentMethod: 'COD',
+      }),
+    });
+    const guestOrderJson2: any = await guestOrderRes2.json();
+    const guestOrderId2 = guestOrderJson2.data.order._id;
+    const guestOrderCode2 = guestOrderJson2.data.order.orderCode;
+
+    // Advance to shipping via processing
+    await fetch(`${BASE_URL}/orders/${guestOrderId2}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${adminToken}` },
+      body: JSON.stringify({ orderStatus: 'processing' }),
+    });
+    await fetch(`${BASE_URL}/orders/${guestOrderId2}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${adminToken}` },
+      body: JSON.stringify({ orderStatus: 'shipping' }),
+    });
+
+    // 3a. Confirm using `#` prefix on orderCode (URL-encoded as %23) and `+84` with spaces on phone
+    const formattedPhoneConfirm = await fetch(`${BASE_URL}/orders/${encodeURIComponent('#' + guestOrderCode2)}/confirm-receipt`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: '+84 988 776 655' }),
+    });
+    const formattedPhoneJson: any = await formattedPhoneConfirm.json();
+    if (!formattedPhoneJson.success || formattedPhoneJson.data.orderStatus !== 'delivered') {
+      throw new Error(`Receipt confirmation with #orderCode and +84 phone format failed: ${formattedPhoneJson.message || JSON.stringify(formattedPhoneJson)}`);
+    }
+
+    // 3b. Confirm using 0084 prefix on another order
+    const guestOrderRes3 = await fetch(`${BASE_URL}/orders`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        customerInfo: { name: '0084 Format Tester', phone: '0933221100', address: '12 Vo Van Kiet' },
+        items: [{ productId: targetProduct._id, quantity: 1 }],
+        paymentMethod: 'COD',
+      }),
+    });
+    const guestOrderJson3: any = await guestOrderRes3.json();
+    const guestOrderId3 = guestOrderJson3.data.order._id;
+    const guestOrderCode3 = guestOrderJson3.data.order.orderCode;
+
+    await fetch(`${BASE_URL}/orders/${guestOrderId3}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${adminToken}` },
+      body: JSON.stringify({ orderStatus: 'processing' }),
+    });
+    await fetch(`${BASE_URL}/orders/${guestOrderId3}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${adminToken}` },
+      body: JSON.stringify({ orderStatus: 'shipping' }),
+    });
+
+    const prefix0084Confirm = await fetch(`${BASE_URL}/orders/${guestOrderCode3}/confirm-receipt`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: '0084933221100' }),
+    });
+    const prefix0084Json: any = await prefix0084Confirm.json();
+    if (!prefix0084Json.success || prefix0084Json.data.orderStatus !== 'delivered') {
+      throw new Error('Receipt confirmation with 0084 phone prefix failed');
+    }
+
+    // Case 4: Staff manual override from shipping to delivered with autoAdvance
+    const staffOrderRes = await fetch(`${BASE_URL}/orders`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${customerToken}` },
+      body: JSON.stringify({
+        customerInfo: { name: 'Staff Override Tester', phone: '0977112233', address: '101 Nguyen Hue' },
+        items: [{ productId: targetProduct._id, quantity: 1 }],
+        paymentMethod: 'COD',
+      }),
+    });
+    const staffOrderJson: any = await staffOrderRes.json();
+    const staffOrderId = staffOrderJson.data.order._id;
+
+    await fetch(`${BASE_URL}/orders/${staffOrderId}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${adminToken}` },
+      body: JSON.stringify({ orderStatus: 'processing' }),
+    });
+    await fetch(`${BASE_URL}/orders/${staffOrderId}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${adminToken}` },
+      body: JSON.stringify({ orderStatus: 'shipping' }),
+    });
+
+    const staffOverrideRes = await fetch(`${BASE_URL}/orders/${staffOrderId}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${adminToken}` },
+      body: JSON.stringify({ autoAdvance: true }),
+    });
+    const staffOverrideJson: any = await staffOverrideRes.json();
+    if (!staffOverrideJson.success || staffOverrideJson.data.orderStatus !== 'delivered') {
+      throw new Error('Staff manual override from shipping to delivered failed');
+    }
+    if (staffOverrideJson.data.paymentStatus !== 'paid') {
+      throw new Error('Staff override to delivered failed to mark COD payment as paid');
+    }
+  });
+
   // 10. HOT Products Batch Reorder
   await test('HOT Products Drag-and-Drop Batch Reorder', async () => {
     const pRes = await fetch(`${BASE_URL}/products?isHot=true&limit=3`);
