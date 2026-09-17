@@ -603,7 +603,7 @@ async function runTests() {
   await test('Customer & Guest Confirm Receipt & Auto-Paid COD', async () => {
     const pRes = await fetch(`${BASE_URL}/products?limit=20`);
     const pJson: any = await pRes.json();
-    const targetProduct = pJson.data.products.find((p: any) => p.stock >= 3) || pJson.data.products[0];
+    const targetProduct = pJson.data.products.find((p: any) => p.stock >= 5) || pJson.data.products[0];
 
     // Case 1: Logged-in Customer flow
     const custOrderRes = await fetch(`${BASE_URL}/orders`, {
@@ -728,6 +728,7 @@ async function runTests() {
       }),
     });
     const guestOrderJson2: any = await guestOrderRes2.json();
+    if (!guestOrderJson2.success) throw new Error(`Failed to create guest order 2: ${guestOrderJson2.message}`);
     const guestOrderId2 = guestOrderJson2.data.order._id;
     const guestOrderCode2 = guestOrderJson2.data.order.orderCode;
 
@@ -765,6 +766,7 @@ async function runTests() {
       }),
     });
     const guestOrderJson3: any = await guestOrderRes3.json();
+    if (!guestOrderJson3.success) throw new Error(`Failed to create guest order 3: ${guestOrderJson3.message}`);
     const guestOrderId3 = guestOrderJson3.data.order._id;
     const guestOrderCode3 = guestOrderJson3.data.order.orderCode;
 

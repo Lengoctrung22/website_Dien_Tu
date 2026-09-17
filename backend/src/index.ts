@@ -5,9 +5,8 @@ import { ENV } from './config/env';
 import { connectDB } from './config/db';
 import apiRoutes from './routes';
 import { errorHandler } from './middlewares/errorHandler';
-import { User } from './models/User';
-import { seedDatabase } from './scripts/seed';
 import { UPLOAD_DIR } from './config/upload';
+import { seedDatabase } from './scripts/seed';
 
 const app = express();
 
@@ -39,17 +38,24 @@ app.use('/api', apiRoutes);
 // Error Handling Middleware
 app.use(errorHandler);
 
+/**
+ * NON-DESTRUCTIVE initialization: Ensures default admin/staff/customer accounts
+ * and default products exist using upsert mode. NEVER calls deleteMany.
+ * Safe to run on every server startup.
+ */
+const ensureInitialData = async () => {
+  console.log('[Init] Ensuring initial data exists (upsert mode)...');
+  await seedDatabase();
+  console.log('[Init] Initial data check completed.');
+};
+
 // Server startup
 const startServer = async () => {
   try {
     await connectDB();
 
-    // Check if database needs automatic initial seeding
-    const userCount = await User.countDocuments();
-    if (userCount === 0) {
-      console.log('[Server] No users detected. Running initial data seeding automatically...');
-      await seedDatabase();
-    }
+    // Non-destructive: ensure default accounts and products exist without deleting anything
+    await ensureInitialData();
 
     app.listen(ENV.PORT, () => {
       console.log(`====================================================`);

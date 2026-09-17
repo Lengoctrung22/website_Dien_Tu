@@ -62,6 +62,14 @@ This file provides behavioral guidelines to eliminate common LLM coding pitfalls
   - VNPAY IPN and Webhooks use HMAC SHA512 signature verification. Do NOT bypass or alter signature verification logic.
   - Never commit `.env` secrets or credentials.
 
+### 🚨 DATA PROTECTION — CRITICAL RULES (MUST OBEY)
+- **NGHIÊM CẤM (STRICTLY FORBIDDEN)**: AI agents (Antigravity, Claude Code, Cursor, Copilot, etc.) **MUST NEVER** autonomously run `npm run seed`, `npm run seed:fresh`, or any command that calls `seedDatabase()` / `seedDatabaseFresh()` after completing code changes or tests.
+- **NEVER use `deleteMany({})` or `drop()` on production collections** (`Order`, `User`, `Product`, `InventoryLog`) in any script, migration, or test cleanup — unless the user explicitly requests a full database reset.
+- **`npm run seed`** is now **non-destructive** (upsert only). It will NOT delete existing data. Safe to run but still should not be run automatically.
+- **`npm run seed:fresh -- --force`** is the ONLY way to perform a destructive full reset. This requires the explicit `--force` flag and must NEVER be run by AI agents without direct, explicit user instruction.
+- **Database seeding at server startup** uses `ensureInitialData()` which is non-destructive (upsert). It ensures default accounts and products exist without deleting anything.
+- **In-memory MongoDB fallback** is disabled by default in non-test environments to prevent ephemeral data loss. The server will fail-fast if MongoDB is unavailable (set `ALLOW_MEMORY_DB=true` to override).
+
 ### Frontend Rules
 - **Next.js App Router**:
   - Differentiate clearly between Server Components (`page.tsx`) and Client Components (`'use client'`).
