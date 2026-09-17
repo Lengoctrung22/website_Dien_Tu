@@ -59,8 +59,21 @@ export const verifyVnpaySignature = (queryParams: Record<string, any>): { isVali
   const hmac = crypto.createHmac('sha512', ENV.VNPAY.hashSecret);
   const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex');
 
+  let isValid = false;
+  try {
+    if (typeof secureHash === 'string' && typeof signed === 'string') {
+      const bufA = Buffer.from(secureHash.toLowerCase(), 'hex');
+      const bufB = Buffer.from(signed.toLowerCase(), 'hex');
+      if (bufA.length > 0 && bufA.length === bufB.length) {
+        isValid = crypto.timingSafeEqual(bufA, bufB);
+      }
+    }
+  } catch {
+    isValid = false;
+  }
+
   return {
-    isValid: secureHash === signed,
+    isValid,
     orderId: queryParams.vnp_TxnRef,
     responseCode: queryParams.vnp_ResponseCode,
     transactionNo: queryParams.vnp_TransactionNo || '',

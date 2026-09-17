@@ -190,10 +190,8 @@ export function useIsAuthHydrated(): boolean {
     // 1. Synchronously sync auth from current tab's sessionStorage
     syncAuthFromStorage();
 
-    // 2. Mark as hydrated on next macrotask to avoid cascading render lint warning
-    const timer = setTimeout(() => {
-      setIsHydrated(true);
-    }, 0);
+    // 2. Mark as hydrated immediately on client mount
+    setIsHydrated(true);
 
     // 3. Keep in sync with any subsequent store changes (e.g. login/logout)
     const unsub = useAuthStore.subscribe((state) => {
@@ -203,7 +201,6 @@ export function useIsAuthHydrated(): boolean {
     });
 
     return () => {
-      clearTimeout(timer);
       unsub();
     };
   }, []);

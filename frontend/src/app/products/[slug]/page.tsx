@@ -151,7 +151,6 @@ export default function ProductDetailPage() {
               fill
               priority
               className="object-cover object-center"
-              unoptimized
             />
             {product.isHot && (
               <span className="absolute top-4 left-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-[11px] font-mono font-bold tracking-wider uppercase bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/40 backdrop-blur-md shadow-md">
@@ -174,7 +173,7 @@ export default function ProductDetailPage() {
                       : 'opacity-70 hover:opacity-100 hover:border-slate-400 dark:hover:border-signal-cyan/40'
                   }`}
                 >
-                  <Image src={img} alt={`Thumb ${index}`} fill className="object-cover" unoptimized />
+                  <Image src={img} alt={`Thumb ${index}`} fill className="object-cover" />
                 </button>
               ))}
             </div>

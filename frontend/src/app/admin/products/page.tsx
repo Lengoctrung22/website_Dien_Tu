@@ -92,7 +92,7 @@ export default function AdminProductsPage() {
   };
 
   useEffect(() => {
-    setTimeout(() => loadProducts(), 0);
+    loadProducts();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterHotOnly]);
 
@@ -269,7 +269,7 @@ export default function AdminProductsPage() {
         if (res.success) {
           setFeedback('Đã cập nhật sản phẩm thành công!');
           closeModal();
-          setTimeout(() => loadProducts(), 0);
+          loadProducts();
         } else {
           alert(res.message || 'Lỗi khi lưu sản phẩm');
         }
@@ -281,7 +281,7 @@ export default function AdminProductsPage() {
         if (res.success) {
           setFeedback('Đã thêm sản phẩm mới thành công!');
           closeModal();
-          setTimeout(() => loadProducts(), 0);
+          loadProducts();
         } else {
           alert(res.message || 'Lỗi khi lưu sản phẩm');
         }
@@ -407,7 +407,6 @@ export default function AdminProductsPage() {
                           alt={p.name}
                           fill
                           className="object-cover"
-                          unoptimized
                         />
                       </div>
                     </td>

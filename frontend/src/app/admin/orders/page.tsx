@@ -61,10 +61,7 @@ function OrdersContent({ initialStatus }: { initialStatus: string }) {
   }, [search, statusFilter, hasPermission]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      loadOrders();
-    }, 0);
-    return () => clearTimeout(timer);
+    loadOrders();
   }, [loadOrders]);
 
   // Auto-sync polling every 10 seconds

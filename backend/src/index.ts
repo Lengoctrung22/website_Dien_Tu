@@ -10,9 +10,18 @@ import { seedDatabase } from './scripts/seed';
 
 const app = express();
 
+const ALLOWED_ORIGIN_REGEX = /^https?:\/\/(([a-zA-Z0-9-]+\.)*localhost:3000|([a-zA-Z0-9-]+\.)*techgear\.(local|vn)(:[0-9]+)?)$/;
+
 // Middlewares
 app.use(cors({
-  origin: '*',
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, server-to-server)
+    if (!origin || ALLOWED_ORIGIN_REGEX.test(origin) || (ENV.CLIENT_URL && origin === ENV.CLIENT_URL)) {
+      callback(null, true);
+    } else {
+      callback(null, false);
+    }
+  },
   credentials: true,
 }));
 app.use(morgan('dev'));

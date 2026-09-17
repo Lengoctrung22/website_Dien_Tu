@@ -87,7 +87,7 @@ export default function AdminUsersPage() {
   };
 
   useEffect(() => {
-    setTimeout(() => loadUsers(), 0);
+    loadUsers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roleFilter]);
 
@@ -151,7 +151,7 @@ export default function AdminUsersPage() {
           preset: 'Nhân viên Kho (Warehouse)',
           permissions: ['inventory'],
         });
-        setTimeout(() => loadUsers(), 0);
+        loadUsers();
       } else {
         alert(res.message || 'Lỗi khi tạo tài khoản');
       }

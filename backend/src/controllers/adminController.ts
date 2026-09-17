@@ -4,6 +4,7 @@ import { Order } from '../models/Order';
 import { Product } from '../models/Product';
 import { User } from '../models/User';
 import { InventoryLog } from '../models/InventoryLog';
+import { escapeRegex, sanitizeString } from '../utils/sanitize';
 
 export const getDashboardSummary = async (req: Request, res: Response) => {
   try {
@@ -287,30 +288,60 @@ export const getUsers = async (req: Request, res: Response) => {
     const { role, search } = req.query;
     const filter: Record<string, any> = {};
 
-    if (role) filter.role = role;
-    if (search) {
-      const s = new RegExp(String(search), 'i');
+    const cleanRole = sanitizeString(role);
+    if (cleanRole) filter.role = cleanRole;
+
+    const cleanSearch = sanitizeString(search);
+    if (cleanSearch) {
+      const s = new RegExp(escapeRegex(cleanSearch), 'i');
       filter.$or = [{ fullName: s }, { email: s }, { phone: s }];
     }
 
-    const users = await User.find(filter).select('-passwordHash').sort({ createdAt: -1 });
+    const pipeline: any[] = [
+      { $match: filter },
+      { $sort: { createdAt: -1 } },
+      { $project: { passwordHash: 0 } },
+      {
+        $lookup: {
+          from: 'orders',
+          let: { userId: '$_id' },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ['$userId', '$$userId'] },
+                orderStatus: { $ne: 'cancelled' },
+                paymentStatus: { $ne: 'failed' },
+              },
+            },
+            {
+              $group: {
+                _id: null,
+                ordersCount: { $sum: 1 },
+                totalSpent: { $sum: '$totalAmount' },
+              },
+            },
+          ],
+          as: 'orderStats',
+        },
+      },
+      {
+        $addFields: {
+          ordersCount: {
+            $ifNull: [{ $arrayElemAt: ['$orderStats.ordersCount', 0] }, 0],
+          },
+          totalSpent: {
+            $ifNull: [{ $arrayElemAt: ['$orderStats.totalSpent', 0] }, 0],
+          },
+        },
+      },
+      {
+        $project: {
+          orderStats: 0,
+        },
+      },
+    ];
 
-    // Compute Customer Lifetime Value (LTV) for users
-    const usersWithLTV = await Promise.all(
-      users.map(async (u) => {
-        const orders = await Order.find({
-          userId: u._id,
-          orderStatus: { $ne: 'cancelled' },
-          paymentStatus: { $ne: 'failed' },
-        });
-        const totalSpent = orders.reduce((sum, o) => sum + o.totalAmount, 0);
-        return {
-          ...u.toObject(),
-          ordersCount: orders.length,
-          totalSpent,
-        };
-      })
-    );
+    const usersWithLTV = await User.aggregate(pipeline);
 
     res.json({ success: true, data: usersWithLTV });
   } catch (error: any) {

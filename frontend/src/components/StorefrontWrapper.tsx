@@ -13,9 +13,9 @@ export default function StorefrontWrapper({ children }: { children: React.ReactN
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-white">
+    <div className="flex flex-col min-h-screen bg-transparent">
       <Header />
-      <main className="flex-1 bg-white">{children}</main>
+      <main className="flex-1 bg-transparent">{children}</main>
       <Footer />
     </div>
   );

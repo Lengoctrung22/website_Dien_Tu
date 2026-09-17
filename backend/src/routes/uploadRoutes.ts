@@ -3,7 +3,7 @@ import {
   handleUploadMiddleware,
   uploadImage,
 } from '../controllers/uploadController';
-import { optionalAuthenticateToken } from '../middlewares/auth';
+import { authenticateToken } from '../middlewares/auth';
 import { uploadRateLimiter } from '../middlewares/rateLimiter';
 
 const router = Router();
@@ -13,7 +13,7 @@ const router = Router();
 router.post(
   '/',
   uploadRateLimiter,
-  optionalAuthenticateToken,
+  authenticateToken,
   handleUploadMiddleware,
   uploadImage
 );

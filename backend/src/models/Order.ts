@@ -67,7 +67,6 @@ const orderSchema = new Schema<IOrder>(
       unique: true,
       uppercase: true,
       trim: true,
-      index: true,
     },
     userId: { type: Schema.Types.ObjectId, ref: 'User', default: null, index: true },
     customerInfo: { type: customerInfoSchema, required: true },
@@ -96,5 +95,8 @@ const orderSchema = new Schema<IOrder>(
   },
   { timestamps: true }
 );
+
+orderSchema.index({ createdAt: -1 });
+orderSchema.index({ orderStatus: 1, paymentStatus: 1, createdAt: -1 });
 
 export const Order = model<IOrder>('Order', orderSchema);

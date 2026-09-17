@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   AlertTriangle,
   Clock,
+  Sliders,
   type LucideIcon,
 } from 'lucide-react';
 import { useAuthStore, useIsAuthHydrated } from '@/store/authStore';
@@ -211,6 +212,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         href: '/admin/products',
         label: 'Quản Lý Sản Phẩm & Ghim HOT',
         icon: Package,
+      });
+      items.push({
+        href: '/admin/banners',
+        label: 'Banner & Slideshow',
+        icon: Sliders,
       });
     }
 

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { Product, ProductCategory } from '../models/Product';
 import { InventoryLog } from '../models/InventoryLog';
+import { escapeRegex, sanitizeString } from '../utils/sanitize';
 
 export const getProducts = async (req: Request, res: Response) => {
   try {
@@ -21,11 +22,13 @@ export const getProducts = async (req: Request, res: Response) => {
 
     const filter: Record<string, any> = { isActive: true };
 
-    if (category) {
-      filter.category = category;
+    const cleanCategory = sanitizeString(category);
+    if (cleanCategory) {
+      filter.category = cleanCategory;
     }
-    if (brand) {
-      filter.brand = brand;
+    const cleanBrand = sanitizeString(brand);
+    if (cleanBrand) {
+      filter.brand = cleanBrand;
     }
     if (isHot !== undefined) {
       filter.isHot = isHot === 'true' || String(isHot) === 'true';
@@ -35,22 +38,26 @@ export const getProducts = async (req: Request, res: Response) => {
       if (minPrice) filter.price.$gte = Number(minPrice);
       if (maxPrice) filter.price.$lte = Number(maxPrice);
     }
-    if (search) {
-      const searchRegex = new RegExp(String(search), 'i');
+    const cleanSearch = sanitizeString(search);
+    if (cleanSearch) {
+      const searchRegex = new RegExp(escapeRegex(cleanSearch), 'i');
       filter.$or = [
         { name: searchRegex },
         { brand: searchRegex },
         { description: searchRegex },
       ];
     }
-    if (switchType) {
-      filter['specs.switch'] = new RegExp(String(switchType), 'i');
+    const cleanSwitchType = sanitizeString(switchType);
+    if (cleanSwitchType) {
+      filter['specs.switch'] = new RegExp(escapeRegex(cleanSwitchType), 'i');
     }
-    if (refreshRate) {
-      filter['specs.refreshRate'] = new RegExp(String(refreshRate), 'i');
+    const cleanRefreshRate = sanitizeString(refreshRate);
+    if (cleanRefreshRate) {
+      filter['specs.refreshRate'] = new RegExp(escapeRegex(cleanRefreshRate), 'i');
     }
-    if (connection) {
-      filter['specs.connection'] = new RegExp(String(connection), 'i');
+    const cleanConnection = sanitizeString(connection);
+    if (cleanConnection) {
+      filter['specs.connection'] = new RegExp(escapeRegex(cleanConnection), 'i');
     }
 
     // Sorting
@@ -209,7 +216,7 @@ export const updateProduct = async (req: Request, res: Response) => {
       });
     }
 
-    const updated = await Product.findByIdAndUpdate(id, updateData, { new: true });
+    const updated = await Product.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
     res.json({ success: true, message: 'Cập nhật sản phẩm thành công', data: updated });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });

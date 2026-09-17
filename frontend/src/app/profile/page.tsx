@@ -28,8 +28,8 @@ export default function ProfilePage() {
     }
 
     if (user) {
-      setTimeout(() => setFullName(user.fullName || ''), 0);
-      setTimeout(() => setPhone(user.phone || ''), 0);
+      setFullName(user.fullName || '');
+      setPhone(user.phone || '');
     }
 
     async function loadMyOrders() {

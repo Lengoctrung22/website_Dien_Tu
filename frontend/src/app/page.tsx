@@ -99,7 +99,7 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="bg-white space-y-12 sm:space-y-16 pb-16">
+    <div className="space-y-12 sm:space-y-16 pb-16">
       {/* 1. Hero Carousel & Quick Search Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 space-y-6">
         <HeroSlider />
@@ -147,7 +147,6 @@ export default function HomePage() {
                   alt={cat.name}
                   fill
                   className="object-cover object-center opacity-80 group-hover:opacity-95 group-hover:scale-105 transition-all duration-500"
-                  unoptimized
                 />
 
                 {/* Balanced Gradient Overlay: Clear Product Visibility + Legible Text */}

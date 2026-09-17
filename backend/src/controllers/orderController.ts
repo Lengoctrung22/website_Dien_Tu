@@ -301,8 +301,19 @@ export const getOrderById = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' });
     }
 
+    // Require authentication for direct access by order ID. Guests must use /api/orders/lookup
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Vui lòng đăng nhập để xem thông tin đơn hàng. Khách vãng lai vui lòng tra cứu tại trang Tra cứu đơn hàng.',
+      });
+    }
+
     // Only allow owner or staff/admin to view
-    if (req.user?.role === 'customer' && order.userId?.toString() !== req.user.id) {
+    const isStaffOrAdmin = req.user.role === 'admin' || req.user.role === 'staff';
+    const isOwner = Boolean(order.userId && order.userId.toString() === req.user.id);
+
+    if (!isStaffOrAdmin && !isOwner) {
       return res.status(403).json({ success: false, message: 'Không có quyền xem đơn hàng này' });
     }
 
@@ -384,22 +395,39 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
         });
       }
 
-      // If cancelling: restore stock and mark as refunded if already paid
+      // If cancelling: restore stock atomically and mark as refunded if already paid
       if (targetOrderStatus === 'cancelled') {
-        for (const item of order.items) {
-          const product = await Product.findById(item.productId);
-          if (product) {
-            const prev = product.stock;
-            product.stock += item.quantity;
-            product.soldCount = Math.max(0, product.soldCount - item.quantity);
-            await product.save();
+        const updatedOrder = await Order.findOneAndUpdate(
+          { _id: order._id, orderStatus: { $in: ['pending', 'processing', 'shipping'] } },
+          {
+            $set: {
+              orderStatus: 'cancelled',
+              ...(order.paymentStatus === 'paid' ? { paymentStatus: 'refunded' } : {}),
+            },
+          },
+          { new: true }
+        );
 
+        if (!updatedOrder) {
+          return res.status(400).json({
+            success: false,
+            message: 'Đơn hàng đã ở trạng thái kết thúc hoặc không thể hủy nữa.',
+          });
+        }
+
+        for (const item of order.items) {
+          const updatedProduct = await Product.findByIdAndUpdate(
+            item.productId,
+            { $inc: { stock: item.quantity, soldCount: -item.quantity } },
+            { new: true }
+          );
+          if (updatedProduct) {
             await InventoryLog.create({
-              productId: product._id,
-              productName: product.name,
+              productId: updatedProduct._id,
+              productName: updatedProduct.name,
               changeAmount: item.quantity,
-              previousStock: prev,
-              newStock: product.stock,
+              previousStock: updatedProduct.stock - item.quantity,
+              newStock: updatedProduct.stock,
               reason: 'order_cancellation',
               note: `Hủy đơn hàng ${order.orderCode}`,
               updatedBy: req.user?.email || 'Staff',
@@ -407,9 +435,9 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
           }
         }
 
-        if (order.paymentStatus === 'paid') {
-          order.paymentStatus = 'refunded';
-        }
+        order.orderStatus = updatedOrder.orderStatus;
+        order.paymentStatus = updatedOrder.paymentStatus;
+        return res.json({ success: true, message: 'Hủy đơn hàng thành công', data: order });
       }
 
       // Auto-confirm payment as 'paid' when delivered (e.g. COD collected on delivery)
@@ -429,31 +457,40 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
 };
 
 const handleFailedPaymentOrder = async (order: any, note: string) => {
-  order.paymentStatus = 'failed';
-  if (order.orderStatus === 'pending') {
-    order.orderStatus = 'cancelled';
-    for (const item of order.items) {
-      const product = await Product.findById(item.productId);
-      if (product) {
-        const prev = product.stock;
-        product.stock += item.quantity;
-        product.soldCount = Math.max(0, product.soldCount - item.quantity);
-        await product.save();
+  const updatedOrder = await Order.findOneAndUpdate(
+    { _id: order._id, orderStatus: 'pending' },
+    { $set: { orderStatus: 'cancelled', paymentStatus: 'failed' } },
+    { new: true }
+  );
 
+  if (updatedOrder) {
+    for (const item of order.items) {
+      const updatedProduct = await Product.findByIdAndUpdate(
+        item.productId,
+        { $inc: { stock: item.quantity, soldCount: -item.quantity } },
+        { new: true }
+      );
+      if (updatedProduct) {
         await InventoryLog.create({
-          productId: product._id,
-          productName: product.name,
+          productId: updatedProduct._id,
+          productName: updatedProduct.name,
           changeAmount: item.quantity,
-          previousStock: prev,
-          newStock: product.stock,
+          previousStock: updatedProduct.stock - item.quantity,
+          newStock: updatedProduct.stock,
           reason: 'order_cancellation',
           note: `${note} ${order.orderCode}`,
           updatedBy: 'Payment Gateway',
         });
       }
     }
+    order.orderStatus = updatedOrder.orderStatus;
+    order.paymentStatus = updatedOrder.paymentStatus;
+  } else {
+    if (order.orderStatus !== 'cancelled') {
+      order.paymentStatus = 'failed';
+      await order.save();
+    }
   }
-  await order.save();
 };
 
 export const handleVnpayReturn = async (req: Request, res: Response) => {
@@ -461,12 +498,16 @@ export const handleVnpayReturn = async (req: Request, res: Response) => {
     const query = req.query;
     const { isValid, orderId, responseCode, transactionNo } = verifyVnpaySignature(query);
 
+    if (!isValid) {
+      return res.status(400).json({ success: false, message: 'Chữ ký không hợp lệ' });
+    }
+
     const order = await Order.findOne({ orderCode: orderId });
     if (!order) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' });
     }
 
-    if (isValid && responseCode === '00') {
+    if (responseCode === '00') {
       order.paymentStatus = 'paid';
       order.vnpayTransactionNo = transactionNo;
       if (order.orderStatus === 'pending') {
@@ -478,7 +519,7 @@ export const handleVnpayReturn = async (req: Request, res: Response) => {
       await handleFailedPaymentOrder(order, 'Hủy đơn do thanh toán VNPAY không thành công');
       return res.status(400).json({
         success: false,
-        message: 'Thanh toán không thành công hoặc chữ ký không hợp lệ',
+        message: 'Thanh toán không thành công',
         data: order,
       });
     }
@@ -615,6 +656,20 @@ export const verifyOrderPayment = async (req: Request, res: Response) => {
   }
 };
 
+const normalizePhone = (p: string | undefined | null) => {
+  if (!p) return '';
+  let cleaned = String(p).replace(/\D/g, '');
+  if (cleaned.startsWith('0084')) {
+    cleaned = '0' + cleaned.slice(4);
+  } else if (cleaned.startsWith('84')) {
+    cleaned = '0' + cleaned.slice(2);
+  }
+  if (cleaned.length === 9 && !cleaned.startsWith('0')) {
+    cleaned = '0' + cleaned;
+  }
+  return cleaned;
+};
+
 /**
  * Customer notifies online transfer completed
  * Endpoint: POST /api/orders/:id/notify-paid
@@ -622,6 +677,7 @@ export const verifyOrderPayment = async (req: Request, res: Response) => {
 export const notifyPaid = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    const { phone } = req.body || {};
     const cleanId = String(id).trim().toUpperCase().replace(/^#/, '');
 
     let order = null;
@@ -634,6 +690,21 @@ export const notifyPaid = async (req: Request, res: Response) => {
 
     if (!order) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' });
+    }
+
+    // Ownership check: Admin/Staff, or logged-in order owner, or matching order phone
+    const isStaffOrAdmin = req.user && (req.user.role === 'admin' || req.user.role === 'staff');
+    const isOwnerUser = Boolean(req.user && order.userId && req.user.id === order.userId.toString());
+
+    const orderPhone = normalizePhone(order.customerInfo?.phone);
+    const bodyPhone = normalizePhone(phone || req.query?.phone);
+    const isMatchingPhone = Boolean(bodyPhone && orderPhone && bodyPhone === orderPhone);
+
+    if (!isStaffOrAdmin && !isOwnerUser && !isMatchingPhone) {
+      return res.status(403).json({
+        success: false,
+        message: 'Bạn không có quyền thực hiện thao tác này trên đơn hàng. Vui lòng đăng nhập tài khoản chủ đơn hoặc xác thực số điện thoại đặt hàng.',
+      });
     }
 
     // Terminal states check
@@ -701,19 +772,6 @@ export const confirmOrderReceipt = async (req: Request, res: Response) => {
     const isStaffOrAdmin = req.user && (req.user.role === 'admin' || req.user.role === 'staff');
     const isOwnerUser = Boolean(req.user && order.userId && req.user.id === order.userId.toString());
 
-    const normalizePhone = (p: string | undefined | null) => {
-      if (!p) return '';
-      let cleaned = String(p).replace(/\D/g, '');
-      if (cleaned.startsWith('0084')) {
-        cleaned = '0' + cleaned.slice(4);
-      } else if (cleaned.startsWith('84')) {
-        cleaned = '0' + cleaned.slice(2);
-      }
-      if (cleaned.length === 9 && !cleaned.startsWith('0')) {
-        cleaned = '0' + cleaned;
-      }
-      return cleaned;
-    };
     const orderPhone = normalizePhone(order.customerInfo?.phone);
     const bodyPhone = normalizePhone(phone);
     const isMatchingPhone = Boolean(bodyPhone && orderPhone && bodyPhone === orderPhone);

@@ -4,6 +4,7 @@ import { User } from '../models/User';
 import { Product } from '../models/Product';
 import { Order } from '../models/Order';
 import { InventoryLog } from '../models/InventoryLog';
+import { Banner } from '../models/Banner';
 import { connectDB, disconnectDB } from '../config/db';
 
 export const DEFAULT_USER_EMAILS = [
@@ -708,8 +709,94 @@ export const seedDatabase = async () => {
     console.log(`[Seed] Created ${logs.length} inventory logs for newly inserted products.`);
   }
 
+  // 4. Seed Initial Banners safely (ONLY if collection is empty, avoids Data Resurrection Bug)
+  await seedInitialBanners();
+
   // NEVER touch Order or InventoryLog collections with deleteMany
-  console.log('[Seed] NON-DESTRUCTIVE seeding completed. Existing orders and inventory logs preserved.');
+  console.log('[Seed] NON-DESTRUCTIVE seeding completed. Existing orders, inventory logs, and banners preserved.');
+};
+
+export const initialBannerData = [
+  {
+    title: 'ASUS ROG Swift OLED PG27AQDM',
+    badge: 'SIÊU PHẨM MÀN HÌNH OLED 2026',
+    subtitle: 'Tần số quét 240Hz • Phản hồi 0.03ms • Tản nhiệt buồng hơi Custom',
+    desc: 'Đột phá hiển thị với màu đen vô cực và tốc độ phản hồi cực hạn cho game thủ đỉnh cao.',
+    cta: 'Khám Phá Ngay',
+    link: '/products/asus-rog-swift-oled-pg27aqdm-27-2k-240hz',
+    tag: 'Chính Hãng ROG',
+    image: 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?auto=format&fit=crop&w=1400&q=80',
+    imageFit: 'contain' as const,
+    removeWhiteBg: true,
+    theme: 'blue' as const,
+    showSecondaryBtn: true,
+    secondaryCta: 'Xem tất cả sản phẩm',
+    secondaryLink: '/products',
+    displayOrder: 0,
+    isActive: true,
+  },
+  {
+    title: 'Bàn Phím Cơ Hall Effect & Magnetic Switch',
+    badge: 'CÔNG NGHỆ RAPID TRIGGER MỚI NHẤT',
+    subtitle: 'Kích hoạt phím từ 0.1mm • Tần số quét tín hiệu 8000Hz • Vỏ nhôm CNC',
+    desc: 'Triệt tiêu hoàn toàn delay gõ phím. Định hình lại trải nghiệm thi đấu Esports CS2 và Valorant.',
+    cta: 'Xem Bộ Sưu Tập',
+    link: '/products?category=keyboard',
+    tag: 'Trending #1',
+    image: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=1400&q=80',
+    imageFit: 'contain' as const,
+    removeWhiteBg: false,
+    theme: 'purple' as const,
+    showSecondaryBtn: true,
+    secondaryCta: 'Xem tất cả sản phẩm',
+    secondaryLink: '/products',
+    displayOrder: 1,
+    isActive: true,
+  },
+  {
+    title: 'Razer Viper V3 Pro & Logitech Superlight 2',
+    badge: 'CHUỘT THI ĐẤU SIÊU NHẸ 54G',
+    subtitle: 'Cảm biến Focus Pro 35K DPI • 8000Hz HyperPolling không dây',
+    desc: 'Chuẩn mực mới của dòng chuột thi đấu chuyên nghiệp. Cầm chắc, lia chuẩn xác đến từng pixel.',
+    cta: 'Sở Hữu Ngay',
+    link: '/products?category=mouse',
+    tag: 'Esports Pro Choice',
+    image: 'https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?auto=format&fit=crop&w=1400&q=80',
+    imageFit: 'contain' as const,
+    removeWhiteBg: false,
+    theme: 'cyan' as const,
+    showSecondaryBtn: true,
+    secondaryCta: 'Xem tất cả sản phẩm',
+    secondaryLink: '/products',
+    displayOrder: 2,
+    isActive: true,
+  },
+];
+
+/**
+ * NON-DESTRUCTIVE banner seed:
+ * Seeds initial banners ONLY when Banner.countDocuments() === 0.
+ * NEVER uses upsert by name to prevent Data Resurrection Bug on server restarts.
+ */
+export const seedInitialBanners = async () => {
+  const count = await Banner.countDocuments();
+  if (count === 0) {
+    console.log('[Seed] Banners collection is empty. Seeding 3 initial hero banners...');
+    const oledProduct = await Product.findOne({ slug: 'asus-rog-swift-oled-pg27aqdm-27-2k-240hz' }).select('_id');
+    const akkoProduct = await Product.findOne({ slug: 'akko-mod007b-he-hall-effect-magnetic-switch' }).select('_id');
+    const logiProduct = await Product.findOne({ slug: 'logitech-g-pro-x-superlight-2-lightspeed-white' }).select('_id');
+
+    const bannersToInsert = [
+      { ...initialBannerData[0], productId: oledProduct?._id || null },
+      { ...initialBannerData[1], productId: akkoProduct?._id || null },
+      { ...initialBannerData[2], productId: logiProduct?._id || null },
+    ];
+
+    await Banner.create(bannersToInsert);
+    console.log('[Seed] 3 initial hero banners created successfully.');
+  } else {
+    console.log(`[Seed] Banners collection already contains ${count} items. Skipped seeding to avoid overwriting changes.`);
+  }
 };
 
 /**
@@ -728,6 +815,7 @@ export const seedDatabaseFresh = async () => {
     Product.deleteMany({}),
     Order.deleteMany({}),
     InventoryLog.deleteMany({}),
+    Banner.deleteMany({}),
   ]);
   console.log('[Seed:Fresh] Cleared all collections.');
 
@@ -752,6 +840,9 @@ export const seedDatabaseFresh = async () => {
     updatedBy: 'System Seed',
   }));
   await InventoryLog.create(logs);
+
+  // Seed initial banners
+  await seedInitialBanners();
 
   console.log('[Seed:Fresh] DESTRUCTIVE re-seeding completed. All data reset to defaults.');
 };

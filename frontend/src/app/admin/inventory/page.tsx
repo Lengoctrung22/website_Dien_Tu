@@ -50,13 +50,13 @@ function InventoryContent({ initialLowStock }: { initialLowStock: boolean }) {
   };
 
   useEffect(() => {
-    setTimeout(() => loadInventory(), 0);
+    loadInventory();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterLowStock]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setTimeout(() => loadInventory(), 0);
+    loadInventory();
   };
 
   const handleAdjustStock = async (e: React.FormEvent) => {
@@ -78,7 +78,7 @@ function InventoryContent({ initialLowStock }: { initialLowStock: boolean }) {
         setFeedback(`Đã cập nhật tồn kho cho "${selectedProduct.name}"!`);
         setSelectedProduct(null);
         setNote('');
-        setTimeout(() => loadInventory(), 0);
+        loadInventory();
         setTimeout(() => setFeedback(null), 3000);
       } else {
         alert(res.message || 'Không thể cập nhật tồn kho');

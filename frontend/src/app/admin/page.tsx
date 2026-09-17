@@ -130,10 +130,7 @@ function WarehouseDashboard({ user }: { user: any }) {
   }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      loadWarehouseData();
-    }, 0);
-    return () => clearTimeout(timer);
+    loadWarehouseData();
   }, [loadWarehouseData]);
 
   const handleAdjustStock = async (e: React.FormEvent) => {
@@ -574,14 +571,11 @@ function OrdersDashboard({ user }: { user: any }) {
   }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      loadOrders();
-    }, 0);
+    loadOrders();
     const interval = setInterval(() => {
       loadOrders();
     }, 10000);
     return () => {
-      clearTimeout(timer);
       clearInterval(interval);
     };
   }, [loadOrders]);

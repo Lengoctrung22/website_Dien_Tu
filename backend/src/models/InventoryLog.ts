@@ -30,4 +30,6 @@ const inventoryLogSchema = new Schema<IInventoryLog>(
   { timestamps: { createdAt: true, updatedAt: false } }
 );
 
+inventoryLogSchema.index({ createdAt: -1 });
+
 export const InventoryLog = model<IInventoryLog>('InventoryLog', inventoryLogSchema);

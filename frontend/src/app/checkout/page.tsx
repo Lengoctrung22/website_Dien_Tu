@@ -38,20 +38,18 @@ export default function CheckoutPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    setTimeout(() => setMounted(true), 0);
+    setMounted(true);
   }, []);
 
   useEffect(() => {
     if (user) {
       const defaultName = user.fullName || (user as any).name || '';
       const defaultPhone = user.phone || '';
-      setTimeout(() => {
-        setFormData((prev) => ({
-          ...prev,
-          name: prev.name && prev.name.trim() !== '' ? prev.name : defaultName,
-          phone: prev.phone && prev.phone.trim() !== '' ? prev.phone : defaultPhone,
-        }));
-      }, 0);
+      setFormData((prev) => ({
+        ...prev,
+        name: prev.name && prev.name.trim() !== '' ? prev.name : defaultName,
+        phone: prev.phone && prev.phone.trim() !== '' ? prev.phone : defaultPhone,
+      }));
     }
   }, [user, isHydrated]);
 
@@ -75,7 +73,7 @@ export default function CheckoutPage() {
   }
 
   const subtotal = getTotalPrice();
-  const shippingFee = subtotal > 1000000 || subtotal === 0 ? 0 : 30000;
+  const shippingFee = subtotal >= 1000000 || subtotal === 0 ? 0 : 30000;
   const finalTotal = subtotal + shippingFee;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -352,7 +350,6 @@ export default function CheckoutPage() {
                         alt={product.name}
                         fill
                         className="object-cover"
-                        unoptimized
                       />
                     </div>
                     <div className="flex-1 min-w-0">

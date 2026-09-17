@@ -23,7 +23,7 @@ export default function CartPage() {
   const [feedback, setFeedback] = useState<string | null>(null);
 
   useEffect(() => {
-    setTimeout(() => setMounted(true), 0);
+    setMounted(true);
   }, []);
 
   if (!mounted) {
@@ -31,7 +31,7 @@ export default function CartPage() {
   }
 
   const subtotal = getTotalPrice();
-  const shippingFee = subtotal > 1000000 || subtotal === 0 ? 0 : 30000;
+  const shippingFee = subtotal >= 1000000 || subtotal === 0 ? 0 : 30000;
   const finalTotal = subtotal + shippingFee;
 
   const handleUpdate = (productId: string, newQty: number) => {
@@ -116,7 +116,6 @@ export default function CartPage() {
                       alt={product.name}
                       fill
                       className="object-cover"
-                      unoptimized
                     />
                   </Link>
 

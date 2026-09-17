@@ -99,7 +99,7 @@ function OrderTrackingContent() {
 
   useEffect(() => {
     if (initialOrderCode && initialPhone) {
-      setTimeout(() => handleLookup(), 0);
+      handleLookup();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialOrderCode, initialPhone]);
@@ -441,7 +441,6 @@ function OrderTrackingContent() {
                         alt={item.name}
                         fill
                         className="object-cover"
-                        unoptimized
                       />
                     </div>
                     <div>

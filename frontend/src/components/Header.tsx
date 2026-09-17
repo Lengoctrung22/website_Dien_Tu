@@ -30,7 +30,7 @@ export default function Header() {
   const { user, logout, isStaff } = useAuthStore();
 
   useEffect(() => {
-    setTimeout(() => setIsMounted(true), 0);
+    setIsMounted(true);
   }, []);
 
   // Dismiss user menu when clicking outside
@@ -179,7 +179,9 @@ export default function Header() {
             </Link>
 
             {/* Auth / Profile */}
-            {isMounted && user ? (
+            {!isMounted ? (
+              <div className="hidden sm:inline-flex items-center h-8 w-24 rounded-lg border hairline-border bg-slate-100/70 dark:bg-surface-subtle/50 animate-pulse" />
+            ) : user ? (
               <div className="relative" ref={userMenuRef}>
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
@@ -314,7 +316,7 @@ export default function Header() {
               >
                 Tra cứu đơn hàng
               </Link>
-              {!user && (
+              {isMounted && !user && (
                 <Link
                   href="/auth/login"
                   onClick={() => setIsMobileMenuOpen(false)}
@@ -322,6 +324,44 @@ export default function Header() {
                 >
                   Đăng nhập / Đăng ký
                 </Link>
+              )}
+              {isMounted && user && (
+                <div className="pt-2 border-t hairline-border space-y-1">
+                  <div className="px-3 py-1 flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-900 dark:text-white truncate">{user.fullName}</span>
+                    <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-slate-100 dark:bg-surface-elevated text-slate-700 dark:text-slate-300 border hairline-border">
+                      {user.role}
+                    </span>
+                  </div>
+                  {isStaff() && (
+                    <Link
+                      href="/admin"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-surface-subtle text-slate-950 dark:text-white font-bold flex items-center gap-2"
+                    >
+                      <ShieldCheck className="w-4 h-4" />
+                      Trang Quản Trị (Admin)
+                    </Link>
+                  )}
+                  <Link
+                    href="/profile"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-surface-subtle text-slate-800 dark:text-slate-200 font-semibold flex items-center gap-2"
+                  >
+                    <User className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                    Thông tin & Lịch sử
+                  </Link>
+                  <button
+                    onClick={() => {
+                      logout();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-2 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/20 text-rose-600 dark:text-signal-rose font-bold flex items-center gap-2"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Đăng xuất
+                  </button>
+                </div>
               )}
             </div>
           </div>

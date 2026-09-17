@@ -36,7 +36,7 @@ export interface IProduct extends Document {
 const productSchema = new Schema<IProduct>(
   {
     name: { type: String, required: true, trim: true },
-    slug: { type: String, required: true, unique: true, lowercase: true, trim: true, index: true },
+    slug: { type: String, required: true, unique: true, lowercase: true, trim: true },
     category: {
       type: String,
       required: true,
@@ -57,5 +57,7 @@ const productSchema = new Schema<IProduct>(
   },
   { timestamps: true }
 );
+
+productSchema.index({ name: 'text', brand: 'text', description: 'text' });
 
 export const Product = model<IProduct>('Product', productSchema);

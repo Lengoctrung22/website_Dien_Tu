@@ -43,7 +43,7 @@ function ProductsContent() {
   const [keyword, setKeyword] = useState(searchParam);
 
   useEffect(() => {
-    setTimeout(() => setKeyword(searchParam), 0);
+    setKeyword(searchParam);
   }, [searchParam]);
 
   // Fetch filter metadata

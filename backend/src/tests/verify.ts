@@ -1131,6 +1131,9 @@ async function runTests() {
 
     const res = await fetch(`${BASE_URL}/upload`, {
       method: 'POST',
+      headers: {
+        Authorization: `Bearer ${adminToken}`,
+      },
       body: formData,
     });
 
@@ -1143,6 +1146,9 @@ async function runTests() {
   await test('Image Upload API - Reject Empty Body Without Files', async () => {
     const res = await fetch(`${BASE_URL}/upload`, {
       method: 'POST',
+      headers: {
+        Authorization: `Bearer ${adminToken}`,
+      },
     });
 
     const json: any = await res.json();
@@ -1158,6 +1164,9 @@ async function runTests() {
 
     const res = await fetch(`${BASE_URL}/upload`, {
       method: 'POST',
+      headers: {
+        Authorization: `Bearer ${adminToken}`,
+      },
       body: formData,
     });
 
@@ -1176,6 +1185,9 @@ async function runTests() {
 
     const res = await fetch(`${BASE_URL}/upload`, {
       method: 'POST',
+      headers: {
+        Authorization: `Bearer ${adminToken}`,
+      },
       body: formData,
     });
 
@@ -1198,6 +1210,9 @@ async function runTests() {
 
     const res = await fetch(`${BASE_URL}/upload`, {
       method: 'POST',
+      headers: {
+        Authorization: `Bearer ${adminToken}`,
+      },
       body: formData,
     });
 
@@ -1224,6 +1239,9 @@ async function runTests() {
 
     const res = await fetch(`${BASE_URL}/upload`, {
       method: 'POST',
+      headers: {
+        Authorization: `Bearer ${adminToken}`,
+      },
       body: formData,
     });
 
