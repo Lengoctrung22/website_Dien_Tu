@@ -9,6 +9,7 @@
     "dev": "tsx watch src/index.ts",
     "seed": "tsx src/scripts/seed.ts",
     "seed:fresh": "tsx src/scripts/seed.ts --force",
+    "clean:orders": "tsx src/scripts/cleanFakeOrders.ts",
     "test": "tsx src/tests/verify.ts",
     "test:verify": "tsx src/tests/verify.ts"
   },

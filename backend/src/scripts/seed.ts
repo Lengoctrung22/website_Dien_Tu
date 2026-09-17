@@ -11,6 +11,7 @@ export const DEFAULT_USER_EMAILS = [
   'warehouse@techgear.vn',
   'orders@techgear.vn',
   'trunglengoc220324@gmail.com',
+  'test.buyer@techgear.vn',
 ];
 
 // Default user data for seeding
@@ -59,6 +60,15 @@ export const getUserData = async (forceGenerate = false) => {
       fullName: 'Lê Ngọc Trung',
       email: 'trunglengoc220324@gmail.com',
       phone: '0987654321',
+      passwordHash: customerPassword,
+      role: 'customer',
+      permissions: [],
+      isActive: true,
+    },
+    {
+      fullName: 'Auto Tester',
+      email: 'test.buyer@techgear.vn',
+      phone: '0999999999',
       passwordHash: customerPassword,
       role: 'customer',
       permissions: [],

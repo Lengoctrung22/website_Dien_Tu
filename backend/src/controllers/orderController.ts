@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { Types } from 'mongoose';
 import { Order, IOrderItem } from '../models/Order';
 import { Product } from '../models/Product';
+import { User } from '../models/User';
 import { InventoryLog } from '../models/InventoryLog';
 import { createVnpayPaymentUrl, verifyVnpaySignature } from '../utils/vnpay';
 
@@ -9,7 +10,25 @@ export const createOrder = async (req: Request, res: Response) => {
   try {
     const { customerInfo, items, paymentMethod = 'COD' } = req.body;
 
-    if (!customerInfo || !customerInfo.name || !customerInfo.phone || !customerInfo.address) {
+    let customerName = customerInfo?.name?.trim() || '';
+    let customerPhone = customerInfo?.phone?.trim() || '';
+    const customerAddress = customerInfo?.address?.trim() || '';
+    const customerNote = customerInfo?.note?.trim() || '';
+
+    // If customer is authenticated, auto-fill from user profile if not provided
+    if (req.user?.id) {
+      const dbUser = await User.findById(req.user.id);
+      if (dbUser) {
+        if (!customerName && dbUser.fullName) {
+          customerName = dbUser.fullName.trim();
+        }
+        if (!customerPhone && dbUser.phone) {
+          customerPhone = dbUser.phone.trim();
+        }
+      }
+    }
+
+    if (!customerInfo || !customerName || !customerPhone || !customerAddress) {
       return res.status(400).json({ success: false, message: 'Vui lòng cung cấp đầy đủ họ tên, số điện thoại và địa chỉ nhận hàng' });
     }
 
@@ -130,10 +149,10 @@ export const createOrder = async (req: Request, res: Response) => {
         orderCode,
         userId: req.user ? req.user.id : null,
         customerInfo: {
-          name: customerInfo.name,
-          phone: customerInfo.phone,
-          address: customerInfo.address,
-          note: customerInfo.note || '',
+          name: customerName,
+          phone: customerPhone,
+          address: customerAddress,
+          note: customerNote,
         },
         items: populatedItems,
         totalAmount: finalTotal,
@@ -225,10 +244,17 @@ export const getAllOrders = async (req: Request, res: Response) => {
     if (paymentStatus) filter.paymentStatus = paymentStatus;
     if (search) {
       const searchRegex = new RegExp(String(search), 'i');
+      const matchingUsers = await User.find({
+        $or: [{ fullName: searchRegex }, { email: searchRegex }],
+      }).select('_id');
+      const matchingUserIds = matchingUsers.map((u) => u._id);
+
       filter.$or = [
         { orderCode: searchRegex },
         { 'customerInfo.name': searchRegex },
         { 'customerInfo.phone': searchRegex },
+        { 'customerInfo.address': searchRegex },
+        ...(matchingUserIds.length > 0 ? [{ userId: { $in: matchingUserIds } }] : []),
       ];
     }
 
@@ -237,7 +263,7 @@ export const getAllOrders = async (req: Request, res: Response) => {
     const skip = (pageNum - 1) * limitNum;
 
     const [orders, total] = await Promise.all([
-      Order.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limitNum),
+      Order.find(filter).populate('userId', 'fullName email phone').sort({ createdAt: -1 }).skip(skip).limit(limitNum),
       Order.countDocuments(filter),
     ]);
 

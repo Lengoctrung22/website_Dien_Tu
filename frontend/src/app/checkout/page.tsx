@@ -15,13 +15,14 @@ import {
   QrCode,
 } from 'lucide-react';
 import { useCartStore } from '@/store/cartStore';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore, useIsAuthHydrated } from '@/store/authStore';
 import { fetchApi } from '@/lib/api';
 import { formatVND } from '@/lib/utils';
 
 export default function CheckoutPage() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
+  const isHydrated = useIsAuthHydrated();
   const { items, clearCart, getTotalPrice } = useCartStore();
   const { user } = useAuthStore();
 
@@ -38,14 +39,21 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     setTimeout(() => setMounted(true), 0);
+  }, []);
+
+  useEffect(() => {
     if (user) {
-      setTimeout(() => setFormData((prev) => ({
-        ...prev,
-        name: user.fullName || '',
-        phone: user.phone || '',
-      })), 0);
+      const defaultName = user.fullName || (user as any).name || '';
+      const defaultPhone = user.phone || '';
+      setTimeout(() => {
+        setFormData((prev) => ({
+          ...prev,
+          name: prev.name && prev.name.trim() !== '' ? prev.name : defaultName,
+          phone: prev.phone && prev.phone.trim() !== '' ? prev.phone : defaultPhone,
+        }));
+      }, 0);
     }
-  }, [user]);
+  }, [user, isHydrated]);
 
   if (!mounted) {
     return <div className="p-12 text-center text-sm">Đang tải biểu mẫu đặt hàng...</div>;
@@ -74,7 +82,11 @@ export default function CheckoutPage() {
     e.preventDefault();
     setErrorMsg(null);
 
-    if (!formData.name.trim() || !formData.phone.trim() || !formData.address.trim()) {
+    const finalName = (formData.name.trim() || user?.fullName || (user as any)?.name || '').trim();
+    const finalPhone = (formData.phone.trim() || user?.phone || '').trim();
+    const finalAddress = formData.address.trim();
+
+    if (!finalName || !finalPhone || !finalAddress) {
       setErrorMsg('Vui lòng điền đầy đủ họ tên, số điện thoại và địa chỉ nhận hàng');
       return;
     }
@@ -84,9 +96,9 @@ export default function CheckoutPage() {
     try {
       const orderPayload = {
         customerInfo: {
-          name: formData.name.trim(),
-          phone: formData.phone.trim(),
-          address: formData.address.trim(),
+          name: finalName,
+          phone: finalPhone,
+          address: finalAddress,
           note: formData.note.trim(),
         },
         items: items.map((i) => ({
@@ -118,7 +130,7 @@ export default function CheckoutPage() {
         router.push(targetUrl);
       } else {
         // COD order confirmed directly
-        router.push(`/order-tracking?orderCode=${order.orderCode}&phone=${encodeURIComponent(formData.phone.trim())}&newOrder=true`);
+        router.push(`/order-tracking?orderCode=${order.orderCode}&phone=${encodeURIComponent(finalPhone)}&newOrder=true`);
       }
     } catch (err: any) {
       setErrorMsg(err.message || 'Lỗi kết nối máy chủ');
@@ -164,6 +176,20 @@ export default function CheckoutPage() {
                 Thông Tin Nhận Hàng // Shipping Address
               </h2>
             </div>
+
+            {user && (
+              <div className="p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse flex-shrink-0" />
+                  <span className="text-slate-700 dark:text-slate-300">
+                    Tài khoản: <strong className="text-slate-900 dark:text-white">{user.fullName}</strong> ({user.email})
+                  </span>
+                </div>
+                <span className="text-[10px] font-mono font-bold text-cyan-700 dark:text-cyan-300 bg-cyan-500/20 px-2 py-0.5 rounded self-start sm:self-auto">
+                  Đã tự động điền họ tên &amp; SĐT
+                </span>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>

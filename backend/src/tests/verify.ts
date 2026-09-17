@@ -79,19 +79,66 @@ async function runTests() {
   });
 
   await test('Customer Login', async () => {
-    const res = await fetch(`${BASE_URL}/auth/login`, {
+    // 1. Verify real customer account login works without storing token for test orders
+    const realRes = await fetch(`${BASE_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: 'trunglengoc220324@gmail.com', password: '123456' }),
     });
-    const json: any = await res.json();
-    if (!json.success || json.data.user.role !== 'customer') {
-      throw new Error('Customer login failed');
+    const realJson: any = await realRes.json();
+    if (!realJson.success || realJson.data.user.role !== 'customer') {
+      throw new Error('Real customer account login failed');
     }
-    customerToken = json.data.token;
+
+    // 1b. Verify real customer order history (/api/orders/my-orders) is clean of fake/mock test orders
+    const historyRes = await fetch(`${BASE_URL}/orders/my-orders`, {
+      headers: { Authorization: `Bearer ${realJson.data.token}` },
+    });
+    const historyJson: any = await historyRes.json();
+    if (!historyJson.success || !Array.isArray(historyJson.data)) {
+      throw new Error('Failed to fetch real customer order history');
+    }
+    const mockOrderInHistory = historyJson.data.find((o: any) =>
+      /(tester|racer|0084|staff override|customer receipt|guest tracking)/i.test(o.customerInfo?.name || '')
+    );
+    if (mockOrderInHistory) {
+      throw new Error(`Real customer order history is polluted with test order: ${mockOrderInHistory.orderCode} (${mockOrderInHistory.customerInfo?.name})`);
+    }
+
+    // 2. Use dedicated test buyer account (test.buyer@techgear.vn) to isolate test orders from real customer data
+    let buyerRes = await fetch(`${BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'test.buyer@techgear.vn', password: '123456' }),
+    });
+    let buyerJson: any = await buyerRes.json();
+    if (!buyerJson.success) {
+      await fetch(`${BASE_URL}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName: 'Auto Tester',
+          email: 'test.buyer@techgear.vn',
+          password: '123456',
+          phone: '0999999999',
+        }),
+      });
+      buyerRes = await fetch(`${BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: 'test.buyer@techgear.vn', password: '123456' }),
+      });
+      buyerJson = await buyerRes.json();
+    }
+    if (!buyerJson.success || buyerJson.data.user.role !== 'customer') {
+      throw new Error('Dedicated test customer login failed');
+    }
+    customerToken = buyerJson.data.token;
   });
 
   // 4. Order Creation, Stock Deduction & Stock Limit Check
+  const testOrderIds: string[] = [];
+  const testOrderCodes: string[] = [];
   let testOrderCode = '';
   let testProductId = '';
   let stockBefore = 0;
@@ -126,6 +173,8 @@ async function runTests() {
       throw new Error('Order creation failed or paymentUrl missing');
     }
     testOrderCode = oJson.data.order.orderCode;
+    testOrderIds.push(oJson.data.order._id);
+    testOrderCodes.push(oJson.data.order.orderCode);
 
     // Check stock was deducted
     const pAfterRes = await fetch(`${BASE_URL}/products/${product.slug}`);
@@ -183,6 +232,12 @@ async function runTests() {
     );
 
     const results = await Promise.all(orderPromises);
+    for (const r of results) {
+      if (r.success && r.data?.order?._id) {
+        testOrderIds.push(r.data.order._id);
+        testOrderCodes.push(r.data.order.orderCode);
+      }
+    }
     const successfulOrders = results.filter((r) => r.success === true);
     const failedOrders = results.filter((r) => r.success === false);
 
@@ -339,6 +394,8 @@ async function runTests() {
       throw new Error(`Failed to create COD order for lifecycle test: ${oJson.message || 'unknown'}`);
     }
     const codOrderId = oJson.data.order._id;
+    testOrderIds.push(codOrderId);
+    testOrderCodes.push(oJson.data.order.orderCode);
     if (oJson.data.order.paymentStatus !== 'pending' || oJson.data.order.orderStatus !== 'pending') {
       throw new Error('New COD order must have pending payment and orderStatus');
     }
@@ -412,6 +469,8 @@ async function runTests() {
       throw new Error(`Failed to create order for 9c: ${oJson.message || 'unknown'}`);
     }
     const hopOrderId = oJson.data.order._id;
+    testOrderIds.push(hopOrderId);
+    testOrderCodes.push(oJson.data.order.orderCode);
 
     // Attempt illegal transition: pending -> delivered directly
     const badHop = await fetch(`${BASE_URL}/orders/${hopOrderId}/status`, {
@@ -488,6 +547,8 @@ async function runTests() {
     }
     const refundOrderId = oJson.data.order._id;
     const refundOrderCode = oJson.data.order.orderCode;
+    testOrderIds.push(refundOrderId);
+    testOrderCodes.push(refundOrderCode);
 
     // 2. Real Payment Webhook confirmation -> paid & processing
     const hashSecret = process.env.VNPAY_HASH_SECRET || 'VNPAYTECHGEARSECRETKEY2026SANDBOX';
@@ -559,6 +620,9 @@ async function runTests() {
     const orderJson: any = await orderRes.json();
     if (!orderJson.success) throw new Error('Failed to create online order for fail test');
     const failedOrderCode = orderJson.data.order.orderCode;
+    const failOrderId = orderJson.data.order._id;
+    testOrderIds.push(failOrderId);
+    testOrderCodes.push(failedOrderCode);
 
     // Check stock decremented
     const pMidRes = await fetch(`${BASE_URL}/products/${targetProduct.slug}`);
@@ -621,6 +685,8 @@ async function runTests() {
     const custOrderJson: any = await custOrderRes.json();
     if (!custOrderJson.success) throw new Error('Failed to create customer order for receipt test');
     const custOrderId = custOrderJson.data.order._id;
+    testOrderIds.push(custOrderId);
+    testOrderCodes.push(custOrderJson.data.order.orderCode);
 
     // 1a. Cannot confirm when still pending
     const prematureConfirm = await fetch(`${BASE_URL}/orders/${custOrderId}/confirm-receipt`, {
@@ -690,6 +756,8 @@ async function runTests() {
     if (!guestOrderJson.success) throw new Error('Failed to create guest order');
     const guestOrderId = guestOrderJson.data.order._id;
     const guestOrderCode = guestOrderJson.data.order.orderCode;
+    testOrderIds.push(guestOrderId);
+    testOrderCodes.push(guestOrderCode);
 
     // Advance to shipping
     await fetch(`${BASE_URL}/orders/${guestOrderId}/status`, {
@@ -731,6 +799,8 @@ async function runTests() {
     if (!guestOrderJson2.success) throw new Error(`Failed to create guest order 2: ${guestOrderJson2.message}`);
     const guestOrderId2 = guestOrderJson2.data.order._id;
     const guestOrderCode2 = guestOrderJson2.data.order.orderCode;
+    testOrderIds.push(guestOrderId2);
+    testOrderCodes.push(guestOrderCode2);
 
     // Advance to shipping via processing
     await fetch(`${BASE_URL}/orders/${guestOrderId2}/status`, {
@@ -769,6 +839,8 @@ async function runTests() {
     if (!guestOrderJson3.success) throw new Error(`Failed to create guest order 3: ${guestOrderJson3.message}`);
     const guestOrderId3 = guestOrderJson3.data.order._id;
     const guestOrderCode3 = guestOrderJson3.data.order.orderCode;
+    testOrderIds.push(guestOrderId3);
+    testOrderCodes.push(guestOrderCode3);
 
     await fetch(`${BASE_URL}/orders/${guestOrderId3}/status`, {
       method: 'PATCH',
@@ -803,6 +875,8 @@ async function runTests() {
     });
     const staffOrderJson: any = await staffOrderRes.json();
     const staffOrderId = staffOrderJson.data.order._id;
+    testOrderIds.push(staffOrderId);
+    testOrderCodes.push(staffOrderJson.data.order.orderCode);
 
     await fetch(`${BASE_URL}/orders/${staffOrderId}/status`, {
       method: 'PATCH',
@@ -1350,6 +1424,98 @@ async function runTests() {
       // ignore cleanup errors
     }
   }
+
+  // Clean up test orders and restore stock to ensure live DB is never polluted
+  try {
+    const { connectDB, disconnectDB } = await import('../config/db');
+    const { Order } = await import('../models/Order');
+    const { Product } = await import('../models/Product');
+    const { InventoryLog } = await import('../models/InventoryLog');
+    const { User } = await import('../models/User');
+
+    await connectDB();
+
+    // 1. Clean up test orders tracked during this test run
+    if (testOrderIds.length > 0) {
+      const ordersToClean = await Order.find({ _id: { $in: testOrderIds } });
+      for (const ord of ordersToClean) {
+        if (ord.orderStatus !== 'cancelled') {
+          for (const item of ord.items) {
+            if (item.productId) {
+              const product = await Product.findById(item.productId);
+              if (product) {
+                product.stock += item.quantity;
+                product.soldCount = Math.max(0, product.soldCount - item.quantity);
+                await product.save();
+              }
+            }
+          }
+        }
+      }
+
+      await Order.deleteMany({ _id: { $in: testOrderIds } });
+      if (testOrderCodes.length > 0) {
+        await InventoryLog.deleteMany({
+          $or: [
+            { note: { $in: testOrderCodes.map((c) => `Đơn hàng ${c}`) } },
+            { note: { $in: testOrderCodes.map((c) => `Hủy đơn hàng ${c}`) } },
+            { note: { $regex: testOrderCodes.map((c) => c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') } },
+          ],
+        });
+      }
+    }
+
+    // 2. Clean up any orders associated with test customer test.buyer@techgear.vn
+    const testBuyerUser = await User.findOne({ email: 'test.buyer@techgear.vn' });
+    if (testBuyerUser) {
+      const remainingTestOrders = await Order.find({ userId: testBuyerUser._id });
+      for (const ord of remainingTestOrders) {
+        if (ord.orderStatus !== 'cancelled') {
+          for (const item of ord.items) {
+            if (item.productId) {
+              const product = await Product.findById(item.productId);
+              if (product) {
+                product.stock += item.quantity;
+                product.soldCount = Math.max(0, product.soldCount - item.quantity);
+                await product.save();
+              }
+            }
+          }
+        }
+      }
+      await Order.deleteMany({ userId: testBuyerUser._id });
+    }
+
+    // 3. Clean any mock test orders (containing Tester, 0084, Racer, etc.)
+    const remainingMockOrders = await Order.find({
+      $or: [
+        { 'customerInfo.name': /(tester|racer|0084|staff override|customer receipt|guest tracking|refund lifecycle|cod lifecycle|payment fail|test limit|invalid hop)/i },
+        { 'customerInfo.phone': /^(090000000|0999888777|0911223344|0977665544|0966554433|0912987654|0912\.345\.678|0084|0977112233|0999999999|0988776655)/ },
+      ],
+    });
+    for (const ord of remainingMockOrders) {
+      if (ord.orderStatus !== 'cancelled') {
+        for (const item of ord.items) {
+          if (item.productId) {
+            const product = await Product.findById(item.productId);
+            if (product) {
+              product.stock += item.quantity;
+              product.soldCount = Math.max(0, product.soldCount - item.quantity);
+              await product.save();
+            }
+          }
+        }
+      }
+    }
+    if (remainingMockOrders.length > 0) {
+      await Order.deleteMany({ _id: { $in: remainingMockOrders.map((o) => o._id) } });
+    }
+
+    await disconnectDB();
+  } catch (cleanErr) {
+    console.error('Test orders cleanup error:', cleanErr);
+  }
+
 
   console.log(`\n🎉 [TEST SUITE SUMMARY] Passed: ${passed} | Failed: ${failed}`);
   if (failed > 0) {

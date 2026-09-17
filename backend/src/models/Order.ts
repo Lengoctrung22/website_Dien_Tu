@@ -1,4 +1,5 @@
 import { Schema, model, Document, Types } from 'mongoose';
+import './User';
 
 export type PaymentMethod = 'COD' | 'ONLINE';
 export type PaymentStatus = 'pending' | 'paid' | 'failed' | 'refunded';

@@ -517,9 +517,18 @@ function OrdersContent({ initialStatus }: { initialStatus: string }) {
                           <p className="font-semibold text-slate-900 dark:text-slate-100">
                             {o.customerInfo?.name}
                           </p>
-                          <span className="text-[10px] text-slate-500 font-mono tabular-nums font-semibold">
+                          <span className="text-[10px] text-slate-500 font-mono tabular-nums font-semibold block">
                             {o.customerInfo?.phone}
                           </span>
+                          {o.userId && typeof o.userId === 'object' && o.userId.fullName && (
+                            <span
+                              className="text-[10px] text-cyan-600 dark:text-cyan-400 font-mono block mt-0.5"
+                              title={`Tài khoản đặt: ${o.userId.fullName} (${o.userId.email})`}
+                            >
+                              TK: {o.userId.fullName}
+                              {o.userId.fullName !== o.customerInfo?.name ? ` (${o.userId.email})` : ''}
+                            </span>
+                          )}
                         </td>
 
                         {/* Total Amount & Items */}
@@ -684,7 +693,16 @@ function OrdersContent({ initialStatus }: { initialStatus: string }) {
             </div>
 
             <div className="p-3.5 rounded-xl bg-surface-subtle/30 dark:bg-surface-elevated/70 hairline-border text-xs space-y-1">
-              <p><strong>Khách hàng:</strong> {selectedOrder.customerInfo?.name}</p>
+              <p><strong>Người nhận hàng:</strong> {selectedOrder.customerInfo?.name}</p>
+              {selectedOrder.userId && typeof selectedOrder.userId === 'object' && selectedOrder.userId.fullName && (
+                <p>
+                  <strong>Tài khoản đặt:</strong>{' '}
+                  <span className="text-cyan-700 dark:text-cyan-400 font-semibold">
+                    {selectedOrder.userId.fullName}
+                  </span>{' '}
+                  <span className="text-slate-500 font-mono">({selectedOrder.userId.email})</span>
+                </p>
+              )}
               <p><strong>Số điện thoại:</strong> <span className="font-mono tabular-nums">{selectedOrder.customerInfo?.phone}</span></p>
               <p><strong>Địa chỉ:</strong> {selectedOrder.customerInfo?.address}</p>
               {selectedOrder.customerInfo?.note && (
