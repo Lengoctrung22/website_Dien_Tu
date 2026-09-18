@@ -12,6 +12,8 @@ export const ENV = {
   JWT_SECRET: process.env.JWT_SECRET || 'techgear_super_secret_jwt_key_2026',
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '7d',
   CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:3000',
+  GEMINI_API_KEY: process.env.GEMINI_API_KEY || '',
+  GEMINI_MODEL: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
   VNPAY: {
     tmnCode: process.env.VNPAY_TMN_CODE || 'TECHGEAR',
     hashSecret: process.env.VNPAY_HASH_SECRET || 'VNPAYTECHGEARSECRETKEY2026SANDBOX',

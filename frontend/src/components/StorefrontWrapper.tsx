@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation';
 import Header from './Header';
 import Footer from './Footer';
+import ChatWidget from './chat/ChatWidget';
 
 export default function StorefrontWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -17,6 +18,7 @@ export default function StorefrontWrapper({ children }: { children: React.ReactN
       <Header />
       <main className="flex-1 bg-transparent">{children}</main>
       <Footer />
+      <ChatWidget />
     </div>
   );
 }
