@@ -1422,6 +1422,72 @@ async function runTests() {
     if (createProdRes.status !== 403) throw new Error(`Orders staff must be blocked from creating products, got ${createProdRes.status}`);
   });
 
+  // Forgot Password & Reset Password API Live Tests
+  await test('Forgot Password API - Request OTP for Registered User', async () => {
+    const res = await fetch(`${BASE_URL}/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'test.buyer@techgear.vn' }),
+    });
+    const json: any = await res.json();
+    if (res.status !== 200 || !json.success) {
+      throw new Error(`Forgot password OTP request failed: status ${res.status}, msg: ${json.message}`);
+    }
+  });
+
+  await test('Forgot Password API - Reject Non-Existent Email (HTTP 404)', async () => {
+    const res = await fetch(`${BASE_URL}/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'nonexistent_account_999@techgear.vn' }),
+    });
+    if (res.status !== 404) {
+      throw new Error(`Expected HTTP 404 for non-existent email, got ${res.status}`);
+    }
+  });
+
+  await test('Forgot Password API - Reject Empty Email (HTTP 400)', async () => {
+    const res = await fetch(`${BASE_URL}/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: '   ' }),
+    });
+    if (res.status !== 400) {
+      throw new Error(`Expected HTTP 400 for empty email, got ${res.status}`);
+    }
+  });
+
+  await test('Reset Password API - Reject Incorrect OTP (HTTP 400)', async () => {
+    const res = await fetch(`${BASE_URL}/auth/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: 'test.buyer@techgear.vn',
+        otp: '000000',
+        newPassword: 'myNewValidPassword123',
+      }),
+    });
+    const json: any = await res.json();
+    if (res.status !== 400 || json.success !== false) {
+      throw new Error(`Expected HTTP 400 for incorrect OTP, got ${res.status}`);
+    }
+  });
+
+  await test('Reset Password API - Reject Short Password (HTTP 400)', async () => {
+    const res = await fetch(`${BASE_URL}/auth/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: 'test.buyer@techgear.vn',
+        otp: '123456',
+        newPassword: '123',
+      }),
+    });
+    if (res.status !== 400) {
+      throw new Error(`Expected HTTP 400 for short password, got ${res.status}`);
+    }
+  });
+
   // Clean up test images
   const filesToClean = [
     uploadedImageFilename,

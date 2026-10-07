@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { UserPlus, User, Mail, Key, Phone, ShieldAlert } from 'lucide-react';
 import { fetchApi } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
+import GoogleLoginButton from '@/components/GoogleLoginButton';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -43,6 +44,36 @@ export default function RegisterPage() {
       }
     } catch {
       setErrorMsg('Lỗi kết nối máy chủ');
+    }
+    setLoading(false);
+  };
+
+  const handleGoogleCredential = async (credential: string) => {
+    setErrorMsg(null);
+    setLoading(true);
+    try {
+      const res = await fetchApi('/auth/google', {
+        method: 'POST',
+        body: JSON.stringify({ credential }),
+      });
+
+      if (res.success && res.data) {
+        setAuth(res.data.user, res.data.token);
+        if (
+          res.data.user.role === 'admin' ||
+          res.data.user.role === 'staff' ||
+          res.data.user.role === 'orders' ||
+          res.data.user.role === 'warehouse'
+        ) {
+          router.push('/admin');
+        } else {
+          router.push('/');
+        }
+      } else {
+        setErrorMsg(res.message || 'Đăng ký bằng Google không thành công');
+      }
+    } catch {
+      setErrorMsg('Không thể kết nối tới hệ thống xác thực');
     }
     setLoading(false);
   };
@@ -157,6 +188,8 @@ export default function RegisterPage() {
         >
           <span>{loading ? 'Đang tạo tài khoản...' : 'Đăng Ký Tài Khoản'}</span>
         </button>
+
+        <GoogleLoginButton text="signup_with" onCredential={handleGoogleCredential} onError={setErrorMsg} />
 
         <div className="pt-2 text-center text-xs text-slate-600 dark:text-slate-400 font-medium">
           Đã có tài khoản?{' '}

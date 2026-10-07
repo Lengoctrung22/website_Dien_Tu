@@ -11,6 +11,7 @@ export interface UserProfile {
   phone?: string;
   role: 'customer' | 'staff' | 'admin' | 'warehouse' | 'orders';
   permissions?: string[];
+  isGoogleLinked?: boolean;
 }
 
 export interface AuthState {

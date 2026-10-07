@@ -11,18 +11,23 @@
     "seed:fresh": "tsx src/scripts/seed.ts --force",
     "clean:orders": "tsx src/scripts/cleanFakeOrders.ts",
     "test": "tsx src/tests/verify.ts",
-    "test:verify": "tsx src/tests/verify.ts"
+    "test:verify": "tsx src/tests/verify.ts",
+    "test:google": "tsx src/tests/googleAuth.test.ts",
+    "test:forgot-password": "tsx src/tests/forgotPassword.test.ts",
+    "test:all": "tsx src/tests/verify.ts && tsx src/tests/googleAuth.test.ts && tsx src/tests/forgotPassword.test.ts"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "google-auth-library": "^9.15.1",
     "jsonwebtoken": "^9.0.2",
     "mongodb-memory-server": "^9.2.0",
     "mongoose": "^8.4.1",
     "morgan": "^1.10.0",
-    "multer": "^2.3.0"
+    "multer": "^2.3.0",
+    "nodemailer": "^10.0.15"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -32,6 +37,7 @@
     "@types/morgan": "^1.9.9",
     "@types/multer": "^2.2.0",
     "@types/node": "^20.14.2",
+    "@types/nodemailer": "^8.0.2",
     "tsx": "^4.15.2",
     "typescript": "^5.4.5"
   }

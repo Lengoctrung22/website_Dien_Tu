@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { LogIn, Key, Mail, ShieldAlert } from 'lucide-react';
 import { fetchApi } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
+import GoogleLoginButton from '@/components/GoogleLoginButton';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -16,14 +17,14 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const submitCredentials = async (loginEmail: string, loginPass: string) => {
+  const submitAuth = async (endpoint: string, body: Record<string, string>) => {
     setErrorMsg(null);
     setLoading(true);
 
     try {
-      const res = await fetchApi('/auth/login', {
+      const res = await fetchApi(endpoint, {
         method: 'POST',
-        body: JSON.stringify({ email: loginEmail, password: loginPass }),
+        body: JSON.stringify(body),
       });
 
       if (res.success && res.data) {
@@ -49,7 +50,11 @@ export default function LoginPage() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    submitCredentials(email, password);
+    submitAuth('/auth/login', { email, password });
+  };
+
+  const handleGoogleCredential = (credential: string) => {
+    submitAuth('/auth/google', { credential });
   };
 
   return (
@@ -91,9 +96,17 @@ export default function LoginPage() {
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1">
-            Mật khẩu
-          </label>
+          <div className="flex items-center justify-between mb-1">
+            <label className="text-xs font-bold text-slate-800 dark:text-slate-200">
+              Mật khẩu
+            </label>
+            <Link
+              href="/auth/forgot-password"
+              className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+            >
+              Quên mật khẩu?
+            </Link>
+          </div>
           <div className="relative">
             <input
               type="password"
@@ -114,6 +127,8 @@ export default function LoginPage() {
         >
           <span>{loading ? 'Đang xác thực...' : 'Đăng Nhập'}</span>
         </button>
+
+        <GoogleLoginButton onCredential={handleGoogleCredential} onError={setErrorMsg} />
 
         <div className="pt-2 text-center text-xs text-slate-600 dark:text-slate-400 font-medium">
           Chưa có tài khoản?{' '}

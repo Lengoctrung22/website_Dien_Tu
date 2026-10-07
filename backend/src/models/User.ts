@@ -6,6 +6,11 @@ export interface IUser extends Document {
   email: string;
   phone: string;
   passwordHash: string;
+  googleId?: string;
+  hasCustomPassword?: boolean;
+  resetPasswordOtp?: string;
+  resetPasswordOtpExpires?: Date;
+  resetPasswordOtpAttempts?: number;
   role: 'customer' | 'staff' | 'admin';
   permissions: string[];
   isActive: boolean;
@@ -20,6 +25,11 @@ const userSchema = new Schema<IUser>(
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     phone: { type: String, default: '', trim: true },
     passwordHash: { type: String, required: true },
+    googleId: { type: String, unique: true, sparse: true },
+    hasCustomPassword: { type: Boolean, default: false },
+    resetPasswordOtp: { type: String },
+    resetPasswordOtpExpires: { type: Date },
+    resetPasswordOtpAttempts: { type: Number, default: 0 },
     role: {
       type: String,
       enum: ['customer', 'staff', 'admin'],

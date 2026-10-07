@@ -50,7 +50,10 @@ Hệ thống cung cấp sẵn các tài khoản khởi tạo để truy cập v�
 - **Tra cứu đơn hàng (`/order-tracking`):**
   - Tra cứu nhanh bằng **Mã đơn hàng** (`TG...`) + **Số điện thoại**.
   - Hiển thị tiến trình trực quan đầy đủ **5 mốc chuẩn SRS**: `Chờ xác nhận` ➔ `Đang xử lý` ➔ `Đang giao hàng` ➔ `Đã giao` ➔ `Đã hủy`.
-- **Tài khoản cá nhân (`/profile`):** Cập nhật thông tin và xem lịch sử các đơn hàng đã đặt.
+- **Đăng ký & Đăng nhập (`/auth/login`, `/auth/register`):**
+  - Đăng ký và đăng nhập bằng Email & Mật khẩu chuẩn mã hóa bcrypt.
+  - **Đăng nhập & Đăng ký bằng Google OAuth 2.0 thật:** Tích hợp Google Identity Services (GIS), tự động tạo tài khoản hoặc liên kết tài khoản an toàn với cơ chế chống chiếm đoạt tài khoản (pre-account hijacking protection). Chi tiết hướng dẫn cài đặt tại [`docs/GOOGLE_OAUTH_SETUP.md`](docs/GOOGLE_OAUTH_SETUP.md).
+- **Tài khoản cá nhân (`/profile`):** Cập nhật thông tin, hiển thị trạng thái liên kết tài khoản Google và xem lịch sử các đơn hàng đã đặt.
 
 ---
 

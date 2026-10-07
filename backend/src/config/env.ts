@@ -14,6 +14,16 @@ export const ENV = {
   CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:3000',
   GEMINI_API_KEY: process.env.GEMINI_API_KEY || '',
   GEMINI_MODEL: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || '',
+  EMAIL: {
+    user: (process.env.EMAIL_USER || '').trim(),
+    appPassword: (process.env.EMAIL_APP_PASSWORD || '').replace(/\s+/g, ''),
+    from:
+      (process.env.EMAIL_FROM || '').trim() ||
+      (process.env.EMAIL_USER
+        ? `TechGear Pro <${process.env.EMAIL_USER.trim()}>`
+        : 'TechGear Pro <support@techgear.vn>'),
+  },
   VNPAY: {
     tmnCode: process.env.VNPAY_TMN_CODE || 'TECHGEAR',
     hashSecret: process.env.VNPAY_HASH_SECRET || 'VNPAYTECHGEARSECRETKEY2026SANDBOX',
