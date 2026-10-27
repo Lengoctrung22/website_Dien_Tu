@@ -20,7 +20,7 @@ export const getUserData = async (forceGenerate = false) => {
   if (!forceGenerate) {
     const existingCount = await User.countDocuments({ email: { $in: DEFAULT_USER_EMAILS } });
     if (existingCount === DEFAULT_USER_EMAILS.length) {
-      return []; // All default accounts exist, bypass bcrypt computation
+      return []; // All default accounts exist; do not overwrite existing passwords
     }
   }
 
@@ -661,7 +661,16 @@ export const seedDatabase = async () => {
     for (const user of userData) {
       const existing = await User.findOneAndUpdate(
         { email: user.email },
-        { $setOnInsert: user },
+        {
+          $setOnInsert: {
+            fullName: user.fullName,
+            phone: user.phone,
+            passwordHash: user.passwordHash,
+            role: user.role,
+            permissions: user.permissions,
+            isActive: user.isActive,
+          },
+        },
         { upsert: true, new: false }
       );
       if (!existing) {

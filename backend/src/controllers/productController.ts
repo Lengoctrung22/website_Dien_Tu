@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { isValidObjectId } from 'mongoose';
 import { Product, ProductCategory } from '../models/Product';
 import { InventoryLog } from '../models/InventoryLog';
 import { escapeRegex, sanitizeString } from '../utils/sanitize';
@@ -73,7 +74,7 @@ export const getProducts = async (req: Request, res: Response) => {
     }
 
     const pageNum = Math.max(1, parseInt(String(page)) || 1);
-    const limitNum = Math.max(1, parseInt(String(limit)) || 12);
+    const limitNum = Math.min(100, Math.max(1, parseInt(String(limit)) || 12));
     const skip = (pageNum - 1) * limitNum;
 
     const [products, total] = await Promise.all([
@@ -141,6 +142,18 @@ export const createProduct = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: 'Thiếu thông tin bắt buộc của sản phẩm' });
     }
 
+    const numPrice = Number(price);
+    const numDiscountPrice = discountPrice !== undefined && discountPrice !== '' ? Number(discountPrice) : 0;
+    if (!Number.isFinite(numPrice) || numPrice < 0) {
+      return res.status(400).json({ success: false, message: 'Giá sản phẩm không hợp lệ' });
+    }
+    if (!Number.isFinite(numDiscountPrice) || numDiscountPrice < 0 || (numDiscountPrice > 0 && numDiscountPrice >= numPrice)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Giá khuyến mãi phải lớn hơn hoặc bằng 0 và nhỏ hơn giá gốc',
+      });
+    }
+
     // Generate slug
     const baseSlug = name
       .toLowerCase()
@@ -160,8 +173,8 @@ export const createProduct = async (req: Request, res: Response) => {
       slug,
       category,
       brand,
-      price,
-      discountPrice: discountPrice || 0,
+      price: numPrice,
+      discountPrice: numDiscountPrice,
       stock,
       soldCount: 0,
       images: images || [],
@@ -193,30 +206,88 @@ export const createProduct = async (req: Request, res: Response) => {
 export const updateProduct = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const updateData = { ...req.body };
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ success: false, message: 'Mã định danh sản phẩm không hợp lệ' });
+    }
+
+    const ALLOWED_UPDATE_FIELDS = [
+      'name',
+      'category',
+      'brand',
+      'price',
+      'discountPrice',
+      'images',
+      'specs',
+      'description',
+      'isHot',
+      'hotOrder',
+      'isActive',
+    ];
+
+    const canUpdateStock =
+      !req.user?.role ||
+      req.user.role === 'admin' ||
+      req.user.permissions?.includes('all') ||
+      req.user.permissions?.includes('inventory');
+
+    const updateData: Record<string, any> = {};
+    for (const key of ALLOWED_UPDATE_FIELDS) {
+      if (req.body && req.body[key] !== undefined) {
+        updateData[key] = req.body[key];
+      }
+    }
+    if (canUpdateStock && req.body && req.body.stock !== undefined) {
+      updateData.stock = req.body.stock;
+    }
 
     const product = await Product.findById(id);
     if (!product) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy sản phẩm' });
     }
 
-    // Check if stock is being modified directly
-    if (updateData.stock !== undefined && updateData.stock !== product.stock) {
-      const prev = product.stock;
-      const next = Number(updateData.stock);
+    if (updateData.price !== undefined || updateData.discountPrice !== undefined) {
+      const effectivePrice = updateData.price !== undefined ? Number(updateData.price) : Number(product.price);
+      const effectiveDiscount =
+        updateData.discountPrice !== undefined ? Number(updateData.discountPrice) : Number(product.discountPrice || 0);
+
+      if (!Number.isFinite(effectivePrice) || effectivePrice < 0) {
+        return res.status(400).json({ success: false, message: 'Giá sản phẩm không hợp lệ' });
+      }
+      if (
+        !Number.isFinite(effectiveDiscount) ||
+        effectiveDiscount < 0 ||
+        (effectiveDiscount > 0 && effectiveDiscount >= effectivePrice)
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: 'Giá khuyến mãi phải lớn hơn hoặc bằng 0 và nhỏ hơn giá gốc',
+        });
+      }
+    }
+
+    const stockChanged = updateData.stock !== undefined && updateData.stock !== product.stock;
+    const prevStock = product.stock;
+    const nextStock = Number(updateData.stock);
+
+    const updated = await Product.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
+    if (!updated) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy sản phẩm' });
+    }
+
+    // Record inventory log only after Product update succeeds
+    if (stockChanged && !isNaN(nextStock)) {
       await InventoryLog.create({
-        productId: product._id,
-        productName: product.name,
-        changeAmount: next - prev,
-        previousStock: prev,
-        newStock: next,
+        productId: updated._id,
+        productName: updated.name,
+        changeAmount: nextStock - prevStock,
+        previousStock: prevStock,
+        newStock: nextStock,
         reason: 'manual_adjustment',
         note: 'Điều chỉnh tồn kho từ cập nhật sản phẩm',
         updatedBy: req.user?.email || 'Admin',
       });
     }
 
-    const updated = await Product.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
     res.json({ success: true, message: 'Cập nhật sản phẩm thành công', data: updated });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
@@ -226,6 +297,10 @@ export const updateProduct = async (req: Request, res: Response) => {
 export const deleteProduct = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ success: false, message: 'Mã định danh sản phẩm không hợp lệ' });
+    }
+
     const product = await Product.findById(id);
     if (!product) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy sản phẩm' });
@@ -245,6 +320,9 @@ export const toggleHotStatus = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { isHot, hotOrder } = req.body;
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ success: false, message: 'Mã định danh sản phẩm không hợp lệ' });
+    }
 
     const product = await Product.findById(id);
     if (!product) {
@@ -289,22 +367,68 @@ export const reorderHotProducts = async (req: Request, res: Response) => {
 export const updateStock = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { changeAmount, reason = 'manual_adjustment', note = '' } = req.body;
-
-    const product = await Product.findById(id);
-    if (!product) {
-      return res.status(404).json({ success: false, message: 'Không tìm thấy sản phẩm' });
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ success: false, message: 'Mã định danh sản phẩm không hợp lệ' });
     }
 
-    const previousStock = product.stock;
-    const newStock = Math.max(0, previousStock + Number(changeAmount));
-    product.stock = newStock;
-    await product.save();
+    const { changeAmount, reason = 'manual_adjustment', note = '' } = req.body;
+
+    const ALLOWED_STOCK_REASONS = ['restock', 'manual_adjustment', 'order_deduction', 'order_cancellation'];
+    if (!ALLOWED_STOCK_REASONS.includes(reason)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Lý do điều chỉnh tồn kho (reason) không hợp lệ',
+      });
+    }
+
+    const change = Number(changeAmount);
+    if (isNaN(change) || !Number.isInteger(change)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Số lượng thay đổi tồn kho không hợp lệ',
+      });
+    }
+
+    if (change === 0) {
+      const product = await Product.findById(id);
+      if (!product) {
+        return res.status(404).json({ success: false, message: 'Không tìm thấy sản phẩm' });
+      }
+      return res.json({
+        success: true,
+        message: 'Cập nhật tồn kho thành công',
+        data: { product, previousStock: product.stock, newStock: product.stock },
+      });
+    }
+
+    const query: Record<string, any> = change < 0
+      ? { _id: id, stock: { $gte: Math.abs(change) } }
+      : { _id: id };
+
+    const updatedProduct = await Product.findOneAndUpdate(
+      query,
+      { $inc: { stock: change } },
+      { new: true }
+    );
+
+    if (!updatedProduct) {
+      const exists = await Product.findById(id);
+      if (!exists) {
+        return res.status(404).json({ success: false, message: 'Không tìm thấy sản phẩm' });
+      }
+      return res.status(400).json({
+        success: false,
+        message: `Số lượng tồn kho không đủ để giảm (${exists.stock} < ${Math.abs(change)})`,
+      });
+    }
+
+    const previousStock = updatedProduct.stock - change;
+    const newStock = updatedProduct.stock;
 
     await InventoryLog.create({
-      productId: product._id,
-      productName: product.name,
-      changeAmount: Number(changeAmount),
+      productId: updatedProduct._id,
+      productName: updatedProduct.name,
+      changeAmount: change,
       previousStock,
       newStock,
       reason,
@@ -315,7 +439,7 @@ export const updateStock = async (req: Request, res: Response) => {
     res.json({
       success: true,
       message: 'Cập nhật tồn kho thành công',
-      data: { product, previousStock, newStock },
+      data: { product: updatedProduct, previousStock, newStock },
     });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });

@@ -64,6 +64,8 @@ function PaymentQRContent() {
   const [qrMode, setQrMode] = useState<'dynamic' | 'original'>('dynamic');
   const [isNotifying, setIsNotifying] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [confirmPhone, setConfirmPhone] = useState('');
+  const [needsPhoneInput, setNeedsPhoneInput] = useState(false);
 
   const BANK_INFO = {
     bankName: 'Ngân hàng Quân Đội (MB Bank)',
@@ -86,10 +88,24 @@ function PaymentQRContent() {
     let isMounted = true;
     async function loadOrder() {
       try {
-        const res = await fetchApi<OrderData>(`/orders/${orderCode}`);
+        let storedPhone = '';
+        if (typeof window !== 'undefined') {
+          try {
+            storedPhone = sessionStorage.getItem(`tg_order_phone_${orderCode}`) || '';
+          } catch {}
+        }
+        const endpoint = storedPhone
+          ? `/orders/${orderCode}?phone=${encodeURIComponent(storedPhone)}`
+          : `/orders/${orderCode}`;
+        const res = await fetchApi<OrderData>(endpoint);
         if (!isMounted) return;
         if (res.success && res.data) {
           setOrder(res.data);
+          if (storedPhone) {
+            setConfirmPhone(storedPhone);
+          } else if (String(res.data.customerInfo?.phone || '').includes('*')) {
+            setNeedsPhoneInput(true);
+          }
         } else {
           setError(res.message || 'Không thể tải thông tin đơn hàng');
         }
@@ -132,19 +148,41 @@ function PaymentQRContent() {
   const handleNotifyPaid = async () => {
     if (!order) return;
 
+    let phoneToVerify = confirmPhone.trim();
+    if (!phoneToVerify && typeof window !== 'undefined') {
+      try {
+        phoneToVerify = sessionStorage.getItem(`tg_order_phone_${order.orderCode}`) || '';
+      } catch {}
+    }
+    if (
+      !phoneToVerify &&
+      order.customerInfo?.phone &&
+      !String(order.customerInfo.phone).includes('*')
+    ) {
+      phoneToVerify = order.customerInfo.phone;
+    }
+
     setIsNotifying(true);
     try {
       const res = await fetchApi(`/orders/${order.orderCode}/notify-paid`, {
         method: 'POST',
+        body: JSON.stringify(phoneToVerify ? { phone: phoneToVerify } : {}),
       });
 
       if (res.success) {
+        if (phoneToVerify && typeof window !== 'undefined') {
+          try {
+            sessionStorage.setItem(`tg_order_phone_${order.orderCode}`, phoneToVerify);
+          } catch {}
+        }
         showToast('Xác nhận đã chuyển khoản thành công!');
         router.push(`/payment-result?orderCode=${order.orderCode}&notified=true`);
       } else {
-        showToast(res.message || 'Không thể cập nhật trạng thái đơn hàng');
+        setNeedsPhoneInput(true);
+        showToast(res.message || 'Vui lòng nhập số điện thoại đặt hàng để xác nhận');
       }
     } catch (err: any) {
+      setNeedsPhoneInput(true);
       showToast(err.message || 'Lỗi kết nối khi gửi thông báo');
     } finally {
       setIsNotifying(false);
@@ -218,7 +256,11 @@ function PaymentQRContent() {
       {/* Breadcrumb & Navigation */}
       <div className="flex items-center justify-between">
         <Link
-          href={`/order-tracking?orderCode=${order.orderCode}&phone=${encodeURIComponent(order.customerInfo?.phone || '')}`}
+          href={`/order-tracking?orderCode=${order.orderCode}${
+            order.customerInfo?.phone && !String(order.customerInfo.phone).includes('*')
+              ? `&phone=${encodeURIComponent(order.customerInfo.phone)}`
+              : ''
+          }`}
           className="text-xs font-mono text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -499,6 +541,21 @@ function PaymentQRContent() {
 
             {/* Action Buttons */}
             <div className="pt-2 space-y-2.5">
+              {needsPhoneInput && (
+                <div className="space-y-1.5">
+                  <label className="block text-[11px] font-mono font-bold text-slate-700 dark:text-slate-300">
+                    Nhập số điện thoại đặt hàng để xác thực chuyển khoản:
+                  </label>
+                  <input
+                    type="tel"
+                    value={confirmPhone}
+                    onChange={(e) => setConfirmPhone(e.target.value)}
+                    placeholder="Ví dụ: 0912345678"
+                    className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-slate-50 dark:bg-surface-elevated border hairline-border text-slate-900 dark:text-white font-mono focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
+              )}
+
               <button
                 type="button"
                 disabled={isNotifying}
@@ -522,7 +579,11 @@ function PaymentQRContent() {
                 type="button"
                 onClick={() =>
                   router.push(
-                    `/order-tracking?orderCode=${order.orderCode}&phone=${encodeURIComponent(order.customerInfo?.phone || '')}`
+                    `/order-tracking?orderCode=${order.orderCode}${
+                      order.customerInfo?.phone && !String(order.customerInfo.phone).includes('*')
+                        ? `&phone=${encodeURIComponent(order.customerInfo.phone)}`
+                        : ''
+                    }`
                   )
                 }
                 className="w-full py-2.5 px-4 rounded-xl border hairline-border hover:bg-slate-100 dark:hover:bg-surface-elevated text-xs font-mono text-slate-700 dark:text-slate-300 transition-all text-center block"

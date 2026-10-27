@@ -50,7 +50,10 @@ export async function fetchApi<T = any>(
       }
     }
 
-    if (res.status === 401) {
+    if (
+      res.status === 401 ||
+      (res.status === 403 && typeof json?.message === 'string' && json.message.includes('bị khóa'))
+    ) {
       if (typeof window !== 'undefined') {
         useAuthStore.getState().logout();
       }

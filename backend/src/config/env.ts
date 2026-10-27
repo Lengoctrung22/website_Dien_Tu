@@ -31,3 +31,11 @@ export const ENV = {
     returnUrl: process.env.VNPAY_RETURN_URL || 'http://localhost:3000/payment-result',
   },
 };
+
+if (process.env.NODE_ENV === 'production') {
+  if (!process.env.JWT_SECRET || !process.env.VNPAY_HASH_SECRET) {
+    console.warn(
+      '⚠️ [SECURITY WARNING] Running in production without explicit JWT_SECRET or VNPAY_HASH_SECRET environment variables!'
+    );
+  }
+}

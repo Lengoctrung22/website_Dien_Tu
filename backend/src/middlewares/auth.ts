@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
 import { ENV } from '../config/env';
+import { User } from '../models/User';
 
 export interface AuthUserPayload {
   id: string;
@@ -25,28 +27,78 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
     return res.status(401).json({ success: false, message: 'Yêu cầu xác thực đăng nhập' });
   }
 
+  let decoded: AuthUserPayload;
   try {
-    const decoded = jwt.verify(token, ENV.JWT_SECRET) as AuthUserPayload;
-    req.user = decoded;
-    next();
+    decoded = jwt.verify(token, ENV.JWT_SECRET) as AuthUserPayload;
   } catch (err) {
     return res.status(401).json({ success: false, message: 'Phiên đăng nhập không hợp lệ hoặc đã hết hạn' });
   }
+
+  if (mongoose.connection.readyState !== 1 || !mongoose.isValidObjectId(decoded.id)) {
+    req.user = decoded;
+    return next();
+  }
+
+  return User.findById(decoded.id)
+    .select('email role permissions isActive')
+    .lean()
+    .then((dbUser) => {
+      if (!dbUser) {
+        return res.status(401).json({ success: false, message: 'Tài khoản không tồn tại hoặc đã bị xóa' });
+      }
+      if (!dbUser.isActive) {
+        return res.status(403).json({ success: false, message: 'Tài khoản của bạn đã bị khóa' });
+      }
+      req.user = {
+        id: String(dbUser._id),
+        email: dbUser.email,
+        role: dbUser.role,
+        permissions: dbUser.permissions || [],
+      };
+      next();
+    })
+    .catch(() => {
+      return res.status(401).json({ success: false, message: 'Phiên đăng nhập không hợp lệ hoặc đã hết hạn' });
+    });
 };
 
 export const optionalAuthenticateToken = (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(' ')[1];
 
-  if (token) {
-    try {
-      const decoded = jwt.verify(token, ENV.JWT_SECRET) as AuthUserPayload;
-      req.user = decoded;
-    } catch {
-      // ignore invalid token for optional auth
-    }
+  if (!token) {
+    return next();
   }
-  next();
+
+  let decoded: AuthUserPayload;
+  try {
+    decoded = jwt.verify(token, ENV.JWT_SECRET) as AuthUserPayload;
+  } catch {
+    return next();
+  }
+
+  if (mongoose.connection.readyState !== 1 || !mongoose.isValidObjectId(decoded.id)) {
+    req.user = decoded;
+    return next();
+  }
+
+  return User.findById(decoded.id)
+    .select('email role permissions isActive')
+    .lean()
+    .then((dbUser) => {
+      if (dbUser && dbUser.isActive) {
+        req.user = {
+          id: String(dbUser._id),
+          email: dbUser.email,
+          role: dbUser.role,
+          permissions: dbUser.permissions || [],
+        };
+      }
+      next();
+    })
+    .catch(() => {
+      next();
+    });
 };
 
 export const requireRole = (roles: string[]) => {

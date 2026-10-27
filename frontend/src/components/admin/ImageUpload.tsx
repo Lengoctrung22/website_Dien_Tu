@@ -211,15 +211,18 @@ export function SingleImageUpload({
                     <span>Đổi ảnh</span>
                   </button>
 
-                  <a
-                    href={value}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="p-1 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors"
-                    title="Xem ảnh gốc"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
+                  {((value.trim().startsWith('/') && !value.trim().startsWith('//')) ||
+                    /^https?:\/\//i.test(value.trim())) && (
+                    <a
+                      href={value.trim()}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-1 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors"
+                      title="Xem ảnh gốc"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  )}
 
                   <button
                     type="button"

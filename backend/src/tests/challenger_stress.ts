@@ -1,4 +1,4 @@
-﻿import assert from 'node:assert';
+import assert from 'node:assert';
 
 const BASE_URL = 'http://localhost:5000/api';
 
@@ -37,13 +37,31 @@ async function runChallengerStressTests() {
     assert.strictEqual(aJson.success, true, 'Admin login should succeed');
     adminToken = aJson.data.token;
 
-    // Customer
-    const cRes = await fetch(`${BASE_URL}/auth/login`, {
+    // Customer (use isolated test buyer account so stress tests don't pollute real customer history)
+    let cRes = await fetch(`${BASE_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: 'trunglengoc220324@gmail.com', password: '123456' }),
+      body: JSON.stringify({ email: 'test.buyer@techgear.vn', password: '123456' }),
     });
-    const cJson: any = await cRes.json();
+    let cJson: any = await cRes.json();
+    if (!cJson.success) {
+      await fetch(`${BASE_URL}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName: 'Auto Tester',
+          email: 'test.buyer@techgear.vn',
+          password: '123456',
+          phone: '0999999999',
+        }),
+      });
+      cRes = await fetch(`${BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: 'test.buyer@techgear.vn', password: '123456' }),
+      });
+      cJson = await cRes.json();
+    }
     assert.strictEqual(cJson.success, true, 'Customer login should succeed');
     customerToken = cJson.data.token;
 
@@ -180,6 +198,7 @@ async function runChallengerStressTests() {
 
     const res = await fetch(`${BASE_URL}/orders/${code}/notify-paid`, {
       method: 'POST',
+      headers: { Authorization: `Bearer ${customerToken}` },
     });
     assert.strictEqual(res.status, 200);
     const json: any = await res.json();
@@ -194,6 +213,7 @@ async function runChallengerStressTests() {
 
     const res = await fetch(`${BASE_URL}/orders/${mongoId}/notify-paid`, {
       method: 'POST',
+      headers: { Authorization: `Bearer ${customerToken}` },
     });
     assert.strictEqual(res.status, 200);
     const json: any = await res.json();
@@ -208,6 +228,7 @@ async function runChallengerStressTests() {
 
     const res = await fetch(`${BASE_URL}/orders/${encodeURIComponent(inputId)}/notify-paid`, {
       method: 'POST',
+      headers: { Authorization: `Bearer ${customerToken}` },
     });
     assert.strictEqual(res.status, 200);
     const json: any = await res.json();
@@ -218,10 +239,16 @@ async function runChallengerStressTests() {
     const orderData = await createTestOrder('ONLINE');
     const code = orderData.order.orderCode;
 
-    const res1 = await fetch(`${BASE_URL}/orders/${code}/notify-paid`, { method: 'POST' });
+    const res1 = await fetch(`${BASE_URL}/orders/${code}/notify-paid`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${customerToken}` },
+    });
     assert.strictEqual(res1.status, 200);
 
-    const res2 = await fetch(`${BASE_URL}/orders/${code}/notify-paid`, { method: 'POST' });
+    const res2 = await fetch(`${BASE_URL}/orders/${code}/notify-paid`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${customerToken}` },
+    });
     assert.strictEqual(res2.status, 200);
     const json2: any = await res2.json();
     assert.strictEqual(json2.data.orderStatus, 'processing');
@@ -240,7 +267,10 @@ async function runChallengerStressTests() {
     assert.strictEqual(vRes.status, 200);
 
     // Customer calls notify-paid afterwards
-    const nRes = await fetch(`${BASE_URL}/orders/${code}/notify-paid`, { method: 'POST' });
+    const nRes = await fetch(`${BASE_URL}/orders/${code}/notify-paid`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${customerToken}` },
+    });
     assert.strictEqual(nRes.status, 200);
     const nJson: any = await nRes.json();
     assert.strictEqual(nJson.data.paymentStatus, 'paid', 'paymentStatus must remain paid, NOT reverted to pending');
@@ -281,14 +311,20 @@ async function runChallengerStressTests() {
     assert.strictEqual(cRes.status, 200);
 
     // Attempt notify-paid by orderCode
-    const nRes1 = await fetch(`${BASE_URL}/orders/${orderCode}/notify-paid`, { method: 'POST' });
+    const nRes1 = await fetch(`${BASE_URL}/orders/${orderCode}/notify-paid`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${customerToken}` },
+    });
     assert.strictEqual(nRes1.status, 400, 'Must return 400 when order is cancelled');
     const nJson1: any = await nRes1.json();
     assert.strictEqual(nJson1.success, false);
     assert.ok(nJson1.message.includes('hủy'), 'Error message should mention cancelled order');
 
     // Attempt notify-paid by Mongo _id
-    const nRes2 = await fetch(`${BASE_URL}/orders/${orderId}/notify-paid`, { method: 'POST' });
+    const nRes2 = await fetch(`${BASE_URL}/orders/${orderId}/notify-paid`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${customerToken}` },
+    });
     assert.strictEqual(nRes2.status, 400, 'Must return 400 when order is cancelled');
   });
 
@@ -311,14 +347,20 @@ async function runChallengerStressTests() {
     }
 
     // Attempt notify-paid by orderCode
-    const nRes1 = await fetch(`${BASE_URL}/orders/${orderCode}/notify-paid`, { method: 'POST' });
+    const nRes1 = await fetch(`${BASE_URL}/orders/${orderCode}/notify-paid`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${customerToken}` },
+    });
     assert.strictEqual(nRes1.status, 400, 'Must return 400 when order is delivered');
     const nJson1: any = await nRes1.json();
     assert.strictEqual(nJson1.success, false);
     assert.ok(nJson1.message.includes('hoàn tất'), 'Error message should mention delivered order');
 
     // Attempt notify-paid by Mongo _id
-    const nRes2 = await fetch(`${BASE_URL}/orders/${orderId}/notify-paid`, { method: 'POST' });
+    const nRes2 = await fetch(`${BASE_URL}/orders/${orderId}/notify-paid`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${customerToken}` },
+    });
     assert.strictEqual(nRes2.status, 400, 'Must return 400 when order is delivered');
   });
 
@@ -340,7 +382,10 @@ async function runChallengerStressTests() {
       body: JSON.stringify({ orderStatus: 'shipping' }),
     });
 
-    const res = await fetch(`${BASE_URL}/orders/${orderCode}/notify-paid`, { method: 'POST' });
+    const res = await fetch(`${BASE_URL}/orders/${orderCode}/notify-paid`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${customerToken}` },
+    });
     const json: any = await res.json();
     if (json.data?.orderStatus === 'processing') {
       anomalies.push(
@@ -455,7 +500,10 @@ async function runChallengerStressTests() {
     const code = orderData.order.orderCode;
 
     const promises = Array.from({ length: 25 }, () =>
-      fetch(`${BASE_URL}/orders/${code}/notify-paid`, { method: 'POST' })
+      fetch(`${BASE_URL}/orders/${code}/notify-paid`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${customerToken}` },
+      })
     );
 
     const responses = await Promise.all(promises);
@@ -502,7 +550,12 @@ async function runChallengerStressTests() {
 
     const mixedRequests: Promise<Response>[] = [];
     for (let i = 0; i < 15; i++) {
-      mixedRequests.push(fetch(`${BASE_URL}/orders/${code}/notify-paid`, { method: 'POST' }));
+      mixedRequests.push(
+        fetch(`${BASE_URL}/orders/${code}/notify-paid`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${customerToken}` },
+        })
+      );
       mixedRequests.push(
         fetch(`${BASE_URL}/orders/${code}/verify-payment`, {
           method: 'POST',

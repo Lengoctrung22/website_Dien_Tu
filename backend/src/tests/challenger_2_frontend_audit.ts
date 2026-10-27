@@ -189,12 +189,30 @@ async function runChallenger2FrontendAudit() {
     assert.strictEqual(aJson.success, true);
     adminToken = aJson.data.token;
 
-    const cRes = await fetch(`${BASE_URL}/auth/login`, {
+    let cRes = await fetch(`${BASE_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: 'trunglengoc220324@gmail.com', password: '123456' }),
+      body: JSON.stringify({ email: 'test.buyer@techgear.vn', password: '123456' }),
     });
-    const cJson: any = await cRes.json();
+    let cJson: any = await cRes.json();
+    if (!cJson.success) {
+      await fetch(`${BASE_URL}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName: 'Auto Tester',
+          email: 'test.buyer@techgear.vn',
+          password: '123456',
+          phone: '0999999999',
+        }),
+      });
+      cRes = await fetch(`${BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: 'test.buyer@techgear.vn', password: '123456' }),
+      });
+      cJson = await cRes.json();
+    }
     assert.strictEqual(cJson.success, true);
     customerToken = cJson.data.token;
   });
@@ -266,12 +284,21 @@ async function runChallenger2FrontendAudit() {
   });
 
   await test('API: Customer Notifies Payment (POST /api/orders/:orderCode/notify-paid)', async () => {
+    // 1. Unauthenticated call without phone must be blocked (403 - CRIT-01)
+    const unauthRes = await fetch(`${BASE_URL}/orders/${testOrderCode}/notify-paid`, {
+      method: 'POST',
+    });
+    assert.strictEqual(unauthRes.status, 403, 'Unauthenticated notify-paid without phone must return HTTP 403');
+
+    // 2. Call with matching phone succeeds (200)
     const res = await fetch(`${BASE_URL}/orders/${testOrderCode}/notify-paid`, {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: '0987654321' }),
     });
     const json: any = await res.json();
 
-    assert.strictEqual(res.status, 200, 'notify-paid must return HTTP 200');
+    assert.strictEqual(res.status, 200, 'notify-paid with matching phone must return HTTP 200');
     assert.strictEqual(json.success, true);
     assert.strictEqual(json.data.orderStatus, 'processing', 'orderStatus must transition to processing');
     assert.strictEqual(json.data.paymentStatus, 'pending', 'paymentStatus must remain pending (awaiting staff review)');
@@ -279,7 +306,11 @@ async function runChallenger2FrontendAudit() {
 
   await test('API: Idempotency of notify-paid (Repeated Invocations)', async () => {
     for (let i = 0; i < 3; i++) {
-      const res = await fetch(`${BASE_URL}/orders/${testOrderCode}/notify-paid`, { method: 'POST' });
+      const res = await fetch(`${BASE_URL}/orders/${testOrderCode}/notify-paid`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: '0987654321' }),
+      });
       const json: any = await res.json();
       assert.strictEqual(res.status, 200);
       assert.strictEqual(json.data.orderStatus, 'processing');
@@ -302,7 +333,11 @@ async function runChallenger2FrontendAudit() {
 
   await test('API Defense: notify-paid Cannot Revert "paid" Status Back to "pending"', async () => {
     // Attempt to notify paid again after order is already verified as paid
-    const res = await fetch(`${BASE_URL}/orders/${testOrderCode}/notify-paid`, { method: 'POST' });
+    const res = await fetch(`${BASE_URL}/orders/${testOrderCode}/notify-paid`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: '0987654321' }),
+    });
     const json: any = await res.json();
 
     assert.strictEqual(res.status, 200);

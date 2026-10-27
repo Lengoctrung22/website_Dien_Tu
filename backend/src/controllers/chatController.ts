@@ -31,6 +31,18 @@ export async function handleChat(req: Request<{}, {}, ChatRequestBody>, res: Res
       });
     }
 
+    if (Array.isArray(history)) {
+      for (const item of history) {
+        const rawText = typeof item?.text === 'string' ? item.text : typeof (item as any)?.content === 'string' ? (item as any).content : '';
+        if (rawText.trim().length > 2000) {
+          return res.status(400).json({
+            success: false,
+            message: 'Mỗi tin nhắn trong lịch sử hội thoại không được vượt quá 2000 ký tự.',
+          });
+        }
+      }
+    }
+
     const apiKey = ENV.GEMINI_API_KEY;
     const primaryModel = ENV.GEMINI_MODEL || 'gemini-2.5-flash';
     const fallbackModel = primaryModel === 'gemini-3.6-flash' ? 'gemini-2.5-flash' : 'gemini-3.6-flash';
@@ -47,7 +59,7 @@ export async function handleChat(req: Request<{}, {}, ChatRequestBody>, res: Res
 
     // 1. Fetch active products to ground AI responses
     const products = await Product.find({ isActive: true })
-      .select('name slug brand category price discountPrice stock specs description images')
+      .select('name slug brand category price discountPrice stock specs')
       .lean();
 
     // Build catalog summary for grounding
@@ -116,6 +128,15 @@ ${catalogSummary}`;
     const contents: Array<{ role: 'user' | 'model'; parts: Array<{ text: string }> }> = [];
 
     if (Array.isArray(history)) {
+      for (const item of history) {
+        if (item && typeof item.text === 'string' && item.text.trim().length > 2000) {
+          return res.status(400).json({
+            success: false,
+            message: 'Mỗi tin nhắn trong lịch sử hội thoại không được vượt quá 2000 ký tự.',
+          });
+        }
+      }
+
       // Filter out invalid items
       const validHistory = history.filter(
         (item) =>

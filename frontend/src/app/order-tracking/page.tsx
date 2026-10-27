@@ -100,6 +100,22 @@ function OrderTrackingContent() {
   useEffect(() => {
     if (initialOrderCode && initialPhone) {
       handleLookup();
+    } else if (initialOrderCode && !initialPhone && typeof window !== 'undefined') {
+      try {
+        const savedPhone = sessionStorage.getItem(`tg_order_phone_${initialOrderCode}`) || '';
+        if (savedPhone) {
+          setPhone(savedPhone);
+          fetchApi(
+            `/orders/lookup?orderCode=${encodeURIComponent(initialOrderCode.trim())}&phone=${encodeURIComponent(
+              savedPhone.trim()
+            )}`
+          ).then((res) => {
+            if (res.success && res.data) {
+              setOrder(res.data);
+            }
+          });
+        }
+      } catch {}
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialOrderCode, initialPhone]);

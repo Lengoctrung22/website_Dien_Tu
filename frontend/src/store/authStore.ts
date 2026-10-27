@@ -56,6 +56,21 @@ const dynamicSessionStorage: StateStorage = {
   },
 };
 
+const setAuthSessionCookie = (token: string | null) => {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+  try {
+    const isHttps = window.location?.protocol === 'https:';
+    const secureAttr = isHttps ? '; Secure' : '';
+    if (token) {
+      document.cookie = `techgear_session_active=1; path=/; SameSite=Lax${secureAttr}`;
+    } else {
+      document.cookie = `techgear_session_active=; path=/; Max-Age=0; SameSite=Lax${secureAttr}`;
+    }
+  } catch {
+    // ignore cookie errors in non-browser test environments
+  }
+};
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
@@ -71,6 +86,7 @@ export const useAuthStore = create<AuthState>()(
           } catch {
             // ignore storage clear errors
           }
+          setAuthSessionCookie(token);
         }
       },
       updateUser: (updatedData) =>
@@ -86,6 +102,7 @@ export const useAuthStore = create<AuthState>()(
           } catch {
             // ignore storage clear errors
           }
+          setAuthSessionCookie(null);
         }
       },
       isAdmin: () => get().user?.role === 'admin',

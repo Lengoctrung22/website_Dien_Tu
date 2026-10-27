@@ -1573,7 +1573,7 @@ async function runTests() {
     // 3. Clean any mock test orders (containing Tester, 0084, Racer, etc.)
     const remainingMockOrders = await Order.find({
       $or: [
-        { 'customerInfo.name': /(tester|racer|0084|staff override|customer receipt|guest tracking|refund lifecycle|cod lifecycle|payment fail|test limit|invalid hop)/i },
+        { 'customerInfo.name': /(tester|racer|0084|staff override|customer receipt|guest tracking|refund lifecycle|cod lifecycle|payment fail|test limit|invalid hop|challenger)/i },
         { 'customerInfo.phone': /^(090000000|0999888777|0911223344|0977665544|0966554433|0912987654|0912\.345\.678|0084|0977112233|0999999999|0988776655)/ },
       ],
     });

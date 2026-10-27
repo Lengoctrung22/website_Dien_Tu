@@ -4,6 +4,20 @@ import { Banner, BannerThemeKey } from '../models/Banner';
 
 const ALLOWED_THEMES: BannerThemeKey[] = ['purple', 'blue', 'cyan', 'rose', 'emerald', 'amber', 'dark'];
 
+const isSafeUrlOrPath = (val: string, allowRelativePath = true): boolean => {
+  const trimmed = String(val || '').trim();
+  if (!trimmed) return false;
+  if (allowRelativePath && trimmed.startsWith('/') && !trimmed.startsWith('//')) {
+    return true;
+  }
+  try {
+    const parsed = new URL(trimmed);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
+
 // GET /api/banners (Public)
 export const getActiveBanners = async (_req: Request, res: Response) => {
   try {
@@ -47,6 +61,13 @@ export const getAllBannersAdmin = async (_req: Request, res: Response) => {
 // GET /api/banners/:id
 export const getBannerById = async (req: Request, res: Response) => {
   try {
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Mã định danh banner không hợp lệ',
+      });
+    }
+
     const banner = await Banner.findById(req.params.id).populate('productId');
     if (!banner) {
       return res.status(404).json({
@@ -106,6 +127,23 @@ export const createBanner = async (req: Request, res: Response) => {
       });
     }
 
+    if (!isSafeUrlOrPath(image)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Đường dẫn hình ảnh banner không hợp lệ (chỉ chấp nhận http/https hoặc đường dẫn nội bộ /...)',
+      });
+    }
+
+    const cleanLink = (link || '').trim() || '/products';
+    const cleanSecondaryLink = (secondaryLink || '').trim() || '/products';
+
+    if (!isSafeUrlOrPath(cleanLink) || !isSafeUrlOrPath(cleanSecondaryLink)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Đường dẫn liên kết (link / secondaryLink) không hợp lệ',
+      });
+    }
+
     const validatedTheme: BannerThemeKey = ALLOWED_THEMES.includes(theme) ? theme : 'purple';
     const validatedImageFit = imageFit === 'cover' ? 'cover' : 'contain';
 
@@ -130,10 +168,10 @@ export const createBanner = async (req: Request, res: Response) => {
       imageFit: validatedImageFit,
       theme: validatedTheme,
       cta: cta.trim() || 'Khám Phá Ngay',
-      link: link.trim() || '/products',
+      link: cleanLink,
       showSecondaryBtn: Boolean(showSecondaryBtn),
       secondaryCta: secondaryCta.trim() || 'Xem tất cả sản phẩm',
-      secondaryLink: secondaryLink.trim() || '/products',
+      secondaryLink: cleanSecondaryLink,
       productId: productId && isValidObjectId(productId) ? productId : null,
       removeWhiteBg: Boolean(removeWhiteBg),
       displayOrder: order,
@@ -157,6 +195,13 @@ export const createBanner = async (req: Request, res: Response) => {
 // PUT /api/banners/:id
 export const updateBanner = async (req: Request, res: Response) => {
   try {
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Mã định danh banner không hợp lệ',
+      });
+    }
+
     const banner = await Banner.findById(req.params.id);
     if (!banner) {
       return res.status(404).json({
@@ -203,6 +248,12 @@ export const updateBanner = async (req: Request, res: Response) => {
           message: 'Hình ảnh banner không được để trống',
         });
       }
+      if (!isSafeUrlOrPath(image)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Đường dẫn hình ảnh banner không hợp lệ',
+        });
+      }
       banner.image = image.trim();
     }
 
@@ -218,10 +269,28 @@ export const updateBanner = async (req: Request, res: Response) => {
       banner.theme = ALLOWED_THEMES.includes(theme) ? theme : 'purple';
     }
     if (cta !== undefined) banner.cta = cta.trim() || 'Khám Phá Ngay';
-    if (link !== undefined) banner.link = link.trim() || '/products';
+    if (link !== undefined) {
+      const nextLink = link.trim() || '/products';
+      if (!isSafeUrlOrPath(nextLink)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Đường dẫn liên kết (link) không hợp lệ',
+        });
+      }
+      banner.link = nextLink;
+    }
     if (showSecondaryBtn !== undefined) banner.showSecondaryBtn = Boolean(showSecondaryBtn);
     if (secondaryCta !== undefined) banner.secondaryCta = secondaryCta.trim() || 'Xem tất cả sản phẩm';
-    if (secondaryLink !== undefined) banner.secondaryLink = secondaryLink.trim() || '/products';
+    if (secondaryLink !== undefined) {
+      const nextSecLink = secondaryLink.trim() || '/products';
+      if (!isSafeUrlOrPath(nextSecLink)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Đường dẫn liên kết phụ (secondaryLink) không hợp lệ',
+        });
+      }
+      banner.secondaryLink = nextSecLink;
+    }
     if (productId !== undefined) {
       banner.productId = productId && isValidObjectId(productId) ? (productId as any) : null;
     }
@@ -254,6 +323,13 @@ export const updateBanner = async (req: Request, res: Response) => {
 // DELETE /api/banners/:id
 export const deleteBanner = async (req: Request, res: Response) => {
   try {
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Mã định danh banner không hợp lệ',
+      });
+    }
+
     const banner = await Banner.findByIdAndDelete(req.params.id);
     if (!banner) {
       return res.status(404).json({

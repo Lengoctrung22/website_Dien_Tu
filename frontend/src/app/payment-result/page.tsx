@@ -54,7 +54,16 @@ function PaymentResultContent() {
         // Direct view or post-QR payment notification
         setLoading(true);
         try {
-          const res = await fetchApi(`/orders/${orderCode}`);
+          let storedPhone = '';
+          if (typeof window !== 'undefined') {
+            try {
+              storedPhone = sessionStorage.getItem(`tg_order_phone_${orderCode}`) || '';
+            } catch {}
+          }
+          const endpoint = storedPhone
+            ? `/orders/${orderCode}?phone=${encodeURIComponent(storedPhone)}`
+            : `/orders/${orderCode}`;
+          const res = await fetchApi(endpoint);
           if (res.success && res.data) {
             const ord = res.data;
             setOrderDetails(ord);
@@ -200,17 +209,34 @@ function PaymentResultContent() {
         )}
 
         {/* Real VNPAY Redirect Button if pending */}
-        {status === 'pending' && paymentUrl && (
-          <div className="pt-2 flex justify-center">
-            <a
-              href={paymentUrl}
-              className="px-6 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-signal-cyan dark:hover:bg-cyan-400 dark:text-slate-950 font-mono font-bold text-xs shadow-lg shadow-cyan-500/20 surface-bevel flex items-center gap-2 transition-all active:translate-y-0.5"
-            >
-              <CreditCard className="w-4 h-4" />
-              <span>Tiếp Tục Thanh Toán Qua Cổng VNPAY</span>
-            </a>
-          </div>
-        )}
+        {status === 'pending' && (() => {
+          const safePaymentUrl = (() => {
+            if (!paymentUrl) return null;
+            const trimmed = paymentUrl.trim();
+            if (trimmed.startsWith('/') && !trimmed.startsWith('//')) return trimmed;
+            try {
+              const parsed = new URL(trimmed);
+              if (
+                parsed.protocol === 'https:' &&
+                (parsed.hostname.endsWith('.vnpayment.vn') || parsed.hostname === 'vnpayment.vn')
+              ) {
+                return parsed.toString();
+              }
+            } catch {}
+            return null;
+          })();
+          return safePaymentUrl ? (
+            <div className="pt-2 flex justify-center">
+              <a
+                href={safePaymentUrl}
+                className="px-6 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-signal-cyan dark:hover:bg-cyan-400 dark:text-slate-950 font-mono font-bold text-xs shadow-lg shadow-cyan-500/20 surface-bevel flex items-center gap-2 transition-all active:translate-y-0.5"
+              >
+                <CreditCard className="w-4 h-4" />
+                <span>Tiếp Tục Thanh Toán Qua Cổng VNPAY</span>
+              </a>
+            </div>
+          ) : null;
+        })()}
 
         {/* Return to QR button if still pending */}
         {status === 'pending' && orderCode && (
@@ -229,7 +255,7 @@ function PaymentResultContent() {
           {orderCode && (
             <Link
               href={`/order-tracking?orderCode=${orderCode}${
-                orderDetails?.customerInfo?.phone
+                orderDetails?.customerInfo?.phone && !String(orderDetails.customerInfo.phone).includes('*')
                   ? `&phone=${encodeURIComponent(orderDetails.customerInfo.phone)}`
                   : ''
               }`}

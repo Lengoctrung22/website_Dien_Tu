@@ -106,6 +106,56 @@ export const handleUploadMiddleware = (
   });
 };
 
+const hasValidImageMagicBytes = (filePath: string): boolean => {
+  try {
+    const fd = fs.openSync(filePath, 'r');
+    const buffer = Buffer.alloc(12);
+    const bytesRead = fs.readSync(fd, buffer, 0, 12, 0);
+    fs.closeSync(fd);
+
+    if (bytesRead < 4) return false;
+
+    // PNG: 89 50 4E 47 0D 0A 1A 0A
+    if (
+      bytesRead >= 8 &&
+      buffer[0] === 0x89 &&
+      buffer[1] === 0x50 &&
+      buffer[2] === 0x4e &&
+      buffer[3] === 0x47 &&
+      buffer[4] === 0x0d &&
+      buffer[5] === 0x0a &&
+      buffer[6] === 0x1a &&
+      buffer[7] === 0x0a
+    ) {
+      return true;
+    }
+
+    // JPEG: FF D8 FF
+    if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+      return true;
+    }
+
+    // GIF: GIF87a or GIF89a
+    const header6 = buffer.subarray(0, 6).toString('ascii');
+    if (header6 === 'GIF87a' || header6 === 'GIF89a') {
+      return true;
+    }
+
+    // WEBP: RIFF....WEBP
+    if (
+      bytesRead >= 12 &&
+      buffer.subarray(0, 4).toString('ascii') === 'RIFF' &&
+      buffer.subarray(8, 12).toString('ascii') === 'WEBP'
+    ) {
+      return true;
+    }
+
+    return false;
+  } catch {
+    return false;
+  }
+};
+
 // Route Controller
 export const uploadImage = (req: Request, res: Response) => {
   const files = (req.files as Express.Multer.File[]) || (req.file ? [req.file] : []);
@@ -117,7 +167,7 @@ export const uploadImage = (req: Request, res: Response) => {
     });
   }
 
-  // Reject 0-byte corrupt/empty files and clean up disk
+  // Reject 0-byte corrupt/empty files or invalid magic bytes and clean up disk
   for (const file of files) {
     if (!file.size || file.size === 0) {
       files.forEach((f) => {
@@ -132,10 +182,29 @@ export const uploadImage = (req: Request, res: Response) => {
         message: 'Tệp hình ảnh rỗng hoặc không hợp lệ (0 bytes)',
       });
     }
+
+    if (!file.path || !hasValidImageMagicBytes(file.path)) {
+      files.forEach((f) => {
+        if (f.path && fs.existsSync(f.path)) {
+          try {
+            fs.unlinkSync(f.path);
+          } catch {}
+        }
+      });
+      return res.status(400).json({
+        success: false,
+        message: 'Nội dung tệp không phải hình ảnh hợp lệ (Magic Bytes không khớp PNG, JPG, GIF, WEBP)',
+      });
+    }
   }
 
-  const protocol = (req.headers['x-forwarded-proto'] as string) || req.protocol || 'http';
-  const host = req.get('host') || `localhost:${ENV.PORT}`;
+  const rawProto = String(req.headers['x-forwarded-proto'] || req.protocol || 'http')
+    .split(',')[0]
+    .trim()
+    .toLowerCase();
+  const protocol = rawProto === 'https' ? 'https' : 'http';
+  const rawHost = String(req.get('host') || '').trim();
+  const host = /^[a-zA-Z0-9.-]+(:[0-9]+)?$/.test(rawHost) ? rawHost : `localhost:${ENV.PORT}`;
 
   const uploadedFiles = files.map((file) => ({
     filename: file.filename,

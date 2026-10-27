@@ -15,6 +15,13 @@ export const register = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: 'Vui lòng điền đầy đủ họ tên, email và mật khẩu' });
     }
 
+    if (typeof password !== 'string' || password.length < 6 || password.length > 128) {
+      return res.status(400).json({
+        success: false,
+        message: 'Mật khẩu phải có độ dài từ 6 đến 128 ký tự',
+      });
+    }
+
     const normalizedEmail = typeof email === 'string' ? email.toLowerCase().trim() : '';
     const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
@@ -250,18 +257,58 @@ export const googleLogin = async (req: Request, res: Response) => {
   }
 };
 
+const hashOtp = (otp: string): string => {
+  return crypto.createHash('sha256').update(String(otp)).digest('hex');
+};
+
+const verifyOtpConstantTime = (
+  candidateOtp: string,
+  storedOtp?: string,
+  storedOtpHash?: string
+): boolean => {
+  const candidateDigest = hashOtp(candidateOtp);
+  let expectedDigest = '';
+
+  if (storedOtp && /^[a-f0-9]{64}$/i.test(storedOtp)) {
+    expectedDigest = storedOtp.toLowerCase();
+  } else if (storedOtp) {
+    expectedDigest = hashOtp(storedOtp);
+  } else if (storedOtpHash && /^[a-f0-9]{64}$/i.test(storedOtpHash)) {
+    expectedDigest = storedOtpHash.toLowerCase();
+  }
+
+  if (!expectedDigest) return false;
+
+  try {
+    const bufA = Buffer.from(candidateDigest, 'hex');
+    const bufB = Buffer.from(expectedDigest, 'hex');
+    if (bufA.length === 0 || bufA.length !== bufB.length) return false;
+    return crypto.timingSafeEqual(bufA, bufB);
+  } catch {
+    return false;
+  }
+};
+
 export const getMe = async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({ success: false, message: 'Chưa đăng nhập' });
     }
 
-    const user = await User.findById(req.user.id).select('-passwordHash');
+    const user = await User.findById(req.user.id).select(
+      '-passwordHash -resetPasswordOtp -resetPasswordOtpHash -resetPasswordOtpExpires -resetPasswordOtpAttempts'
+    );
     if (!user) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng' });
     }
 
-    const userObj = user.toObject();
+    const userObj: any = user.toObject();
+    delete userObj.passwordHash;
+    delete userObj.resetPasswordOtp;
+    delete userObj.resetPasswordOtpHash;
+    delete userObj.resetPasswordOtpExpires;
+    delete userObj.resetPasswordOtpAttempts;
+
     return res.json({
       success: true,
       data: {
@@ -328,9 +375,11 @@ export const forgotPassword = async (req: Request, res: Response) => {
       return res.status(403).json({ success: false, message: 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ Admin.' });
     }
 
-    // Generate secure 6-digit OTP
+    // Generate secure 6-digit OTP and SHA-256 hash
     const otp = crypto.randomInt(100000, 1000000).toString();
-    user.resetPasswordOtp = otp;
+    const otpHash = hashOtp(otp);
+    user.resetPasswordOtpHash = otpHash;
+    user.resetPasswordOtp = process.env.NODE_ENV === 'production' ? otpHash : otp;
     user.resetPasswordOtpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
     user.resetPasswordOtpAttempts = 0;
     await user.save();
@@ -378,7 +427,7 @@ export const resetPassword = async (req: Request, res: Response) => {
       });
     }
 
-    const user = await User.findOne({ email: normalizedEmail });
+    const user = await User.findOne({ email: normalizedEmail }).select('+resetPasswordOtpHash');
     if (!user) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy tài khoản với email này' });
     }
@@ -387,7 +436,7 @@ export const resetPassword = async (req: Request, res: Response) => {
       return res.status(403).json({ success: false, message: 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ Admin.' });
     }
 
-    if (!user.resetPasswordOtp || !user.resetPasswordOtpExpires) {
+    if ((!user.resetPasswordOtp && !user.resetPasswordOtpHash) || !user.resetPasswordOtpExpires) {
       return res.status(400).json({
         success: false,
         message: 'Chưa có yêu cầu đặt lại mật khẩu hoặc mã OTP không tồn tại. Vui lòng gửi lại yêu cầu.',
@@ -396,6 +445,7 @@ export const resetPassword = async (req: Request, res: Response) => {
 
     if (Date.now() > user.resetPasswordOtpExpires.getTime()) {
       user.resetPasswordOtp = undefined;
+      user.resetPasswordOtpHash = undefined;
       user.resetPasswordOtpExpires = undefined;
       user.resetPasswordOtpAttempts = 0;
       await user.save();
@@ -405,10 +455,11 @@ export const resetPassword = async (req: Request, res: Response) => {
       });
     }
 
-    if (user.resetPasswordOtp !== trimmedOtp) {
+    if (!verifyOtpConstantTime(trimmedOtp, user.resetPasswordOtp, user.resetPasswordOtpHash)) {
       user.resetPasswordOtpAttempts = (user.resetPasswordOtpAttempts || 0) + 1;
       if (user.resetPasswordOtpAttempts >= 5) {
         user.resetPasswordOtp = undefined;
+        user.resetPasswordOtpHash = undefined;
         user.resetPasswordOtpExpires = undefined;
         user.resetPasswordOtpAttempts = 0;
         await user.save();
@@ -432,6 +483,7 @@ export const resetPassword = async (req: Request, res: Response) => {
 
     user.passwordHash = passwordHash;
     user.resetPasswordOtp = undefined;
+    user.resetPasswordOtpHash = undefined;
     user.resetPasswordOtpExpires = undefined;
     user.resetPasswordOtpAttempts = 0;
     user.hasCustomPassword = true;

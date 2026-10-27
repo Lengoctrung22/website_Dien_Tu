@@ -375,7 +375,13 @@ export default function HeroSlider() {
 
                       <div className="pt-1.5 sm:pt-2 flex items-center gap-2.5 sm:gap-3 flex-wrap">
                         <Link
-                          href={slide.link || '/products'}
+                          href={(() => {
+                            const raw = (slide.link || '').trim();
+                            if ((raw.startsWith('/') && !raw.startsWith('//')) || /^https?:\/\//i.test(raw)) {
+                              return raw;
+                            }
+                            return '/products';
+                          })()}
                           className="inline-flex items-center gap-1.5 sm:gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-white text-slate-950 hover:bg-slate-100 shadow-md surface-bevel active:translate-y-0.5 transition-all"
                         >
                           <span>{slide.cta || 'Khám Phá Ngay'}</span>
@@ -384,7 +390,13 @@ export default function HeroSlider() {
 
                         {slide.showSecondaryBtn !== false && (
                           <Link
-                            href={slide.secondaryLink || '/products'}
+                            href={(() => {
+                              const raw = (slide.secondaryLink || '').trim();
+                              if ((raw.startsWith('/') && !raw.startsWith('//')) || /^https?:\/\//i.test(raw)) {
+                                return raw;
+                              }
+                              return '/products';
+                            })()}
                             className="inline-flex items-center px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl font-semibold text-xs sm:text-sm bg-white/10 hover:bg-white/20 text-white backdrop-blur-md border hairline-border transition-colors"
                           >
                             {slide.secondaryCta || 'Xem tất cả sản phẩm'}

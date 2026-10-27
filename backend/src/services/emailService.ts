@@ -13,8 +13,19 @@ export const emailInternals = {
   lastSentOtp: null as { to: string; otp: string; timestamp: Date } | null,
 };
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function generateOtpEmailHtml(otp: string, fullName?: string): string {
-  const greeting = fullName ? `Xin chào ${fullName},` : 'Xin chào quý khách,';
+  const safeName = fullName ? escapeHtml(fullName.trim()) : '';
+  const safeOtp = escapeHtml(otp);
+  const greeting = safeName ? `Xin chào ${safeName},` : 'Xin chào quý khách,';
 
   return `
 <!DOCTYPE html>
@@ -50,7 +61,7 @@ function generateOtpEmailHtml(otp: string, fullName?: string): string {
                 <tr>
                   <td align="center">
                     <div style="background-color: #0f172a; color: #38bdf8; font-size: 34px; font-weight: 800; letter-spacing: 10px; text-align: center; padding: 20px 28px; border-radius: 12px; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; display: inline-block; border: 1px solid #1e293b; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);">
-                      ${otp}
+                      ${safeOtp}
                     </div>
                   </td>
                 </tr>
@@ -93,25 +104,33 @@ function generateOtpEmailHtml(otp: string, fullName?: string): string {
 
 /**
  * Sends a 6-digit OTP code to the requested email.
- * If credentials are not configured or email sending fails, logs the OTP prominently to the terminal.
+ * If credentials are not configured or email sending fails, logs the OTP prominently to the terminal in dev/test mode.
  */
 export async function sendOtpEmail({ to, otp, fullName }: SendOtpEmailOptions): Promise<boolean> {
-  emailInternals.lastSentOtp = {
-    to: to.toLowerCase().trim(),
-    otp,
-    timestamp: new Date(),
-  };
+  const isDev = process.env.NODE_ENV !== 'production';
+
+  if (isDev) {
+    emailInternals.lastSentOtp = {
+      to: to.toLowerCase().trim(),
+      otp,
+      timestamp: new Date(),
+    };
+  }
 
   const hasCredentials = Boolean(ENV.EMAIL.user && ENV.EMAIL.appPassword);
 
   if (!hasCredentials && !emailInternals.transporterOverride) {
-    console.log('\n============================================================');
-    console.log('🔑 [TechGear Pro] PASSWORD RESET OTP GENERATED (DEV MODE)');
-    console.log(`   Recipient: ${to}`);
-    console.log(`   OTP Code:  ${otp}`);
-    console.log('   Validity:  10 minutes');
-    console.log('   Notice:    SMTP credentials not set; OTP logged for testing');
-    console.log('============================================================\n');
+    if (isDev) {
+      console.log('\n============================================================');
+      console.log('🔑 [TechGear Pro] PASSWORD RESET OTP GENERATED (DEV MODE)');
+      console.log(`   Recipient: ${to}`);
+      console.log(`   OTP Code:  ${otp}`);
+      console.log('   Validity:  10 minutes');
+      console.log('   Notice:    SMTP credentials not set; OTP logged for testing');
+      console.log('============================================================\n');
+    } else {
+      console.warn('⚠️ [TechGear Pro] SMTP credentials are not configured in production.');
+    }
     return true;
   }
 
@@ -135,15 +154,21 @@ export async function sendOtpEmail({ to, otp, fullName }: SendOtpEmailOptions): 
     };
 
     await transporter.sendMail(mailOptions);
-    console.log(`📧 [TechGear Pro] Reset password OTP email sent successfully to ${to} | 🔑 OTP: ${otp}`);
+    if (isDev) {
+      console.log(`📧 [TechGear Pro] Reset password OTP email sent successfully to ${to} | 🔑 OTP: ${otp}`);
+    } else {
+      console.log(`📧 [TechGear Pro] Reset password OTP email sent successfully to ${to}`);
+    }
     return true;
   } catch (error: any) {
     console.error('⚠️ [TechGear Pro] Failed to send email via SMTP transporter:', error.message);
-    console.log('\n============================================================');
-    console.log('🔑 [TechGear Pro] OTP FALLBACK CONSOLE LOG:');
-    console.log(`   Recipient: ${to}`);
-    console.log(`   OTP Code:  ${otp}`);
-    console.log('============================================================\n');
+    if (isDev) {
+      console.log('\n============================================================');
+      console.log('🔑 [TechGear Pro] OTP FALLBACK CONSOLE LOG:');
+      console.log(`   Recipient: ${to}`);
+      console.log(`   OTP Code:  ${otp}`);
+      console.log('============================================================\n');
+    }
     return true; // Still return true so the client can proceed if in dev/test environment
   }
 }

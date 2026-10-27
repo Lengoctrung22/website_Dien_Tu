@@ -5,10 +5,43 @@ import { Product } from '../models/Product';
 import { User } from '../models/User';
 import { InventoryLog } from '../models/InventoryLog';
 import { createVnpayPaymentUrl, verifyVnpaySignature } from '../utils/vnpay';
+import { escapeRegex, sanitizeString } from '../utils/sanitize';
+
+const ALLOWED_PAYMENT_METHODS = ['COD', 'BANK_TRANSFER', 'QR_CODE', 'ONLINE'];
+
+const toPublicOrderSummary = (order: any) => {
+  const plain = typeof order.toObject === 'function' ? order.toObject() : order;
+  const rawPhone = String(plain.customerInfo?.phone || '');
+  const maskedPhone =
+    rawPhone.length > 6
+      ? `${rawPhone.slice(0, 3)}****${rawPhone.slice(-3)}`
+      : '***';
+
+  return {
+    orderCode: plain.orderCode,
+    totalAmount: plain.totalAmount,
+    shippingFee: plain.shippingFee,
+    paymentMethod: plain.paymentMethod,
+    paymentStatus: plain.paymentStatus,
+    orderStatus: plain.orderStatus,
+    items: plain.items,
+    createdAt: plain.createdAt,
+    updatedAt: plain.updatedAt,
+    customerInfo: {
+      name: plain.customerInfo?.name || 'Khách hàng',
+      phone: maskedPhone,
+      address: '***',
+    },
+  };
+};
 
 export const createOrder = async (req: Request, res: Response) => {
   try {
     const { customerInfo, items, paymentMethod = 'COD' } = req.body;
+
+    if (!ALLOWED_PAYMENT_METHODS.includes(paymentMethod)) {
+      return res.status(400).json({ success: false, message: 'Phương thức thanh toán không hợp lệ' });
+    }
 
     let customerName = customerInfo?.name?.trim() || '';
     let customerPhone = customerInfo?.phone?.trim() || '';
@@ -36,15 +69,48 @@ export const createOrder = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: 'Giỏ hàng trống, không thể đặt hàng' });
     }
 
+    if (items.length > 50) {
+      return res.status(400).json({ success: false, message: 'Đơn hàng không được vượt quá 50 mặt hàng' });
+    }
+
+    const mergedItemsMap = new Map<string, { productId: string; quantity: number; name?: string }>();
+    for (const item of items) {
+      const qty = Number(item.quantity);
+      if (
+        !item.productId ||
+        !Types.ObjectId.isValid(String(item.productId)) ||
+        !Number.isInteger(qty) ||
+        qty < 1 ||
+        qty > 100
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: 'Dữ liệu sản phẩm hoặc số lượng không hợp lệ (số lượng phải là số nguyên từ 1 đến 100)',
+        });
+      }
+
+      const pid = String(item.productId);
+      const existing = mergedItemsMap.get(pid);
+      if (existing) {
+        if (existing.quantity + qty > 100) {
+          return res.status(400).json({
+            success: false,
+            message: 'Tổng số lượng của một sản phẩm không được vượt quá 100',
+          });
+        }
+        existing.quantity += qty;
+      } else {
+        mergedItemsMap.set(pid, { productId: pid, quantity: qty, name: item.name });
+      }
+    }
+
+    const normalizedItems = Array.from(mergedItemsMap.values());
+
     // Pre-validate product existence and stock availability
     const verifiedItems: { product: any; quantity: number; itemPrice: number }[] = [];
     let calculatedSubtotal = 0;
 
-    for (const item of items) {
-      if (!item.productId || !item.quantity || item.quantity <= 0) {
-        return res.status(400).json({ success: false, message: 'Dữ liệu sản phẩm không hợp lệ' });
-      }
-
+    for (const item of normalizedItems) {
       const product = await Product.findById(item.productId);
       if (!product || !product.isActive) {
         return res.status(400).json({
@@ -116,20 +182,6 @@ export const createOrder = async (req: Request, res: Response) => {
       }
     }
 
-    // Record inventory logs for each decremented product
-    for (const log of successfullyDecremented) {
-      await InventoryLog.create({
-        productId: log.productId,
-        productName: log.productName,
-        changeAmount: -log.quantity,
-        previousStock: log.prevStock,
-        newStock: log.newStock,
-        reason: 'order_deduction',
-        note: `Đơn hàng ${orderCode}`,
-        updatedBy: req.user?.email || 'Customer',
-      });
-    }
-
     // Consistent shipping fee: Free for subtotal >= 1,000,000, else 30,000
     const shippingFee = calculatedSubtotal >= 1000000 || calculatedSubtotal === 0 ? 0 : 30000;
     const finalTotal = calculatedSubtotal + shippingFee;
@@ -170,6 +222,29 @@ export const createOrder = async (req: Request, res: Response) => {
         });
       }
       throw orderCreateErr;
+    }
+
+    // Record inventory logs after Order document is created successfully
+    const createdLogIds: any[] = [];
+    try {
+      for (const log of successfullyDecremented) {
+        const createdLog = await InventoryLog.create({
+          productId: log.productId,
+          productName: log.productName,
+          changeAmount: -log.quantity,
+          previousStock: log.prevStock,
+          newStock: log.newStock,
+          reason: 'order_deduction',
+          note: `Đơn hàng ${orderCode}`,
+          updatedBy: req.user?.email || 'Customer',
+        });
+        createdLogIds.push(createdLog._id);
+      }
+    } catch (logErr) {
+      console.error('[createOrder] Error recording inventory logs:', logErr);
+      if (createdLogIds.length > 0) {
+        await InventoryLog.deleteMany({ _id: { $in: createdLogIds } });
+      }
     }
 
     let paymentUrl = null;
@@ -240,10 +315,16 @@ export const getAllOrders = async (req: Request, res: Response) => {
     const { status, paymentStatus, search, page = '1', limit = '10' } = req.query;
     const filter: Record<string, any> = {};
 
-    if (status) filter.orderStatus = status;
-    if (paymentStatus) filter.paymentStatus = paymentStatus;
-    if (search) {
-      const searchRegex = new RegExp(String(search), 'i');
+    const cleanStatus = sanitizeString(status);
+    if (cleanStatus) filter.orderStatus = cleanStatus;
+
+    const cleanPaymentStatus = sanitizeString(paymentStatus);
+    if (cleanPaymentStatus) filter.paymentStatus = cleanPaymentStatus;
+
+    const cleanSearch = sanitizeString(search);
+    if (cleanSearch) {
+      const escaped = escapeRegex(cleanSearch);
+      const searchRegex = new RegExp(escaped, 'i');
       const matchingUsers = await User.find({
         $or: [{ fullName: searchRegex }, { email: searchRegex }],
       }).select('_id');
@@ -259,7 +340,7 @@ export const getAllOrders = async (req: Request, res: Response) => {
     }
 
     const pageNum = Math.max(1, parseInt(String(page)) || 1);
-    const limitNum = Math.max(1, parseInt(String(limit)) || 10);
+    const limitNum = Math.min(100, Math.max(1, parseInt(String(limit)) || 10));
     const skip = (pageNum - 1) * limitNum;
 
     const [orders, total] = await Promise.all([
@@ -290,8 +371,12 @@ export const getOrderById = async (req: Request, res: Response) => {
     const cleanId = String(id).trim().toUpperCase().replace(/^#/, '');
 
     let order = null;
+    let isIdLookup = false;
     if (Types.ObjectId.isValid(id)) {
       order = await Order.findById(id);
+      if (order) {
+        isIdLookup = true;
+      }
     }
     if (!order) {
       order = await Order.findOne({ orderCode: cleanId });
@@ -301,23 +386,45 @@ export const getOrderById = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' });
     }
 
-    // Require authentication for direct access by order ID. Guests must use /api/orders/lookup
-    if (!req.user) {
-      return res.status(401).json({
-        success: false,
-        message: 'Vui lòng đăng nhập để xem thông tin đơn hàng. Khách vãng lai vui lòng tra cứu tại trang Tra cứu đơn hàng.',
-      });
+    const isStaffOrAdmin = Boolean(req.user && (req.user.role === 'admin' || req.user.role === 'staff'));
+    const isOwner = Boolean(req.user && order.userId && order.userId.toString() === req.user.id);
+
+    if (isIdLookup) {
+      // Direct access by MongoDB _id requires authentication and ownership/staff role (SEC-01)
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          message: 'Vui lòng đăng nhập để xem thông tin đơn hàng. Khách vãng lai vui lòng tra cứu tại trang Tra cứu đơn hàng.',
+        });
+      }
+      if (!isStaffOrAdmin && !isOwner) {
+        return res.status(403).json({ success: false, message: 'Không có quyền xem đơn hàng này' });
+      }
+      return res.json({ success: true, data: order });
     }
 
-    // Only allow owner or staff/admin to view
-    const isStaffOrAdmin = req.user.role === 'admin' || req.user.role === 'staff';
-    const isOwner = Boolean(order.userId && order.userId.toString() === req.user.id);
-
-    if (!isStaffOrAdmin && !isOwner) {
+    // Lookup by orderCode:
+    if (order.userId && req.user && !isStaffOrAdmin && !isOwner) {
       return res.status(403).json({ success: false, message: 'Không có quyền xem đơn hàng này' });
     }
 
-    return res.json({ success: true, data: order });
+    // If caller is authenticated owner or staff/admin, return full order
+    if (isStaffOrAdmin || isOwner) {
+      return res.json({ success: true, data: order });
+    }
+
+    // If caller provides matching phone query param, return full order
+    const queryPhone = req.query?.phone;
+    if (
+      typeof queryPhone === 'string' &&
+      queryPhone.trim() &&
+      normalizePhone(queryPhone) === normalizePhone(order.customerInfo?.phone)
+    ) {
+      return res.json({ success: true, data: order });
+    }
+
+    // Public lookup by orderCode (e.g. /payment-qr or /payment-result): return masked summary without PII
+    return res.json({ success: true, data: toPublicOrderSummary(order) });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message });
   }
@@ -327,8 +434,16 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { orderStatus, paymentStatus, autoAdvance } = req.body;
+    const cleanId = String(id).trim().toUpperCase().replace(/^#/, '');
 
-    const order = await Order.findById(id);
+    let order = null;
+    if (Types.ObjectId.isValid(id)) {
+      order = await Order.findById(id);
+    }
+    if (!order) {
+      order = await Order.findOne({ orderCode: cleanId });
+    }
+
     if (!order) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' });
     }
@@ -457,8 +572,12 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
 };
 
 const handleFailedPaymentOrder = async (order: any, note: string) => {
+  if (order.paymentStatus === 'paid' || order.orderStatus === 'delivered' || order.orderStatus === 'cancelled') {
+    return;
+  }
+
   const updatedOrder = await Order.findOneAndUpdate(
-    { _id: order._id, orderStatus: 'pending' },
+    { _id: order._id, orderStatus: 'pending', paymentStatus: { $ne: 'paid' } },
     { $set: { orderStatus: 'cancelled', paymentStatus: 'failed' } },
     { new: true }
   );
@@ -486,7 +605,7 @@ const handleFailedPaymentOrder = async (order: any, note: string) => {
     order.orderStatus = updatedOrder.orderStatus;
     order.paymentStatus = updatedOrder.paymentStatus;
   } else {
-    if (order.orderStatus !== 'cancelled') {
+    if (order.orderStatus !== 'cancelled' && order.orderStatus !== 'delivered' && order.paymentStatus !== 'paid') {
       order.paymentStatus = 'failed';
       await order.save();
     }
@@ -507,20 +626,47 @@ export const handleVnpayReturn = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' });
     }
 
+    const rawVnpAmount = query.vnp_Amount;
+    const vnpAmount = Number(rawVnpAmount);
+    const expectedAmount = Math.round(order.totalAmount * 100);
+    if (
+      rawVnpAmount === undefined ||
+      rawVnpAmount === '' ||
+      !Number.isFinite(vnpAmount) ||
+      vnpAmount !== expectedAmount
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: 'Số tiền thanh toán không khớp với giá trị đơn hàng',
+      });
+    }
+
     if (responseCode === '00') {
+      if (order.orderStatus === 'cancelled') {
+        return res.status(400).json({
+          success: false,
+          message: 'Đơn hàng đã bị hủy, không thể xác nhận thanh toán',
+          data: toPublicOrderSummary(order),
+        });
+      }
+
       order.paymentStatus = 'paid';
       order.vnpayTransactionNo = transactionNo;
       if (order.orderStatus === 'pending') {
         order.orderStatus = 'processing';
       }
       await order.save();
-      return res.json({ success: true, message: 'Thanh toán thành công qua VNPAY', data: order });
+      return res.json({
+        success: true,
+        message: 'Thanh toán thành công qua VNPAY',
+        data: toPublicOrderSummary(order),
+      });
     } else {
       await handleFailedPaymentOrder(order, 'Hủy đơn do thanh toán VNPAY không thành công');
       return res.status(400).json({
         success: false,
         message: 'Thanh toán không thành công',
-        data: order,
+        data: toPublicOrderSummary(order),
       });
     }
   } catch (error: any) {
@@ -546,8 +692,20 @@ export const handleVnpayIpn = async (req: Request, res: Response) => {
       return res.status(200).json({ RspCode: '01', Message: 'Order not found' });
     }
 
-    if (order.paymentStatus === 'paid') {
-      return res.status(200).json({ RspCode: '02', Message: 'Order already confirmed' });
+    const rawVnpAmount = query.vnp_Amount;
+    const vnpAmount = Number(rawVnpAmount);
+    const expectedAmount = Math.round(order.totalAmount * 100);
+    if (
+      rawVnpAmount === undefined ||
+      rawVnpAmount === '' ||
+      !Number.isFinite(vnpAmount) ||
+      vnpAmount !== expectedAmount
+    ) {
+      return res.status(200).json({ RspCode: '04', Message: 'Invalid Amount' });
+    }
+
+    if (order.paymentStatus === 'paid' || order.orderStatus === 'cancelled') {
+      return res.status(200).json({ RspCode: '02', Message: 'Order already confirmed or cancelled' });
     }
 
     if (responseCode === '00') {
@@ -573,7 +731,8 @@ export const handleVnpayIpn = async (req: Request, res: Response) => {
 export const handlePaymentWebhook = async (req: Request, res: Response) => {
   try {
     const signature = (req.headers['x-signature'] as string) || req.body?.signature || '';
-    const payload = req.body;
+    const payload = { ...(req.body || {}) };
+    delete payload.signature;
 
     const { verifyWebhookSignature } = await import('../utils/vnpay');
     const isValid = verifyWebhookSignature(payload, signature);
@@ -582,18 +741,41 @@ export const handlePaymentWebhook = async (req: Request, res: Response) => {
       return res.status(401).json({ success: false, message: 'Chữ ký HMAC SHA256 không hợp lệ' });
     }
 
-    const { orderCode, paymentStatus, transactionNo } = payload;
+    const { orderCode, paymentStatus, transactionNo, amount } = payload;
     const order = await Order.findOne({ orderCode });
     if (!order) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' });
     }
 
+    if (
+      amount !== undefined &&
+      (amount === null ||
+        amount === '' ||
+        typeof amount === 'boolean' ||
+        !Number.isFinite(Number(amount)) ||
+        Number(amount) !== order.totalAmount)
+    ) {
+      return res.status(400).json({ success: false, message: 'Số tiền thanh toán không khớp với đơn hàng' });
+    }
+
     if (paymentStatus === 'paid') {
+      if (order.orderStatus === 'cancelled') {
+        return res.status(400).json({
+          success: false,
+          message: 'Đơn hàng đã bị hủy, không thể cập nhật trạng thái đã thanh toán',
+        });
+      }
       order.paymentStatus = 'paid';
       if (transactionNo) order.vnpayTransactionNo = transactionNo;
       if (order.orderStatus === 'pending') order.orderStatus = 'processing';
       await order.save();
     } else if (paymentStatus === 'failed') {
+      if (order.paymentStatus === 'paid' || order.orderStatus === 'delivered') {
+        return res.status(400).json({
+          success: false,
+          message: 'Đơn hàng đã thanh toán hoặc hoàn tất, không thể chuyển sang thất bại',
+        });
+      }
       await handleFailedPaymentOrder(order, 'Hủy đơn do Webhook báo thanh toán thất bại');
     }
 
@@ -627,6 +809,14 @@ export const verifyOrderPayment = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' });
     }
 
+    // Terminal state protection: Cannot verify cancelled order
+    if (order.orderStatus === 'cancelled') {
+      return res.status(400).json({
+        success: false,
+        message: 'Đơn hàng đã bị hủy, không thể xác nhận thanh toán.',
+      });
+    }
+
     if (order.paymentStatus === 'paid') {
       return res.json({
         success: true,
@@ -635,21 +825,26 @@ export const verifyOrderPayment = async (req: Request, res: Response) => {
       });
     }
 
-    // Auto verify payment: update to paid and auto-progress status to processing if pending
-    order.paymentStatus = 'paid';
-    if (!order.vnpayTransactionNo) {
-      order.vnpayTransactionNo = `VERIFIED-${Date.now().toString().slice(-8)}`;
-    }
-    if (order.orderStatus === 'pending') {
-      order.orderStatus = 'processing';
-    }
+    // Auto verify payment atomically: update to paid and auto-progress status to processing if pending
+    const nextTxnNo = order.vnpayTransactionNo || `VERIFIED-${Date.now().toString().slice(-8)}`;
+    const nextOrderStatus = order.orderStatus === 'pending' ? 'processing' : order.orderStatus;
 
-    await order.save();
+    const updatedOrder = await Order.findOneAndUpdate(
+      { _id: order._id, orderStatus: { $ne: 'cancelled' } },
+      {
+        $set: {
+          paymentStatus: 'paid',
+          vnpayTransactionNo: nextTxnNo,
+          orderStatus: nextOrderStatus,
+        },
+      },
+      { new: true }
+    );
 
     return res.json({
       success: true,
       message: `Đã tự động xác nhận thanh toán thành công! Đơn hàng đã chuyển sang trạng thái "Đang xử lý".`,
-      data: order,
+      data: updatedOrder || order,
     });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message });
@@ -692,18 +887,37 @@ export const notifyPaid = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' });
     }
 
-    // Ownership check: Admin/Staff, or logged-in order owner, or matching order phone
-    const isStaffOrAdmin = req.user && (req.user.role === 'admin' || req.user.role === 'staff');
+    // Authorization & Ownership check:
+    const isStaffOrAdmin = Boolean(req.user && (req.user.role === 'admin' || req.user.role === 'staff'));
     const isOwnerUser = Boolean(req.user && order.userId && req.user.id === order.userId.toString());
+    const isWrongCustomer = Boolean(
+      req.user && order.userId && req.user.role === 'customer' && req.user.id !== order.userId.toString()
+    );
+
+    if (isWrongCustomer) {
+      return res.status(403).json({
+        success: false,
+        message: 'Bạn không có quyền thực hiện thao tác này trên đơn hàng.',
+      });
+    }
 
     const orderPhone = normalizePhone(order.customerInfo?.phone);
     const bodyPhone = normalizePhone(phone || req.query?.phone);
     const isMatchingPhone = Boolean(bodyPhone && orderPhone && bodyPhone === orderPhone);
 
+    // If caller provided a phone, verify it matches the order phone
+    if (bodyPhone && orderPhone && bodyPhone !== orderPhone) {
+      return res.status(403).json({
+        success: false,
+        message: 'Số điện thoại xác thực không khớp với thông tin đơn hàng.',
+      });
+    }
+
+    // Require staff/admin, authenticated owner, or matching phone for all notifyPaid calls (CRIT-01)
     if (!isStaffOrAdmin && !isOwnerUser && !isMatchingPhone) {
       return res.status(403).json({
         success: false,
-        message: 'Bạn không có quyền thực hiện thao tác này trên đơn hàng. Vui lòng đăng nhập tài khoản chủ đơn hoặc xác thực số điện thoại đặt hàng.',
+        message: 'Vui lòng cung cấp số điện thoại đặt hàng hợp lệ hoặc đăng nhập để xác nhận chuyển khoản.',
       });
     }
 
@@ -718,22 +932,36 @@ export const notifyPaid = async (req: Request, res: Response) => {
     if (order.orderStatus === 'delivered') {
       return res.status(400).json({
         success: false,
-        message: 'Đơn hàng đã được hoàn tất trước đó.',
+        message: 'Đơn hàng đã được hoàn tất trước đó, không thể thông báo chuyển khoản.',
       });
     }
 
-    // Update status to processing and paymentStatus to pending (if not already paid)
-    order.orderStatus = 'processing';
-    if (order.paymentStatus !== 'paid') {
-      order.paymentStatus = 'pending';
+    // Atomic state transition: If pending, advance to processing without overwriting concurrent 'paid' paymentStatus
+    if (order.orderStatus === 'pending') {
+      if (typeof (order as any).toObject === 'function') {
+        const updated = await Order.findOneAndUpdate(
+          { _id: order._id, orderStatus: 'pending' },
+          { $set: { orderStatus: 'processing' } },
+          { new: true }
+        );
+        if (updated) {
+          order = updated;
+        } else {
+          const refreshed = await Order.findById(order._id);
+          if (refreshed) order = refreshed;
+        }
+      } else {
+        order.orderStatus = 'processing';
+        if (typeof order.save === 'function') {
+          await order.save();
+        }
+      }
     }
-
-    await order.save();
 
     return res.json({
       success: true,
       message: 'Thông báo chuyển khoản thành công! Đơn hàng đã được chuyển sang trạng thái "Đang xử lý" để nhân viên đối soát.',
-      data: order,
+      data: isStaffOrAdmin || isOwnerUser ? order : toPublicOrderSummary(order),
     });
   } catch (error: any) {
     return res.status(500).json({ success: false, message: error.message });
@@ -768,9 +996,19 @@ export const confirmOrderReceipt = async (req: Request, res: Response) => {
     // Authorization verification:
     // 1. Staff or Admin: authorized
     // 2. Logged-in customer matching order.userId: authorized
-    // 3. Guest or Customer providing matching order phone: authorized
-    const isStaffOrAdmin = req.user && (req.user.role === 'admin' || req.user.role === 'staff');
+    // 3. Guest or Customer providing matching order phone: authorized (unless logged in as a different customer)
+    const isStaffOrAdmin = Boolean(req.user && (req.user.role === 'admin' || req.user.role === 'staff'));
     const isOwnerUser = Boolean(req.user && order.userId && req.user.id === order.userId.toString());
+    const isWrongCustomer = Boolean(
+      req.user && order.userId && req.user.role === 'customer' && req.user.id !== order.userId.toString()
+    );
+
+    if (isWrongCustomer) {
+      return res.status(403).json({
+        success: false,
+        message: 'Bạn không có quyền xác nhận đơn hàng của tài khoản khác.',
+      });
+    }
 
     const orderPhone = normalizePhone(order.customerInfo?.phone);
     const bodyPhone = normalizePhone(phone);

@@ -9,6 +9,7 @@ export interface IUser extends Document {
   googleId?: string;
   hasCustomPassword?: boolean;
   resetPasswordOtp?: string;
+  resetPasswordOtpHash?: string;
   resetPasswordOtpExpires?: Date;
   resetPasswordOtpAttempts?: number;
   role: 'customer' | 'staff' | 'admin';
@@ -28,6 +29,7 @@ const userSchema = new Schema<IUser>(
     googleId: { type: String, unique: true, sparse: true },
     hasCustomPassword: { type: Boolean, default: false },
     resetPasswordOtp: { type: String },
+    resetPasswordOtpHash: { type: String, select: false },
     resetPasswordOtpExpires: { type: Date },
     resetPasswordOtpAttempts: { type: Number, default: 0 },
     role: {
@@ -42,7 +44,19 @@ const userSchema = new Schema<IUser>(
     },
     isActive: { type: Boolean, default: true },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    toJSON: {
+      transform(_doc, ret: any) {
+        delete ret.passwordHash;
+        delete ret.resetPasswordOtp;
+        delete ret.resetPasswordOtpHash;
+        delete ret.resetPasswordOtpExpires;
+        delete ret.resetPasswordOtpAttempts;
+        return ret;
+      },
+    },
+  }
 );
 
 userSchema.methods.comparePassword = async function (candidate: string): Promise<boolean> {

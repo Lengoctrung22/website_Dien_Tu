@@ -121,6 +121,11 @@ export default function CheckoutPage() {
       }
 
       const { order, paymentUrl } = res.data;
+      if (typeof window !== 'undefined' && order?.orderCode && finalPhone) {
+        try {
+          sessionStorage.setItem(`tg_order_phone_${order.orderCode}`, finalPhone);
+        } catch {}
+      }
       clearCart();
 
       if (paymentMethod === 'ONLINE') {

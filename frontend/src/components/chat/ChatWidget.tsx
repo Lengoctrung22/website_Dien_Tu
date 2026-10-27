@@ -146,19 +146,20 @@ function ChatMarkdown({ content, isUser }: { content: string; isUser?: boolean }
             // [label](url)
             const label = match[6];
             const rawUrl = match[7].trim();
-            // Sanitize URL
+            // Sanitize URL (reject protocol-relative URLs like //evil.com)
             const isSafeUrl =
-              rawUrl.startsWith('/') ||
+              (rawUrl.startsWith('/') && !rawUrl.startsWith('//')) ||
               rawUrl.startsWith('https://') ||
               rawUrl.startsWith('http://');
 
             if (isSafeUrl) {
+              const isInternal = rawUrl.startsWith('/') && !rawUrl.startsWith('//');
               parts.push(
                 <a
                   key={`${lineIdx}-${match.index}`}
                   href={rawUrl}
-                  target={rawUrl.startsWith('/') ? undefined : '_blank'}
-                  rel={rawUrl.startsWith('/') ? undefined : 'noopener noreferrer'}
+                  target={isInternal ? undefined : '_blank'}
+                  rel={isInternal ? undefined : 'noopener noreferrer'}
                   className={
                     isUser
                       ? 'underline font-semibold text-white hover:text-white/80'

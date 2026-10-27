@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { isValidObjectId } from 'mongoose';
 import bcrypt from 'bcryptjs';
 import { Order } from '../models/Order';
 import { Product } from '../models/Product';
@@ -258,17 +259,27 @@ export const getDailyStatsByCategory = async (req: Request, res: Response) => {
 
 export const getInventory = async (req: Request, res: Response) => {
   try {
-    const { lowStockOnly, search } = req.query;
+    const { lowStockOnly, search, page = '1', limit = '50' } = req.query;
     const filter: Record<string, any> = { isActive: true };
 
     if (lowStockOnly === 'true') {
       filter.stock = { $lt: 5 };
     }
     if (search) {
-      filter.name = new RegExp(String(search), 'i');
+      const cleanSearch = sanitizeString(search);
+      if (cleanSearch) {
+        filter.name = new RegExp(escapeRegex(cleanSearch), 'i');
+      }
     }
 
-    const products = await Product.find(filter).sort({ stock: 1 });
+    const pageNum = Math.max(1, parseInt(String(page)) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(String(limit)) || 50));
+    const skip = (pageNum - 1) * limitNum;
+
+    const [products, total] = await Promise.all([
+      Product.find(filter).sort({ stock: 1 }).skip(skip).limit(limitNum),
+      Product.countDocuments(filter),
+    ]);
     const logs = await InventoryLog.find().sort({ createdAt: -1 }).limit(30);
 
     res.json({
@@ -276,6 +287,12 @@ export const getInventory = async (req: Request, res: Response) => {
       data: {
         products,
         recentLogs: logs,
+        pagination: {
+          total,
+          page: pageNum,
+          limit: limitNum,
+          totalPages: Math.ceil(total / limitNum),
+        },
       },
     });
   } catch (error: any) {
@@ -300,7 +317,15 @@ export const getUsers = async (req: Request, res: Response) => {
     const pipeline: any[] = [
       { $match: filter },
       { $sort: { createdAt: -1 } },
-      { $project: { passwordHash: 0 } },
+      {
+        $project: {
+          passwordHash: 0,
+          resetPasswordOtp: 0,
+          resetPasswordOtpHash: 0,
+          resetPasswordOtpExpires: 0,
+          resetPasswordOtpAttempts: 0,
+        },
+      },
       {
         $lookup: {
           from: 'orders',
@@ -349,12 +374,28 @@ export const getUsers = async (req: Request, res: Response) => {
   }
 };
 
+const VALID_PERMISSIONS = ['all', 'inventory', 'orders', 'products', 'reports'];
+
 export const createStaff = async (req: Request, res: Response) => {
   try {
     const { fullName, email, password, phone, role = 'staff', permissions = ['orders'] } = req.body;
 
     if (!fullName || !email || !password) {
       return res.status(400).json({ success: false, message: 'Vui lòng cung cấp đầy đủ họ tên, email và mật khẩu' });
+    }
+
+    if (typeof password !== 'string' || password.length < 6 || password.length > 128) {
+      return res.status(400).json({
+        success: false,
+        message: 'Mật khẩu phải có độ dài từ 6 đến 128 ký tự',
+      });
+    }
+
+    if (!Array.isArray(permissions) || !permissions.every((p) => typeof p === 'string' && VALID_PERMISSIONS.includes(p))) {
+      return res.status(400).json({
+        success: false,
+        message: 'Danh sách quyền (permissions) không hợp lệ',
+      });
     }
 
     const existingUser = await User.findOne({ email: email.toLowerCase() });
@@ -397,14 +438,54 @@ export const updateUserStatus = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { isActive, role, permissions } = req.body;
 
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Mã định danh người dùng không hợp lệ',
+      });
+    }
+
     const user = await User.findById(id);
     if (!user) {
       return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng' });
     }
 
-    if (isActive !== undefined) user.isActive = Boolean(isActive);
+    const parsedIsActive =
+      isActive === undefined
+        ? undefined
+        : isActive === true || isActive === 'true' || isActive === 1 || isActive === '1'
+        ? true
+        : isActive === false || isActive === 'false' || isActive === 0 || isActive === '0' || isActive === '' || isActive === null
+        ? false
+        : Boolean(isActive);
+
+    // Prevent Admin from locking their own account or removing their admin role
+    if (req.user && (req.user.id === user._id.toString() || req.user.id === String(user._id))) {
+      if (parsedIsActive === false) {
+        return res.status(400).json({
+          success: false,
+          message: 'Không thể tự khóa tài khoản của chính mình',
+        });
+      }
+      if (role && role !== 'admin') {
+        return res.status(400).json({
+          success: false,
+          message: 'Không thể tự giáng cấp quyền quản trị của chính mình',
+        });
+      }
+    }
+
+    if (parsedIsActive !== undefined) user.isActive = parsedIsActive;
     if (role && ['customer', 'staff', 'admin'].includes(role)) user.role = role;
-    if (permissions && Array.isArray(permissions)) user.permissions = permissions;
+    if (permissions !== undefined) {
+      if (!Array.isArray(permissions) || !permissions.every((p) => typeof p === 'string' && VALID_PERMISSIONS.includes(p))) {
+        return res.status(400).json({
+          success: false,
+          message: 'Danh sách quyền (permissions) không hợp lệ',
+        });
+      }
+      user.permissions = permissions;
+    }
 
     await user.save();
 

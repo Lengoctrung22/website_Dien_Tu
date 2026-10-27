@@ -5,7 +5,7 @@ import { Product } from '../models/Product';
 import { InventoryLog } from '../models/InventoryLog';
 import { User } from '../models/User';
 
-const MOCK_NAME_REGEX = /(tester|test|racer|0084|staff override|customer receipt|guest tracking|refund lifecycle|cod lifecycle|payment fail|test limit|invalid hop)/i;
+const MOCK_NAME_REGEX = /(challenger|tester|test|racer|0084|staff override|customer receipt|guest tracking|refund lifecycle|cod lifecycle|payment fail|test limit|invalid hop)/i;
 const MOCK_PHONE_REGEX = /^(090000000|0999888777|0911223344|0977665544|0966554433|0912987654|0912\.345\.678|0084|0977112233|0999999999|0988776655)/;
 
 async function cleanFakeOrders() {

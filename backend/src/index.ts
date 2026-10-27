@@ -9,6 +9,7 @@ import { UPLOAD_DIR } from './config/upload';
 import { seedDatabase } from './scripts/seed';
 
 const app = express();
+app.set('trust proxy', 1);
 
 const ALLOWED_ORIGIN_REGEX = /^https?:\/\/(([a-zA-Z0-9-]+\.)*localhost:3000|([a-zA-Z0-9-]+\.)*techgear\.(local|vn)(:[0-9]+)?)$/;
 
@@ -25,12 +26,18 @@ app.use(cors({
   credentials: true,
 }));
 app.use(morgan('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '100kb' }));
+app.use(express.urlencoded({ extended: true, limit: '100kb' }));
 
-// Serve uploaded static files
-app.use('/uploads', express.static(UPLOAD_DIR));
-app.use('/api/uploads', express.static(UPLOAD_DIR));
+// Serve uploaded static files with strict security headers
+const staticOptions = {
+  setHeaders: (res: express.Response) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Content-Security-Policy', "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'");
+  },
+};
+app.use('/uploads', express.static(UPLOAD_DIR, staticOptions));
+app.use('/api/uploads', express.static(UPLOAD_DIR, staticOptions));
 
 // Health Check
 app.get('/api/health', (req, res) => {
@@ -49,10 +56,14 @@ app.use(errorHandler);
 
 /**
  * NON-DESTRUCTIVE initialization: Ensures default admin/staff/customer accounts
- * and default products exist using upsert mode. NEVER calls deleteMany.
- * Safe to run on every server startup.
+ * and default products exist using upsert mode in non-production environments.
+ * NEVER calls deleteMany.
  */
 const ensureInitialData = async () => {
+  if (process.env.NODE_ENV === 'production') {
+    console.log('[Init] Production environment detected. Skipping automatic default seed.');
+    return;
+  }
   console.log('[Init] Ensuring initial data exists (upsert mode)...');
   await seedDatabase();
   console.log('[Init] Initial data check completed.');
