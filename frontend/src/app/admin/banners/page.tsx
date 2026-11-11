@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 import {
   Sliders,
   Plus,
@@ -14,7 +13,6 @@ import {
   Check,
   X,
   AlertCircle,
-  ExternalLink,
   Search,
   Eye,
   Zap,
@@ -24,6 +22,8 @@ import {
   Loader2,
   CheckCircle2,
   Package,
+  Layers,
+  Maximize2,
 } from 'lucide-react';
 import { fetchApi } from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
@@ -35,7 +35,11 @@ import {
   BannerThemeKey,
   getBannerTheme,
 } from '@/lib/bannerThemes';
-import { useBlendedProductImage } from '@/lib/imageBlender';
+import {
+  useBlendedProductImage,
+  getProductBlendStyles,
+  getScenicFeatherStyles,
+} from '@/lib/imageBlender';
 
 interface BannerItem {
   _id: string;
@@ -73,6 +77,68 @@ interface ProductOption {
   description?: string;
 }
 
+function BannerCardThumbnail({ banner }: { banner: BannerItem }) {
+  const themeData = getBannerTheme(banner.theme);
+  const isCover = banner.imageFit === 'cover';
+  const { displaySrc, blendMode } = useBlendedProductImage(
+    banner.image,
+    Boolean(banner.removeWhiteBg)
+  );
+
+  const imageStyle = isCover
+    ? undefined
+    : blendMode === 'cutout'
+    ? undefined
+    : blendMode === 'softbox'
+    ? getProductBlendStyles(true, 'softbox')
+    : getScenicFeatherStyles();
+
+  return (
+    <div className="relative w-full md:w-48 h-28 rounded-xl overflow-hidden hairline-border flex-shrink-0 bg-[#070b14] shadow-md isolate">
+      {/* Studio Ambient Theme Aura */}
+      <div
+        className="absolute inset-0 opacity-75 pointer-events-none"
+        style={{
+          background: `radial-gradient(ellipse 80% 80% at 60% 50%, ${themeData.accentColor}45 0%, ${themeData.accentColor}15 50%, transparent 80%)`,
+        }}
+      />
+      <div
+        className={`absolute inset-0 bg-gradient-to-r ${themeData.gradient} opacity-45 pointer-events-none mix-blend-screen`}
+      />
+
+      {/* Image */}
+      <div className="relative w-full h-full flex items-center justify-center">
+        <Image
+          src={displaySrc || banner.image}
+          alt={banner.title}
+          fill
+          className={
+            isCover
+              ? 'object-cover'
+              : blendMode !== 'cutout'
+              ? 'object-cover rounded-lg'
+              : 'object-contain p-2 drop-shadow-[0_10px_20px_rgba(0,0,0,0.85)]'
+          }
+          style={imageStyle}
+          unoptimized
+        />
+      </div>
+
+      <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-slate-950/90 to-transparent pointer-events-none" />
+      <span className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-black/70 text-white backdrop-blur-sm border border-white/10">
+        {themeData.label}
+      </span>
+      <span className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded text-[8px] font-mono font-bold bg-black/75 text-cyan-300 backdrop-blur-sm uppercase border border-white/10">
+        {isCover
+          ? 'Cover 21:9'
+          : blendMode === 'cutout'
+          ? 'Cutout Studio'
+          : 'Vignette 2/3'}
+      </span>
+    </div>
+  );
+}
+
 export default function AdminBannersPage() {
   const { hasPermission, isAdmin } = useAuthStore();
   const [banners, setBanners] = useState<BannerItem[]>([]);
@@ -92,7 +158,7 @@ export default function AdminBannersPage() {
   const [tag, setTag] = useState('');
   const [image, setImage] = useState('');
   const [imageFit, setImageFit] = useState<'contain' | 'cover'>('contain');
-  const [removeWhiteBg, setRemoveWhiteBg] = useState(false);
+  const [removeWhiteBg, setRemoveWhiteBg] = useState(true);
   const [theme, setTheme] = useState<BannerThemeKey>('purple');
   const [cta, setCta] = useState('Khám Phá Ngay');
   const [link, setLink] = useState('/products');
@@ -105,18 +171,19 @@ export default function AdminBannersPage() {
   const [isActive, setIsActive] = useState(true);
   const [imageUploading, setImageUploading] = useState(false);
 
-  // Live preview blended image hook
-  const { displaySrc: previewDisplaySrc, isBlended: previewIsBlended } = useBlendedProductImage(
-    image,
-    removeWhiteBg
-  );
+  // Live preview blended image hook (now wired directly into the 21:9 Live Preview)
+  const {
+    displaySrc: previewDisplaySrc,
+    blendMode: previewBlendMode,
+    hasLightBg: previewHasLightBg,
+    isProcessing: previewIsProcessing,
+  } = useBlendedProductImage(image, removeWhiteBg);
 
   // Product Picker state
   const [productSearch, setProductSearch] = useState('');
   const [productResults, setProductResults] = useState<ProductOption[]>([]);
   const [searchingProducts, setSearchingProducts] = useState(false);
   const [showProductDropdown, setShowProductDropdown] = useState(false);
-  const searchDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load banners
   const loadBanners = useCallback(async () => {
@@ -197,7 +264,7 @@ export default function AdminBannersPage() {
     setTag('Chính Hãng');
     setImage('');
     setImageFit('contain');
-    setRemoveWhiteBg(false);
+    setRemoveWhiteBg(true);
     setTheme('purple');
     setCta('Khám Phá Ngay');
     setLink('/products');
@@ -432,6 +499,28 @@ export default function AdminBannersPage() {
     }
   };
 
+  // Quick Toggle Background Harmony (removeWhiteBg) directly from Banner List
+  const handleQuickToggleBlend = async (banner: BannerItem) => {
+    try {
+      const nextVal = !banner.removeWhiteBg;
+      const res = await fetchApi(`/banners/${banner._id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ removeWhiteBg: nextVal, imageFit: 'contain' }),
+      });
+      if (res.success) {
+        setFeedback({
+          type: 'success',
+          message: nextVal
+            ? `Đã bật Hòa trộn nền Studio cho "${banner.title}"`
+            : `Đã chuyển sang chế độ Khung viền mờ cho "${banner.title}"`,
+        });
+        await loadBanners();
+      }
+    } catch {
+      setFeedback({ type: 'error', message: 'Lỗi khi cập nhật chế độ hòa nền' });
+    }
+  };
+
   if (!isAdmin() && !hasPermission('products')) {
     return (
       <AccessDenied
@@ -442,6 +531,17 @@ export default function AdminBannersPage() {
   }
 
   const activeThemeConfig = getBannerTheme(theme);
+  const isPreviewCover = imageFit === 'cover';
+  const showPreviewAmbientPhoto =
+    isPreviewCover || (!removeWhiteBg && !previewHasLightBg && previewBlendMode === 'scenic');
+
+  const previewImageStyle = isPreviewCover
+    ? undefined
+    : previewBlendMode === 'cutout'
+    ? undefined
+    : previewBlendMode === 'softbox'
+    ? getProductBlendStyles(true, 'softbox')
+    : getScenicFeatherStyles();
 
   return (
     <div className="space-y-6 pb-12">
@@ -451,7 +551,7 @@ export default function AdminBannersPage() {
           <div className="flex items-center gap-2 mb-1">
             <span className="w-2 h-2 rounded-full bg-signal-cyan animate-pulse" />
             <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              STOREFRONT TELEMETRY // HERO CAROUSEL
+              STOREFRONT TELEMETRY // HERO CAROUSEL STUDIO
             </span>
           </div>
           <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
@@ -459,7 +559,7 @@ export default function AdminBannersPage() {
             <span>Quản Lý Banner & Slideshow Trang Chủ</span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
-            Tùy biến slide quảng bá sản phẩm mới, màu sắc gradient, thứ tự hiển thị và xem trước thời gian thực
+            Tùy biến slide quảng bá sản phẩm, tự động tách nền trắng hòa quyện vào background tối và xem trước thời gian thực
           </p>
         </div>
 
@@ -582,7 +682,6 @@ export default function AdminBannersPage() {
             {banners.map((banner, index) => {
               const isFirst = index === 0;
               const isLast = index === banners.length - 1;
-              const themeData = getBannerTheme(banner.theme);
 
               return (
                 <div
@@ -625,24 +724,8 @@ export default function AdminBannersPage() {
                     </div>
                   </div>
 
-                  {/* Thumbnail */}
-                  <div className="relative w-full md:w-44 h-28 rounded-xl overflow-hidden hairline-border flex-shrink-0 bg-slate-950 shadow-sm">
-                    <Image
-                      src={banner.image}
-                      alt={banner.title}
-                      fill
-                      className={banner.imageFit === 'cover' ? 'object-cover' : 'object-contain p-1.5'}
-                      unoptimized
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 to-transparent pointer-events-none" />
-                    <div className={`absolute inset-0 bg-gradient-to-r ${themeData.gradient} opacity-50 pointer-events-none`} />
-                    <span className="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-black/60 text-white backdrop-blur-sm">
-                      {themeData.label}
-                    </span>
-                    <span className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded text-[8px] font-mono font-bold bg-black/70 text-slate-300 backdrop-blur-sm uppercase">
-                      {banner.imageFit === 'cover' ? 'Cover' : 'Fit 2/3'}
-                    </span>
-                  </div>
+                  {/* Harmonized Thumbnail */}
+                  <BannerCardThumbnail banner={banner} />
 
                   {/* Info */}
                   <div className="flex-1 min-w-0 space-y-1">
@@ -657,11 +740,19 @@ export default function AdminBannersPage() {
                           {banner.tag}
                         </span>
                       )}
-                      {banner.removeWhiteBg && (
-                        <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-cyan-500/10 text-cyan-600 dark:text-signal-cyan border border-cyan-500/20">
-                          HÒA NỀN TỐI
-                        </span>
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleQuickToggleBlend(banner)}
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold border transition-colors ${
+                          banner.removeWhiteBg
+                            ? 'bg-cyan-500/15 text-cyan-600 dark:text-signal-cyan border-cyan-500/30 hover:bg-cyan-500/25'
+                            : 'bg-surface-elevated text-slate-500 dark:text-slate-400 hairline-border hover:text-signal-cyan'
+                        }`}
+                        title="Bấm để bật/tắt chế độ Hòa trộn nền Studio thông minh"
+                      >
+                        <Sparkles className="w-2.5 h-2.5" />
+                        <span>{banner.removeWhiteBg ? 'HÒA NỀN STUDIO: BẬT' : 'HÒA NỀN TỰ ĐỘNG'}</span>
+                      </button>
                       <span
                         className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${
                           banner.isActive
@@ -683,8 +774,10 @@ export default function AdminBannersPage() {
                       </p>
                     )}
 
-                    <div className="flex items-center gap-3 pt-1 text-[11px] font-mono text-slate-500">
-                      <span className="truncate">Liên kết: <span className="text-slate-800 dark:text-slate-200">{banner.link}</span></span>
+                    <div className="flex items-center gap-3 pt-1 text-[11px] font-mono text-slate-500 flex-wrap">
+                      <span className="truncate">
+                        Liên kết: <span className="text-slate-800 dark:text-slate-200">{banner.link}</span>
+                      </span>
                       {banner.productId && (
                         <span className="inline-flex items-center gap-1 text-cyan-600 dark:text-signal-cyan font-bold">
                           <Package className="w-3 h-3" />
@@ -746,7 +839,7 @@ export default function AdminBannersPage() {
       </div>
 
       {/* =========================================================================
-       * 4. CREATE / EDIT MODAL WITH 21:9 LIVE PREVIEW
+       * 4. CREATE / EDIT MODAL WITH SYNCHRONIZED 21:9 LIVE PREVIEW
        * ========================================================================= */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
@@ -759,7 +852,9 @@ export default function AdminBannersPage() {
                   <span>{editingBanner ? 'Chỉnh Sửa Slide Banner' : 'Thêm Mới Slide Hero Slideshow'}</span>
                 </h2>
                 <p className="text-[11px] font-mono text-slate-500">
-                  {editingBanner ? 'Cập nhật nội dung và live preview ngay lập tức' : 'Giới thiệu sản phẩm mới với theme gradient tùy chỉnh'}
+                  {editingBanner
+                    ? 'Tối ưu hiển thị hòa trộn background và cập nhật thời gian thực'
+                    : 'Giới thiệu sản phẩm mới với công nghệ tách nền & hòa trộn ánh sáng studio'}
                 </p>
               </div>
 
@@ -775,71 +870,98 @@ export default function AdminBannersPage() {
             {/* Modal Body */}
             <form onSubmit={handleSubmit} className="p-4 sm:p-6 overflow-y-auto space-y-6 flex-1">
               {/* =================================================================
-               * 21:9 LIVE PREVIEW SECTION
+               * 21:9 LIVE PREVIEW SECTION (SYNCHRONIZED WITH HEROSLIDER)
                * ================================================================= */}
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-2">
                   <div className="flex items-center gap-1.5">
                     <Eye className="w-4 h-4 text-signal-cyan" />
                     <span className="text-xs font-mono font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
                       Live Preview 21:9 Thời Gian Thực
                     </span>
+                    {previewIsProcessing && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-mono text-signal-cyan">
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                        Đang đồng bộ nền...
+                      </span>
+                    )}
                   </div>
                   <span className="text-[10px] font-mono text-slate-500">
-                    Mô phỏng chính xác giao diện hiển thị trên trang chủ
+                    Mô phỏng 100% cơ chế tách nền & ánh sáng trên trang chủ
                   </span>
                 </div>
 
-                <div className="relative w-full h-[220px] sm:h-[260px] md:h-[290px] rounded-2xl overflow-hidden border hairline-border surface-bevel shadow-2xl bg-slate-950 group">
-                  {/* Background Image & Gradient Overlays */}
+                <div className="relative w-full h-[230px] sm:h-[270px] md:h-[300px] rounded-2xl overflow-hidden border hairline-border surface-bevel shadow-2xl bg-[#070b14] group">
+                  {/* Background Image & Harmonious Theme Atmosphere */}
                   {image ? (
                     <>
-                      {/* 1. Ambient blurred background if contain, or cover if cover */}
-                      {!removeWhiteBg && (
-                        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                      {/* 1. Ambient backdrop (suppressed when image has white studio bg to avoid gray washout) */}
+                      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                        {showPreviewAmbientPhoto && (
                           <Image
                             src={image}
                             alt={title || 'Preview'}
                             fill
-                            className={`object-cover object-center ${
-                              imageFit === 'cover' ? 'scale-100 opacity-90' : 'scale-110 blur-3xl opacity-35 dark:opacity-40'
+                            className={`object-cover object-center transition-all duration-500 ${
+                              isPreviewCover
+                                ? 'scale-100 opacity-85'
+                                : 'scale-125 blur-3xl opacity-25 saturate-150 brightness-75'
                             }`}
                             unoptimized
                           />
-                        </div>
-                      )}
+                        )}
 
-                      {/* 2. Theme accent gradient - confined to left ~35% */}
+                        {/* Full-slide harmonious theme aura */}
+                        <div
+                          className="absolute inset-0 opacity-65"
+                          style={{
+                            background: `
+                              radial-gradient(ellipse 65% 80% at 70% 50%, ${activeThemeConfig.accentColor}35 0%, ${activeThemeConfig.accentColor}12 45%, transparent 75%),
+                              radial-gradient(ellipse 50% 60% at 15% 20%, ${activeThemeConfig.accentColor}25 0%, transparent 65%)
+                            `,
+                          }}
+                        />
+                      </div>
+
+                      {/* 2. Smooth dark text-protection scrim */}
                       <div
-                        className={`absolute inset-y-0 left-0 w-full sm:w-[36%] bg-gradient-to-r ${activeThemeConfig.gradient} opacity-30 sm:opacity-40 pointer-events-none z-[1]`}
+                        className={`absolute inset-0 pointer-events-none z-[1] ${
+                          isPreviewCover
+                            ? 'bg-gradient-to-r from-[#070b14]/95 via-[#070b14]/75 via-[42%] to-[#070b14]/20'
+                            : 'bg-gradient-to-r from-[#070b14] via-[#070b14]/88 via-[34%] to-transparent to-[65%]'
+                        }`}
                       />
 
-                      {/* 3. Dark scrim: left 1/3 (~35%-38%), right 2/3 transparent */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/90 via-[26%] to-transparent to-[38%] pointer-events-none z-[2]" />
+                      {/* 3. Theme accent gradient ABOVE scrim */}
+                      <div
+                        className={`absolute inset-y-0 left-0 w-full sm:w-[55%] bg-gradient-to-r ${activeThemeConfig.gradient} opacity-45 sm:opacity-55 pointer-events-none z-[2] mix-blend-screen`}
+                      />
                     </>
                   ) : (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 text-slate-500">
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#070b14] text-slate-500">
                       <Sliders className="w-8 h-8 mb-2 opacity-50" />
-                      <span className="text-xs font-mono">Chưa có ảnh slide - Hãy chọn hoặc tải ảnh bên dưới</span>
+                      <span className="text-xs font-mono">Chưa có ảnh slide - Hãy chọn sản phẩm hoặc tải ảnh bên dưới</span>
                     </div>
                   )}
 
                   {/* Content Overlay */}
-                  <div className="relative h-full max-w-5xl mx-auto px-4 sm:px-7 flex items-center justify-between z-10 text-white">
+                  <div className="relative h-full max-w-5xl mx-auto px-5 sm:px-10 flex items-center justify-between z-10 text-white">
                     <div
                       className={`w-full h-full flex items-center ${
-                        imageFit === 'cover' ? 'justify-start' : 'justify-between'
+                        isPreviewCover ? 'justify-start' : 'justify-between'
                       } gap-4`}
                     >
-                      {/* Left: Text (1/3 width: ~35%) */}
+                      {/* Left: Text */}
                       <div
                         className={`w-full ${
-                          imageFit === 'cover' ? 'max-w-md' : 'w-[38%] sm:w-[35%]'
+                          isPreviewCover ? 'max-w-md' : 'w-[40%] sm:w-[38%]'
                         } space-y-1 sm:space-y-1.5 py-3 z-10`}
                       >
                         <div className="flex items-center gap-1.5 flex-wrap">
                           {badge && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] sm:text-[10px] font-mono font-bold tracking-wider uppercase bg-white/10 text-white border border-white/20 backdrop-blur-md">
+                            <span
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] sm:text-[10px] font-mono font-bold tracking-wider uppercase backdrop-blur-md border ${activeThemeConfig.badgeBg} ${activeThemeConfig.badgeText} ${activeThemeConfig.badgeBorder}`}
+                            >
                               <Zap className="w-3 h-3 fill-current" />
                               {badge}
                             </span>
@@ -852,18 +974,18 @@ export default function AdminBannersPage() {
                           )}
                         </div>
 
-                        <h3 className="text-base sm:text-xl md:text-2xl font-black tracking-tight leading-tight drop-shadow-md">
+                        <h3 className="text-base sm:text-xl md:text-2xl font-black tracking-tight leading-tight drop-shadow-md line-clamp-2">
                           {title || 'Tiêu đề sản phẩm hoặc ưu đãi nổi bật'}
                         </h3>
 
                         {subtitle && (
-                          <p className="text-[10px] sm:text-xs font-semibold text-slate-200 font-mono line-clamp-1">
+                          <p className="text-[10px] sm:text-xs font-semibold text-slate-200/95 font-mono line-clamp-1">
                             {subtitle}
                           </p>
                         )}
 
                         {desc && (
-                          <p className="text-[9px] sm:text-[10px] text-slate-300 line-clamp-2">
+                          <p className="text-[9px] sm:text-[10px] text-slate-300/90 line-clamp-2">
                             {desc}
                           </p>
                         )}
@@ -882,63 +1004,59 @@ export default function AdminBannersPage() {
                         </div>
                       </div>
 
-                      {/* Right: Product Image for contain mode (2/3 width: ~65%) */}
-                      {imageFit !== 'cover' && image && (
-                        <div className="w-[62%] sm:w-[65%] h-full flex items-center justify-center p-2 sm:p-4 relative isolate">
-                          {/* Studio Spotlight Backdrop when removeWhiteBg is active */}
-                          {removeWhiteBg && (
-                            <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-hidden">
-                              <div
-                                className="absolute w-[88%] h-[84%] rounded-full blur-2xl opacity-30 dark:opacity-40 pointer-events-none"
-                                style={{
-                                  background: activeThemeConfig?.accentColor
-                                    ? `radial-gradient(ellipse at 52% 45%, ${activeThemeConfig.accentColor}40 0%, ${activeThemeConfig.accentColor}10 50%, transparent 75%)`
-                                    : 'radial-gradient(ellipse at 52% 45%, rgba(59, 130, 246, 0.3) 0%, rgba(30, 64, 175, 0.1) 50%, transparent 75%)',
-                                }}
-                              />
-                              <div className="absolute w-[72%] h-[68%] rounded-full blur-xl pointer-events-none bg-[radial-gradient(ellipse_at_52%_45%,_rgba(80,105,140,0.50)_0%,_rgba(45,65,95,0.25)_45%,_transparent_75%)]" />
-                              <div className="absolute bottom-0 inset-x-0 h-[32%] bg-gradient-to-b from-[#242e3d]/85 via-[#192230]/75 to-[#0e141f]/95 border-t border-slate-600/30 pointer-events-none" />
-                              <div className="absolute bottom-4 sm:bottom-6 w-[70%] h-3 bg-black/85 rounded-[100%] blur-sm pointer-events-none" />
-                            </div>
-                          )}
+                      {/* Right: Harmonized Product Showcase for contain mode */}
+                      {!isPreviewCover && image && (
+                        <div className="w-[60%] sm:w-[62%] h-full flex items-center justify-center p-2 sm:p-4 relative isolate">
+                          {/* Seamless Studio Lighting Stage */}
+                          <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                            <div
+                              className="w-[86%] h-[82%] rounded-full blur-2xl opacity-50"
+                              style={{
+                                background: `radial-gradient(ellipse at 52% 48%, ${activeThemeConfig.accentColor}55 0%, ${activeThemeConfig.accentColor}20 48%, transparent 76%)`,
+                              }}
+                            />
+                            <div
+                              className="absolute w-[68%] h-[64%] rounded-full blur-xl"
+                              style={{
+                                background:
+                                  previewBlendMode === 'cutout'
+                                    ? 'radial-gradient(ellipse at 50% 48%, rgba(226, 232, 240, 0.22) 0%, rgba(148, 163, 184, 0.08) 50%, transparent 75%)'
+                                    : 'radial-gradient(ellipse at 50% 48%, rgba(255, 255, 255, 0.14) 0%, transparent 70%)',
+                              }}
+                            />
+                            <div className="absolute bottom-4 sm:bottom-5 w-[58%] h-4 bg-black/80 rounded-[100%] blur-lg" />
+                          </div>
 
-                          <div className="relative w-full h-[88%] max-h-[220px] flex items-center justify-center">
+                          <div className="relative w-full h-[88%] max-h-[230px] flex items-center justify-center">
                             <Image
-                              src={image}
+                              src={previewDisplaySrc || image}
                               alt={title || 'Preview Product'}
                               fill
-                              className={`object-contain object-center transition-all duration-300 ${
-                                removeWhiteBg
-                                  ? ''
-                                  : 'drop-shadow-2xl'
+                              className={`${
+                                previewBlendMode !== 'cutout'
+                                  ? 'object-cover rounded-2xl'
+                                  : 'object-contain'
+                              } object-center transition-all duration-300 ${
+                                previewBlendMode === 'cutout'
+                                  ? 'drop-shadow-[0_20px_36px_rgba(0,0,0,0.85)]'
+                                  : 'drop-shadow-[0_15px_28px_rgba(0,0,0,0.65)]'
                               }`}
-                              style={
-                                removeWhiteBg
-                                  ? {
-                                      mixBlendMode: 'multiply',
-                                      WebkitMaskImage:
-                                        'radial-gradient(ellipse 90% 86% at 50% 50%, #000 68%, rgba(0, 0, 0, 0.75) 82%, transparent 100%)',
-                                      maskImage:
-                                        'radial-gradient(ellipse 90% 86% at 50% 50%, #000 68%, rgba(0, 0, 0, 0.75) 82%, transparent 100%)',
-                                    }
-                                  : undefined
-                              }
+                              style={previewImageStyle}
                               unoptimized
                             />
                           </div>
-
-                          {removeWhiteBg && (
-                            <div className="absolute bottom-2 right-4 text-slate-400/40 dark:text-slate-300/35 pointer-events-none text-lg font-serif select-none">
-                              ✦
-                            </div>
-                          )}
                         </div>
                       )}
                     </div>
                   </div>
 
-                  <span className="absolute bottom-2 right-2 text-[9px] font-mono uppercase px-2 py-0.5 rounded bg-black/60 text-slate-300 backdrop-blur-sm border hairline-border z-20">
-                    {activeThemeConfig.label} • {imageFit === 'cover' ? 'Cover' : 'Fit 2/3'} {removeWhiteBg ? '• Hòa Nền Tối' : ''} • 21:9
+                  <span className="absolute bottom-2 right-2 text-[9px] font-mono uppercase px-2.5 py-0.5 rounded-md bg-black/75 text-cyan-300 backdrop-blur-sm border border-white/10 z-20">
+                    {activeThemeConfig.label} •{' '}
+                    {isPreviewCover
+                      ? 'Cover 21:9'
+                      : previewBlendMode === 'cutout'
+                      ? '✨ Đã Tách Nền & Hòa Trộn Studio'
+                      : '🎨 Làm Mềm Viền Tự Nhiên'}
                   </span>
                 </div>
               </div>
@@ -1040,7 +1158,7 @@ export default function AdminBannersPage() {
                * ================================================================= */}
               <div className="space-y-2">
                 <label className="block text-xs font-mono font-bold uppercase text-slate-800 dark:text-slate-200">
-                  Màu Sắc & Gradient Theme (7 Preset màu chuẩn ROG & Cyber)
+                  Màu Sắc & Ánh Sáng Nền Studio (7 Preset chuẩn ROG & Cyber)
                 </label>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
@@ -1078,12 +1196,12 @@ export default function AdminBannersPage() {
                * ================================================================= */}
               <div className="space-y-2">
                 <SingleImageUpload
-                  label="Hình Ảnh Nền Slide (Background Image)"
+                  label="Hình Ảnh Sản Phẩm / Banner (Slide Image)"
                   required
                   value={image}
                   onChange={(url) => setImage(url)}
                   onUploadingChange={(uploading) => setImageUploading(uploading)}
-                  helperText="Khuyên dùng ảnh độ phân giải cao 1920x800 hoặc tỷ lệ 21:9 để hiển thị sắc nét nhất"
+                  helperText="Hỗ trợ ảnh sản phẩm nền trắng/đơn sắc (tự động tách nền) hoặc ảnh banner 21:9 độ phân giải cao"
                 />
 
                 {selectedProductInfo?.images && selectedProductInfo.images.length > 0 && (
@@ -1098,7 +1216,9 @@ export default function AdminBannersPage() {
                           type="button"
                           onClick={() => setImage(imgUrl)}
                           className={`relative w-12 h-12 rounded-lg overflow-hidden border flex-shrink-0 transition-all ${
-                            image === imgUrl ? 'border-signal-cyan ring-2 ring-signal-cyan/30' : 'border-slate-300 dark:border-white/10 opacity-70 hover:opacity-100'
+                            image === imgUrl
+                              ? 'border-signal-cyan ring-2 ring-signal-cyan/30'
+                              : 'border-slate-300 dark:border-white/10 opacity-70 hover:opacity-100'
                           }`}
                         >
                           <Image src={imgUrl} alt={`Product ${i}`} fill className="object-cover" unoptimized />
@@ -1110,98 +1230,126 @@ export default function AdminBannersPage() {
               </div>
 
               {/* =================================================================
-               * 3.1 IMAGE DISPLAY MODE (CONTAIN / FIT 2/3 VS COVER)
+               * 3.1 UNIFIED BACKGROUND HARMONY & DISPLAY MODE (3 PRESET CARDS)
                * ================================================================= */}
-              <div className="space-y-1.5 p-3.5 rounded-xl bg-surface-elevated/40 hairline-border surface-bevel">
-                <label className="block text-xs font-mono font-bold uppercase text-slate-800 dark:text-slate-200">
-                  Chế Độ Khung Hình Sản Phẩm (Image Display Mode)
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+              <div className="space-y-2.5 p-4 rounded-xl bg-surface-elevated/40 hairline-border surface-bevel">
+                <div className="flex items-center justify-between flex-wrap gap-1">
+                  <label className="block text-xs font-mono font-bold uppercase text-slate-800 dark:text-slate-200">
+                    Chế Độ Tương Thích & Hòa Trộn Background (Background Harmony)
+                  </label>
+                  <span className="text-[10px] font-mono text-signal-cyan">
+                    Khắc phục triệt để khung ảnh chữ nhật tách biệt với nền tối
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 pt-1">
+                  {/* Option 1: Studio Smart Cutout & Glow */}
                   <button
                     type="button"
-                    onClick={() => setImageFit('contain')}
-                    className={`p-3 rounded-xl border text-left transition-all flex items-start gap-2.5 cursor-pointer ${
-                      imageFit === 'contain'
+                    onClick={() => {
+                      setImageFit('contain');
+                      setRemoveWhiteBg(true);
+                    }}
+                    className={`p-3 rounded-xl border text-left transition-all flex flex-col justify-between gap-2 cursor-pointer ${
+                      imageFit === 'contain' && removeWhiteBg
                         ? 'border-signal-cyan bg-signal-cyan/10 ring-2 ring-signal-cyan/30 shadow-sm'
                         : 'border-slate-300 dark:border-white/10 hover:border-slate-400 dark:hover:border-white/20 bg-surface-subtle/20'
                     }`}
                   >
-                    <div
-                      className={`mt-0.5 w-4 h-4 rounded-full border flex items-center justify-center flex-shrink-0 ${
-                        imageFit === 'contain' ? 'border-signal-cyan bg-signal-cyan text-white' : 'border-slate-400'
-                      }`}
-                    >
-                      {imageFit === 'contain' && <div className="w-1.5 h-1.5 rounded-full bg-slate-950" />}
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                        <span>Vừa vặn khung hình (Fit 2/3)</span>
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                          <Sparkles className="w-3.5 h-3.5 text-signal-cyan flex-shrink-0" />
+                          <span>Tách Nền & Hòa Trộn Studio</span>
+                        </span>
                         <span className="text-[9px] px-1.5 py-0.5 rounded font-mono bg-signal-cyan/20 text-cyan-400 font-semibold">
-                          Khuyên dùng
+                           Tối ưu nhất
                         </span>
                       </div>
-                      <p className="text-[11px] text-slate-500 mt-0.5">
-                        Hiển thị trọn vẹn sản phẩm ở 2/3 bên phải cùng nền mờ chiều sâu. Không bị zoom cắt xén hay che khuất.
+                      <p className="text-[11px] text-slate-500 leading-relaxed">
+                        Tự động khử khung nền trắng/đơn sắc quanh sản phẩm, tạo quầng sáng studio đồng bộ màu theme và đổ bóng 3D sắc nét.
                       </p>
                     </div>
                   </button>
 
+                  {/* Option 2: Soft Vignette Showcase */}
                   <button
                     type="button"
-                    onClick={() => setImageFit('cover')}
-                    className={`p-3 rounded-xl border text-left transition-all flex items-start gap-2.5 cursor-pointer ${
+                    onClick={() => {
+                      setImageFit('contain');
+                      setRemoveWhiteBg(false);
+                    }}
+                    className={`p-3 rounded-xl border text-left transition-all flex flex-col justify-between gap-2 cursor-pointer ${
+                      imageFit === 'contain' && !removeWhiteBg
+                        ? 'border-signal-cyan bg-signal-cyan/10 ring-2 ring-signal-cyan/30 shadow-sm'
+                        : 'border-slate-300 dark:border-white/10 hover:border-slate-400 dark:hover:border-white/20 bg-surface-subtle/20'
+                    }`}
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                          <Layers className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
+                          <span>Khung Nổi Làm Mềm Viền</span>
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 leading-relaxed">
+                        Hiển thị ở 2/3 bên phải kèm hiệu ứng feather làm mờ dịu 4 cạnh ảnh, giúp ảnh chụp góc máy hòa vào nền tối tự nhiên.
+                      </p>
+                    </div>
+                  </button>
+
+                  {/* Option 3: Full-bleed Cover */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setImageFit('cover');
+                      setRemoveWhiteBg(false);
+                    }}
+                    className={`p-3 rounded-xl border text-left transition-all flex flex-col justify-between gap-2 cursor-pointer ${
                       imageFit === 'cover'
                         ? 'border-signal-cyan bg-signal-cyan/10 ring-2 ring-signal-cyan/30 shadow-sm'
                         : 'border-slate-300 dark:border-white/10 hover:border-slate-400 dark:hover:border-white/20 bg-surface-subtle/20'
                     }`}
                   >
-                    <div
-                      className={`mt-0.5 w-4 h-4 rounded-full border flex items-center justify-center flex-shrink-0 ${
-                        imageFit === 'cover' ? 'border-signal-cyan bg-signal-cyan text-white' : 'border-slate-400'
-                      }`}
-                    >
-                      {imageFit === 'cover' && <div className="w-1.5 h-1.5 rounded-full bg-slate-950" />}
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold text-slate-900 dark:text-white">
-                        Tràn toàn bộ khung (Cover)
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                          <Maximize2 className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+                          <span>Tràn Viền Toàn Khung (Cover)</span>
+                        </span>
                       </div>
-                      <p className="text-[11px] text-slate-500 mt-0.5">
-                        Phủ kín toàn bộ slide. Phù hợp cho banner đồ họa thiết kế sẵn tỷ lệ 21:9 hoặc ảnh phối cảnh.
+                      <p className="text-[11px] text-slate-500 leading-relaxed">
+                        Phủ kín 100% khung hình 21:9 kèm lớp phủ gradient bảo vệ chữ. Phù hợp cho ảnh nghệ thuật hoặc banner thiết kế sẵn.
                       </p>
                     </div>
                   </button>
                 </div>
-              </div>
 
-              {/* =================================================================
-               * 3.2 STUDIO WHITE BACKGROUND BLENDING (HÒA TRỘN VÀO NỀN TỐI)
-               * ================================================================= */}
-              <div className="p-3.5 rounded-xl bg-surface-elevated/40 hairline-border surface-bevel space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-signal-cyan" />
-                    <span className="text-xs font-bold text-slate-900 dark:text-white">
-                      Khử viền nền trắng (Hòa trộn vào nền tối)
-                    </span>
-                    <span className="text-[9px] px-1.5 py-0.5 rounded font-mono font-semibold bg-emerald-500/10 text-emerald-600 dark:text-signal-emerald border border-emerald-500/20">
-                      Studio Spotlight
-                    </span>
+                {/* Fine-grained toggle for Studio White-BG Removal */}
+                {imageFit === 'contain' && (
+                  <div className="pt-2.5 mt-2 border-t hairline-border flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] font-mono text-slate-600 dark:text-slate-300">
+                        Khử viền nền trắng / đơn sắc chuyên sâu (Studio Cutout):
+                      </span>
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-signal-emerald border border-emerald-500/20">
+                        {previewBlendMode === 'cutout'
+                          ? 'Đã kích hoạt tách nền'
+                          : 'Tự động làm mềm cạnh'}
+                      </span>
+                    </div>
+
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={removeWhiteBg}
+                        onChange={(e) => setRemoveWhiteBg(e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-9 h-5 bg-slate-300 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-signal-cyan"></div>
+                    </label>
                   </div>
-
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={removeWhiteBg}
-                      onChange={(e) => setRemoveWhiteBg(e.target.checked)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-9 h-5 bg-slate-300 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-signal-cyan"></div>
-                  </label>
-                </div>
-                <p className="text-[11px] text-slate-500 leading-relaxed">
-                  Tự động loại bỏ khung chữ nhật màu trắng của ảnh sản phẩm, tạo đốm sáng studio dịu nhẹ và bóng đổ mềm tự nhiên, giúp sản phẩm hòa quyện liền mạch với nền tối của slide mà không làm mất phím trắng hay viền bạc của sản phẩm.
-                </p>
+                )}
               </div>
 
               {/* =================================================================
