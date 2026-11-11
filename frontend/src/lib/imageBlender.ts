@@ -10,7 +10,49 @@ interface ProcessedImageResult {
   hasLightBg: boolean;
 }
 
+const MAX_CACHE_ENTRIES = 80;
 const processedImageCache = new Map<string, ProcessedImageResult>();
+
+function setProcessedCache(key: string, value: ProcessedImageResult) {
+  if (processedImageCache.size >= MAX_CACHE_ENTRIES && !processedImageCache.has(key)) {
+    const oldestKey = processedImageCache.keys().next().value;
+    if (oldestKey !== undefined) {
+      processedImageCache.delete(oldestKey);
+    }
+  }
+  processedImageCache.set(key, value);
+}
+
+/**
+ * Normalizes an image URL or internal relative `/uploads/...` path.
+ */
+export function normalizeImageSrc(raw: string): string {
+  const trimmed = (raw || '').trim();
+  if (!trimmed) return '';
+  if (/^uploads\/.+/i.test(trimmed)) {
+    return `/${trimmed}`;
+  }
+  return trimmed;
+}
+
+/**
+ * Validates whether a string is a safe, renderable image source (`http://`, `https://`, `/...`, or `data:image/`).
+ */
+export function isValidImageSrc(val: string): boolean {
+  const trimmed = (val || '').trim();
+  if (!trimmed) return false;
+  if (trimmed.startsWith('data:image/')) return true;
+  if (trimmed.startsWith('/') && !trimmed.startsWith('//') && trimmed.length > 1) {
+    return true;
+  }
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return false;
+    return Boolean(parsed.hostname && (parsed.hostname.includes('.') || parsed.hostname === 'localhost'));
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Returns CSS properties for smart blending when CSS fallback (softbox) or scenic vignette is used.
@@ -61,15 +103,16 @@ export async function processProductImageHarmony(
   imageUrl: string,
   forceRemoveBg: boolean = false
 ): Promise<ProcessedImageResult> {
-  if (!imageUrl) {
+  const cleanUrl = normalizeImageSrc(imageUrl);
+  if (!cleanUrl || !isValidImageSrc(cleanUrl)) {
     return { url: '', mode: 'scenic', hasLightBg: false };
   }
 
   if (typeof window === 'undefined') {
-    return { url: imageUrl, mode: forceRemoveBg ? 'softbox' : 'scenic', hasLightBg: false };
+    return { url: cleanUrl, mode: forceRemoveBg ? 'softbox' : 'scenic', hasLightBg: false };
   }
 
-  const cacheKey = `${imageUrl}::${forceRemoveBg ? '1' : '0'}`;
+  const cacheKey = `${cleanUrl}::${forceRemoveBg ? '1' : '0'}`;
   const cached = processedImageCache.get(cacheKey);
   if (cached) {
     return cached;
@@ -92,11 +135,11 @@ export async function processProductImageHarmony(
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         if (!ctx) {
           const fallback: ProcessedImageResult = {
-            url: imageUrl,
+            url: cleanUrl,
             mode: forceRemoveBg ? 'softbox' : 'scenic',
-            hasLightBg: false,
+            hasLightBg: Boolean(forceRemoveBg),
           };
-          processedImageCache.set(cacheKey, fallback);
+          setProcessedCache(cacheKey, fallback);
           resolve(fallback);
           return;
         }
@@ -155,8 +198,8 @@ export async function processProductImageHarmony(
 
         // Already a transparent cutout PNG
         if (perimeterCount > 0 && transparentPerimeter / perimeterCount > 0.22) {
-          const res: ProcessedImageResult = { url: imageUrl, mode: 'cutout', hasLightBg: false };
-          processedImageCache.set(cacheKey, res);
+          const res: ProcessedImageResult = { url: cleanUrl, mode: 'cutout', hasLightBg: false };
+          setProcessedCache(cacheKey, res);
           resolve(res);
           return;
         }
@@ -178,11 +221,11 @@ export async function processProductImageHarmony(
         // If it's a scenic/lifestyle photo (not a light box or colored studio backdrop), preserve scenery and use vignette feathering
         if (!hasStudioBg) {
           const scenicResult: ProcessedImageResult = {
-            url: imageUrl,
+            url: cleanUrl,
             mode: 'scenic',
             hasLightBg: false,
           };
-          processedImageCache.set(cacheKey, scenicResult);
+          setProcessedCache(cacheKey, scenicResult);
           resolve(scenicResult);
           return;
         }
@@ -191,11 +234,11 @@ export async function processProductImageHarmony(
         // use softbox edge feathering while still reporting hasLightBg: true so the dark banner backdrop is never washed out.
         if (!forceRemoveBg) {
           const softboxResult: ProcessedImageResult = {
-            url: imageUrl,
+            url: cleanUrl,
             mode: 'softbox',
             hasLightBg: true,
           };
-          processedImageCache.set(cacheKey, softboxResult);
+          setProcessedCache(cacheKey, softboxResult);
           resolve(softboxResult);
           return;
         }
@@ -756,11 +799,11 @@ export async function processProductImageHarmony(
         const bgRatio = bgCount / totalPixels;
         if (bgRatio < 0.05 || bgRatio > 0.95) {
           const fallbackRes: ProcessedImageResult = {
-            url: imageUrl,
+            url: cleanUrl,
             mode: 'softbox',
             hasLightBg: true,
           };
-          processedImageCache.set(cacheKey, fallbackRes);
+          setProcessedCache(cacheKey, fallbackRes);
           resolve(fallbackRes);
           return;
         }
@@ -849,30 +892,31 @@ export async function processProductImageHarmony(
           mode: 'cutout',
           hasLightBg: true,
         };
-        processedImageCache.set(cacheKey, result);
+        setProcessedCache(cacheKey, result);
         resolve(result);
       } catch {
         // Graceful fallback if CORS taints canvas
         const fallbackResult: ProcessedImageResult = {
-          url: imageUrl,
+          url: cleanUrl,
           mode: forceRemoveBg ? 'softbox' : 'scenic',
           hasLightBg: Boolean(forceRemoveBg),
         };
-        processedImageCache.set(cacheKey, fallbackResult);
+        setProcessedCache(cacheKey, fallbackResult);
         resolve(fallbackResult);
       }
     };
 
     img.onerror = () => {
       const errResult: ProcessedImageResult = {
-        url: imageUrl,
-        mode: 'scenic',
-        hasLightBg: false,
+        url: cleanUrl,
+        mode: forceRemoveBg ? 'softbox' : 'scenic',
+        hasLightBg: Boolean(forceRemoveBg),
       };
+      setProcessedCache(cacheKey, errResult);
       resolve(errResult);
     };
 
-    img.src = imageUrl;
+    img.src = cleanUrl;
   });
 }
 
@@ -900,7 +944,11 @@ export function useBlendedProductImage(
   hasLightBg: boolean;
   isProcessing: boolean;
 } {
-  const currentKey = `${src || ''}::${removeWhiteBg ? '1' : '0'}`;
+  const cleanSrc = normalizeImageSrc(src);
+  const validSrc = isValidImageSrc(cleanSrc) ? cleanSrc : '';
+  const currentKey = `${validSrc}::${removeWhiteBg ? '1' : '0'}`;
+  const cachedSync = validSrc ? processedImageCache.get(currentKey) : undefined;
+
   const [resolved, setResolved] = useState<{
     key: string;
     url: string;
@@ -909,29 +957,37 @@ export function useBlendedProductImage(
   } | null>(null);
 
   useEffect(() => {
-    if (!src) {
+    if (!validSrc) {
       return;
     }
 
     let isCancelled = false;
-    const key = `${src}::${removeWhiteBg ? '1' : '0'}`;
 
-    processProductImageHarmony(src, removeWhiteBg).then((res) => {
+    processProductImageHarmony(validSrc, removeWhiteBg).then((res) => {
       if (isCancelled) return;
-      setResolved({
-        key,
-        url: res.url || src,
-        mode: res.mode,
-        hasLightBg: res.hasLightBg,
-      });
+      const nextUrl = res.url || validSrc;
+      setResolved((prev) =>
+        prev &&
+        prev.key === currentKey &&
+        prev.url === nextUrl &&
+        prev.mode === res.mode &&
+        prev.hasLightBg === res.hasLightBg
+          ? prev
+          : {
+              key: currentKey,
+              url: nextUrl,
+              mode: res.mode,
+              hasLightBg: res.hasLightBg,
+            }
+      );
     });
 
     return () => {
       isCancelled = true;
     };
-  }, [src, removeWhiteBg]);
+  }, [validSrc, removeWhiteBg, currentKey]);
 
-  if (!src) {
+  if (!validSrc) {
     return {
       displaySrc: '',
       isBlended: false,
@@ -941,16 +997,17 @@ export function useBlendedProductImage(
     };
   }
 
-  const isReady = resolved?.key === currentKey;
-  const activeMode: ImageBlendMode = isReady
-    ? resolved.mode
+  const effective = cachedSync ?? (resolved?.key === currentKey ? resolved : null);
+  const isReady = Boolean(effective);
+  const activeMode: ImageBlendMode = effective
+    ? effective.mode
     : removeWhiteBg
     ? 'softbox'
     : 'scenic';
-  const activeHasLightBg = isReady ? resolved.hasLightBg : Boolean(removeWhiteBg);
+  const activeHasLightBg = effective ? effective.hasLightBg : Boolean(removeWhiteBg);
 
   return {
-    displaySrc: isReady ? resolved.url : src,
+    displaySrc: effective ? effective.url || validSrc : validSrc,
     isBlended: activeMode === 'cutout' || activeMode === 'softbox',
     blendMode: activeMode,
     hasLightBg: activeHasLightBg,

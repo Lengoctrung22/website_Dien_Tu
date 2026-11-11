@@ -43,7 +43,7 @@ export const getAllBannersAdmin = async (_req: Request, res: Response) => {
   try {
     const banners = await Banner.find()
       .sort({ displayOrder: 1, createdAt: -1 })
-      .populate('productId', 'name slug price discountPrice images category brand stock');
+      .populate('productId', 'name slug price discountPrice images category brand stock specs description');
 
     return res.status(200).json({
       success: true,

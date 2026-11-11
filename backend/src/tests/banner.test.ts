@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import { Banner } from '../models/Banner';
 import { Product } from '../models/Product';
 import { seedInitialBanners } from '../scripts/seed';
+import { getProducts } from '../controllers/productController';
 import {
   getActiveBanners,
   getAllBannersAdmin,
@@ -71,14 +72,50 @@ async function runBannerTests() {
     assert.ok(mockResJson.data.every((b: any) => b.isActive === true));
     console.log('   ✅ PASS: Public getActiveBanners returns only active items');
 
-    // 3. Admin getAllBannersAdmin Test
-    console.log('3. Testing getAllBannersAdmin...');
+    // 3. Admin getAllBannersAdmin & Quick Product Picker Hot Order Test
+    console.log('3. Testing getAllBannersAdmin & Quick Product Picker hot_order...');
+    const nonHotProduct = await Product.create({
+      name: 'Standard Mouse Non-Hot',
+      slug: 'standard-mouse-non-hot',
+      category: 'mouse',
+      brand: 'Logitech',
+      price: 1000000,
+      stock: 10,
+      isHot: false,
+      hotOrder: 0,
+      images: ['/uploads/non-hot.png'],
+      specs: { sensor: 'HERO 25K' },
+      description: 'Chuột phổ thông',
+    });
+    const hotProduct = await Product.create({
+      name: 'Razer Viper V3 Pro Featured',
+      slug: 'razer-viper-v3-pro-featured',
+      category: 'mouse',
+      brand: 'Razer',
+      price: 4190000,
+      discountPrice: 3890000,
+      stock: 5,
+      isHot: true,
+      hotOrder: 2,
+      images: ['/uploads/hot-viper.png'],
+      specs: { sensor: 'Focus Pro 35K', pollingRate: '8000Hz' },
+      description: 'Chuột thi đấu siêu nhẹ 54g',
+    });
+
+    await getProducts({ query: { sortBy: 'hot_order', limit: '8' } } as any, mockRes);
+    assert.strictEqual(mockResJson.success, true);
+    assert.strictEqual(
+      mockResJson.data.products[0]._id.toString(),
+      hotProduct._id.toString(),
+      'sortBy=hot_order must return isHot=true (hotOrder=2) product before isHot=false (hotOrder=0) product'
+    );
+
     await getAllBannersAdmin({} as any, mockRes);
     assert.strictEqual(mockResJson.data.length, 4, 'Admin route should return all banners including inactive');
-    console.log('   ✅ PASS: Admin getAllBannersAdmin returns all items');
+    console.log('   ✅ PASS: Admin getAllBannersAdmin & Quick Product Picker hot_order work accurately');
 
     // 4. Create Banner Test & Make Primary Hero
-    console.log('4. Testing createBanner with makePrimary...');
+    console.log('4. Testing createBanner with makePrimary & internal /uploads/ path...');
     const createReq: any = {
       body: {
         title: 'New Razer Viper V4 Pro',
@@ -86,13 +123,14 @@ async function runBannerTests() {
         desc: 'Đỉnh cao chuột esports thế hệ mới',
         badge: 'SẢN PHẨM MỚI 2026',
         tag: 'New Arrival',
-        image: 'https://example.com/viper-v4.jpg',
+        image: '/uploads/viper-v4.png',
         theme: 'rose',
         cta: 'Đặt Trước Ngay',
         link: '/products/razer-viper-v4-pro',
         showSecondaryBtn: true,
         secondaryCta: 'Xem tất cả chuột',
         secondaryLink: '/products?category=mouse',
+        productId: hotProduct._id.toString(),
         makePrimary: true,
       },
     };
@@ -101,12 +139,19 @@ async function runBannerTests() {
     assert.strictEqual(mockResStatus, 201);
     assert.strictEqual(mockResJson.success, true);
     assert.strictEqual(mockResJson.data.title, 'New Razer Viper V4 Pro');
+    assert.strictEqual(mockResJson.data.image, '/uploads/viper-v4.png');
     assert.strictEqual(mockResJson.data.theme, 'rose');
     assert.strictEqual(mockResJson.data.imageFit, 'contain', 'Default imageFit must be contain');
     assert.ok(mockResJson.data.displayOrder < seeded[0].displayOrder, 'makePrimary banner should have displayOrder < first banner');
-    console.log('   ✅ PASS: createBanner creates banner and sets primary order correctly');
 
     const createdId = mockResJson.data._id;
+
+    await getAllBannersAdmin({} as any, mockRes);
+    const populatedPrimary = mockResJson.data[0];
+    assert.strictEqual(populatedPrimary.productId.specs.sensor, 'Focus Pro 35K', 'getAllBannersAdmin must populate productId.specs');
+    assert.strictEqual(populatedPrimary.productId.description, 'Chuột thi đấu siêu nhẹ 54g', 'getAllBannersAdmin must populate productId.description');
+    await Product.deleteMany({ _id: { $in: [nonHotProduct._id, hotProduct._id] } });
+    console.log('   ✅ PASS: createBanner creates banner, populates product specs/description, and sets primary order correctly');
 
     // 5. Update Banner Test
     console.log('5. Testing updateBanner...');

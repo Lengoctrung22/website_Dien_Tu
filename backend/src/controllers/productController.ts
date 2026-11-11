@@ -70,7 +70,7 @@ export const getProducts = async (req: Request, res: Response) => {
     } else if (sortBy === 'best_seller') {
       sortObj = { soldCount: -1 };
     } else if (sortBy === 'hot_order') {
-      sortObj = { hotOrder: 1, createdAt: -1 };
+      sortObj = { isHot: -1, hotOrder: 1, createdAt: -1 };
     }
 
     const pageNum = Math.max(1, parseInt(String(page)) || 1);

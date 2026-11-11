@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import {
   UploadCloud,
@@ -14,6 +14,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { fetchApi } from '@/lib/api';
+import { isValidImageSrc, normalizeImageSrc } from '@/lib/imageBlender';
 
 interface SingleImageUploadProps {
   label: string;
@@ -35,50 +36,110 @@ export function SingleImageUpload({
   const [mode, setMode] = useState<'upload' | 'url'>('upload');
   const [isUploading, setIsUploading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [failedImageSrc, setFailedImageSrc] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const normalizedValue = normalizeImageSrc(value);
+  const isValidFormat = isValidImageSrc(normalizedValue);
+  const imageLoadError = Boolean(normalizedValue && failedImageSrc === normalizedValue);
 
   useEffect(() => {
     onUploadingChange?.(isUploading);
   }, [isUploading, onUploadingChange]);
 
-  const handleUploadFile = async (file: File) => {
-    setErrorMsg(null);
+  const handleUploadFile = useCallback(
+    async (file: File) => {
+      setErrorMsg(null);
 
-    // Validate size (10MB max)
-    if (file.size > 10 * 1024 * 1024) {
-      setErrorMsg('Dung lượng tệp vượt quá 10MB. Vui lòng chọn tệp nhỏ hơn.');
-      return;
-    }
-
-    // Validate extension
-    const allowed = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif'];
-    if (!allowed.includes(file.type.toLowerCase())) {
-      setErrorMsg('Định dạng tệp không hợp lệ. Chỉ chấp nhận PNG, JPG, JPEG, WEBP, GIF.');
-      return;
-    }
-
-    setIsUploading(true);
-    try {
-      const formData = new FormData();
-      formData.append('image', file);
-
-      const res = await fetchApi('/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (res.success && res.data?.url) {
-        onChange(res.data.url);
-      } else {
-        setErrorMsg(res.message || 'Tải ảnh lên máy chủ thất bại');
+      // Validate size (10MB max)
+      if (file.size > 10 * 1024 * 1024) {
+        setErrorMsg('Dung lượng tệp vượt quá 10MB. Vui lòng chọn tệp nhỏ hơn.');
+        return;
       }
-    } catch {
-      setErrorMsg('Đã có lỗi xảy ra trong quá trình tải ảnh.');
-    } finally {
-      setIsUploading(false);
-    }
-  };
+
+      // Validate extension
+      const allowed = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif'];
+      if (!allowed.includes(file.type.toLowerCase())) {
+        setErrorMsg('Định dạng tệp không hợp lệ. Chỉ chấp nhận PNG, JPG, JPEG, WEBP, GIF.');
+        return;
+      }
+
+      setIsUploading(true);
+      try {
+        const formData = new FormData();
+        formData.append('image', file);
+
+        const res = await fetchApi('/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (res.success && res.data?.url) {
+          setFailedImageSrc(null);
+          onChange(res.data.url);
+        } else {
+          setErrorMsg(res.message || 'Tải ảnh lên máy chủ thất bại');
+        }
+      } catch {
+        setErrorMsg('Đã có lỗi xảy ra trong quá trình tải ảnh.');
+      } finally {
+        setIsUploading(false);
+      }
+    },
+    [onChange]
+  );
+
+  // Allow pasting image binary (Ctrl+V) anywhere while modal/uploader is mounted,
+  // without hijacking text pastes inside external <input>/<textarea> fields.
+  useEffect(() => {
+    const handleWindowPaste = (e: ClipboardEvent) => {
+      if (isUploading || e.defaultPrevented) return;
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      const activeEl = document.activeElement as HTMLElement | null;
+      const isInsideUploader = Boolean(activeEl && containerRef.current?.contains(activeEl));
+      const isExternalTextField = Boolean(
+        activeEl &&
+          !isInsideUploader &&
+          (activeEl.tagName === 'INPUT' ||
+            activeEl.tagName === 'TEXTAREA' ||
+            activeEl.isContentEditable)
+      );
+      const plainText = (e.clipboardData?.getData('text/plain') || '').trim();
+
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.type.startsWith('image/')) {
+          if (isExternalTextField && plainText.length > 0) {
+            return;
+          }
+          const file = item.getAsFile();
+          if (file) {
+            e.preventDefault();
+            handleUploadFile(file);
+            return;
+          }
+        }
+      }
+
+      // If focused inside the uploader dropzone (not in an input) and user pastes a valid image URL/path
+      if (isInsideUploader && activeEl?.tagName !== 'INPUT' && plainText) {
+        const normalized = normalizeImageSrc(plainText);
+        if (isValidImageSrc(normalized)) {
+          e.preventDefault();
+          setErrorMsg(null);
+          setFailedImageSrc(null);
+          onChange(normalized);
+        }
+      }
+    };
+
+    window.addEventListener('paste', handleWindowPaste);
+    return () => window.removeEventListener('paste', handleWindowPaste);
+  }, [isUploading, handleUploadFile, onChange]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -109,8 +170,25 @@ export function SingleImageUpload({
     }
   };
 
+  const handlePaste = (e: React.ClipboardEvent) => {
+    if (isUploading) return;
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.type.startsWith('image/')) {
+        const file = item.getAsFile();
+        if (file) {
+          e.preventDefault();
+          handleUploadFile(file);
+          return;
+        }
+      }
+    }
+  };
+
   return (
-    <div className="space-y-2">
+    <div ref={containerRef} className="space-y-2" onPaste={handlePaste}>
       <div className="flex items-center justify-between">
         <label className="block font-bold text-slate-800 dark:text-slate-200 text-xs">
           {label} {required && <span className="text-rose-600 dark:text-signal-rose">*</span>}
@@ -153,25 +231,71 @@ export function SingleImageUpload({
         <div className="space-y-2">
           <div className="relative">
             <input
-              type="url"
-              placeholder="https://images.unsplash.com/photo-..."
+              type="text"
+              placeholder="https://images.unsplash.com/photo-... hoặc /uploads/..."
               value={value}
-              onChange={(e) => onChange(e.target.value)}
+              onChange={(e) => {
+                setErrorMsg(null);
+                setFailedImageSrc(null);
+                onChange(e.target.value);
+              }}
+              onBlur={() => {
+                if (value) {
+                  const normalized = normalizeImageSrc(value);
+                  if (normalized !== value) {
+                    setFailedImageSrc(null);
+                    onChange(normalized);
+                  }
+                }
+              }}
               className="w-full pl-8 pr-3 py-2 rounded-lg bg-surface-subtle/40 dark:bg-surface-elevated hairline-border text-xs text-slate-900 dark:text-white placeholder:text-slate-500 focus:outline-none focus:border-slate-500 dark:focus:border-signal-cyan font-mono"
             />
             <LinkIcon className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
           </div>
-          {value && (
+          {value.trim() && (
             <div className="flex items-center gap-3 p-2 rounded-xl bg-surface-subtle/30 dark:bg-surface-elevated/70 hairline-border surface-bevel">
-              <div className="relative w-12 h-12 rounded-lg overflow-hidden hairline-border flex-shrink-0 bg-surface-subtle/50">
-                <Image src={value} alt="Preview" fill className="object-cover" unoptimized />
+              <div className="relative w-12 h-12 rounded-lg overflow-hidden hairline-border flex-shrink-0 bg-surface-subtle/50 flex items-center justify-center">
+                {!isValidFormat || imageLoadError ? (
+                  <AlertCircle className="w-5 h-5 text-rose-500" />
+                ) : (
+                  <Image
+                    src={normalizedValue}
+                    alt="Preview"
+                    fill
+                    className="object-cover"
+                    unoptimized
+                    onError={() => setFailedImageSrc(normalizedValue)}
+                    onLoad={() => setFailedImageSrc(null)}
+                  />
+                )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[11px] font-mono text-slate-600 dark:text-slate-400 truncate">{value}</p>
+                <p className="text-[11px] font-mono text-slate-600 dark:text-slate-400 truncate">{normalizedValue}</p>
+                {!isValidFormat ? (
+                  <p className="text-[10px] font-mono text-amber-600 dark:text-amber-400 mt-0.5">
+                    Đường dẫn cần bắt đầu bằng https://, http:// hoặc /uploads/...
+                  </p>
+                ) : imageLoadError ? (
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <p className="text-[10px] font-mono text-rose-600 dark:text-signal-rose">
+                      Không tải được ảnh từ đường dẫn này (404 hoặc bị chặn).
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setFailedImageSrc(null)}
+                      className="text-[10px] font-mono font-bold text-cyan-600 dark:text-signal-cyan hover:underline"
+                    >
+                      Thử lại
+                    </button>
+                  </div>
+                ) : null}
               </div>
               <button
                 type="button"
-                onClick={() => onChange('')}
+                onClick={() => {
+                  setFailedImageSrc(null);
+                  onChange('');
+                }}
                 className="p-1 rounded-lg text-rose-600 dark:text-signal-rose hover:bg-rose-500/10 transition-colors"
                 title="Xóa ảnh"
               >
@@ -182,19 +306,47 @@ export function SingleImageUpload({
         </div>
       ) : (
         <div>
-          {value ? (
+          {value.trim() ? (
             /* Preview existing uploaded image */
             <div className="relative group rounded-xl hairline-border surface-bevel bg-surface-subtle/30 dark:bg-surface-elevated/70 p-3 flex items-center gap-4 transition-all">
-              <div className="relative w-16 h-16 rounded-lg overflow-hidden hairline-border flex-shrink-0 bg-surface-subtle/50 shadow-sm">
-                <Image src={value} alt="Thumbnail" fill className="object-cover" unoptimized />
+              <div className="relative w-16 h-16 rounded-lg overflow-hidden hairline-border flex-shrink-0 bg-surface-subtle/50 shadow-sm flex items-center justify-center">
+                {!isValidFormat || imageLoadError ? (
+                  <AlertCircle className="w-6 h-6 text-rose-500" />
+                ) : (
+                  <Image
+                    src={normalizedValue}
+                    alt="Thumbnail"
+                    fill
+                    className="object-cover"
+                    unoptimized
+                    onError={() => setFailedImageSrc(normalizedValue)}
+                    onLoad={() => setFailedImageSrc(null)}
+                  />
+                )}
               </div>
 
               <div className="flex-1 min-w-0 space-y-1">
-                <div className="flex items-center gap-1.5 text-emerald-700 dark:text-signal-emerald font-semibold text-xs">
-                  <ImageIcon className="w-3.5 h-3.5" />
-                  <span>Ảnh đã sẵn sàng</span>
-                </div>
-                <p className="text-[11px] font-mono text-slate-600 dark:text-slate-400 truncate max-w-xs">{value}</p>
+                {!isValidFormat || imageLoadError ? (
+                  <div className="flex items-center gap-1.5 text-rose-600 dark:text-signal-rose font-semibold text-xs">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    <span>Không thể hiển thị ảnh (kiểm tra lại đường dẫn)</span>
+                    {imageLoadError && (
+                      <button
+                        type="button"
+                        onClick={() => setFailedImageSrc(null)}
+                        className="ml-1 text-[11px] font-mono font-bold text-cyan-600 dark:text-signal-cyan hover:underline"
+                      >
+                        Thử lại
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1.5 text-emerald-700 dark:text-signal-emerald font-semibold text-xs">
+                    <ImageIcon className="w-3.5 h-3.5" />
+                    <span>Ảnh đã sẵn sàng (Hỗ trợ Ctrl+V để dán ảnh mới)</span>
+                  </div>
+                )}
+                <p className="text-[11px] font-mono text-slate-600 dark:text-slate-400 truncate max-w-xs">{normalizedValue}</p>
 
                 <div className="flex items-center gap-2 pt-1">
                   <button
@@ -211,10 +363,9 @@ export function SingleImageUpload({
                     <span>Đổi ảnh</span>
                   </button>
 
-                  {((value.trim().startsWith('/') && !value.trim().startsWith('//')) ||
-                    /^https?:\/\//i.test(value.trim())) && (
+                  {isValidFormat && (
                     <a
-                      href={value.trim()}
+                      href={normalizedValue}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="p-1 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors"
@@ -226,7 +377,10 @@ export function SingleImageUpload({
 
                   <button
                     type="button"
-                    onClick={() => onChange('')}
+                    onClick={() => {
+                      setFailedImageSrc(null);
+                      onChange('');
+                    }}
                     className="p-1 rounded-lg text-slate-500 hover:text-rose-600 dark:text-slate-400 dark:hover:text-signal-rose transition-colors"
                     title="Xóa ảnh"
                   >
@@ -238,11 +392,18 @@ export function SingleImageUpload({
           ) : (
             /* Upload Dropzone */
             <div
+              tabIndex={0}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
               onClick={() => !isUploading && fileInputRef.current?.click()}
-              className={`border border-dashed rounded-xl p-4 text-center cursor-pointer transition-all ${
+              onKeyDown={(e) => {
+                if ((e.key === 'Enter' || e.key === ' ') && !isUploading) {
+                  e.preventDefault();
+                  fileInputRef.current?.click();
+                }
+              }}
+              className={`border border-dashed rounded-xl p-4 text-center cursor-pointer transition-all focus:outline-none focus:border-signal-cyan ${
                 isDragging
                   ? 'border-slate-900 bg-slate-100 dark:border-signal-cyan dark:bg-signal-cyan/10 scale-[0.99]'
                   : 'border-slate-300 dark:border-white/10 hover:border-slate-400 dark:hover:border-signal-cyan/50 bg-surface-subtle/20 dark:bg-surface-elevated/40'
@@ -250,7 +411,7 @@ export function SingleImageUpload({
             >
               {isUploading ? (
                 <div className="flex flex-col items-center justify-center py-3 space-y-2">
-                  <Loader2 className="w-6 h-6 text-slate-900 dark:text-black animate-spin" />
+                  <Loader2 className="w-6 h-6 text-slate-900 dark:text-signal-cyan animate-spin" />
                   <p className="text-xs font-bold text-slate-900 dark:text-white">
                     Đang tải ảnh lên máy chủ...
                   </p>
@@ -262,7 +423,7 @@ export function SingleImageUpload({
                     <UploadCloud className="w-4 h-4" />
                   </div>
                   <p className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-                    Bấm để chọn tệp hoặc kéo thả ảnh vào đây
+                    Bấm để chọn tệp, kéo thả hoặc dán ảnh (Ctrl+V) vào đây
                   </p>
                   <p className="text-[10px] font-mono text-slate-600 dark:text-slate-400">{helperText}</p>
                 </div>
@@ -404,7 +565,7 @@ export function GalleryUpload({
             className="aspect-square rounded-lg border border-dashed border-slate-300 dark:border-white/10 hover:border-slate-400 dark:hover:border-signal-cyan flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all bg-surface-subtle/20 dark:bg-surface-elevated/40"
           >
             {isUploading ? (
-              <Loader2 className="w-4 h-4 animate-spin text-slate-900 dark:text-black" />
+              <Loader2 className="w-4 h-4 animate-spin text-slate-900 dark:text-signal-cyan" />
             ) : (
               <>
                 <Plus className="w-4 h-4" />
